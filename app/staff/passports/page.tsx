@@ -1,6 +1,5 @@
 import { requireStaff } from "@/lib/guards";
 import { prisma } from "@/lib/prisma";
-import { RoleNav } from "@/components/role-nav";
 import { Field, PageShell, Select, SubmitButton } from "@/components/admin-ui";
 import { createPassport } from "@/app/actions/passport";
 import { PassportCard } from "@/components/passport-card";
@@ -22,9 +21,7 @@ export default async function StaffPassportsPage() {
   ]);
 
   return (
-    <div className="flex min-h-svh flex-col">
-      <RoleNav pathname="/staff/passports" role="STAFF" />
-      <PageShell
+    <PageShell
         title="Passports"
         subtitle="Enter passports received from agencies via collectors; track status, dates, and comments."
       >
@@ -167,6 +164,5 @@ export default async function StaffPassportsPage() {
           </ul>
         )}
       </PageShell>
-    </div>
   );
 }

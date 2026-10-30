@@ -4,8 +4,10 @@ import { RoleNav } from "@/components/role-nav";
 import { PageShell, SubmitButton } from "@/components/admin-ui";
 import { requestPayment } from "@/app/actions/payment";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
+import { NativeSelect } from "@/components/ui/native-select";
 import { IdCardIcon } from "lucide-react";
 
 export const metadata = { title: "Agency — Visa Management" };
@@ -63,11 +65,10 @@ export default async function AgencyPage() {
               const delivered = passport.status === "DELIVERED";
               const payment = passport.payment;
               const paid = payment?.status === "PAID";
-              const pending = payment && payment.status === "UNPAID" && !payment.rejectedAt;
-              const rejected = payment && payment.status === "UNPAID" && payment.rejectedAt;
-              // Task 6.2 — pay button ONLY on delivered passports, and only
-              // while there is no paid or pending payment.
-              const showPay = delivered && !paid && !pending;
+              const requested = payment?.status === "REQUESTED";
+              // Task 6.2 — pay button ONLY on delivered passports with no
+              // payment request yet (status UNPAID).
+              const showPay = delivered && payment?.status === "UNPAID";
 
               return (
                 <li key={passport.id}>
@@ -82,13 +83,10 @@ export default async function AgencyPage() {
                         {paid ? (
                           <Badge className="bg-emerald-500/15 text-emerald-600">Paid</Badge>
                         ) : null}
-                        {pending ? (
+                        {requested ? (
                           <Badge className="bg-amber-500/15 text-amber-600">
                             Payment awaiting approval
                           </Badge>
-                        ) : null}
-                        {rejected ? (
-                          <Badge variant="destructive">Payment rejected</Badge>
                         ) : null}
                       </div>
                       <p className="mt-1 text-sm">{passport.holderName}</p>

@@ -1,5 +1,4 @@
 import { requireStaff } from "@/lib/guards";
-import { RoleNav } from "@/components/role-nav";
 import { PageShell } from "@/components/admin-ui";
 import Link from "next/link";
 
@@ -22,9 +21,7 @@ export default async function StaffPage() {
   ];
 
   return (
-    <div className="flex min-h-svh flex-col">
-      <RoleNav pathname="/staff" role="STAFF" />
-      <PageShell title="Staff workspace" subtitle="Daily passport operations.">
+    <PageShell title="Staff workspace" subtitle="Daily passport operations.">
         <div className="grid gap-4 md:grid-cols-2">
           {cards.map((card) => (
             <Link
@@ -38,6 +35,5 @@ export default async function StaffPage() {
           ))}
         </div>
       </PageShell>
-    </div>
   );
 }

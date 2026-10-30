@@ -159,6 +159,13 @@ export async function createPassport(formData: FormData) {
       receiptDate: new Date(),
       // creating staff member = initial last editor
       ...lastEditorStamp(session),
+      // Every passport starts with an unpaid payment record
+      payment: {
+        create: {
+          amount: fee,
+          status: "UNPAID",
+        },
+      },
     },
   });
 

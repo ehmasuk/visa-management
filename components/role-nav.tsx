@@ -3,16 +3,18 @@ import { signOut } from "@/auth";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/theme-toggle";
+import { Stamp } from "lucide-react";
 
 export type NavItem = { href: string; label: string };
 
 const ADMIN_ITEMS: NavItem[] = [
   { href: "/admin", label: "Overview" },
   { href: "/admin/passports", label: "Passports" },
-  { href: "/admin/branches", label: "Branches" },
   { href: "/admin/agencies", label: "Agencies" },
-  { href: "/admin/collectors", label: "Collectors" },
   { href: "/admin/staff", label: "Staff" },
+  { href: "/admin/branches", label: "Branches" },
+  { href: "/admin/collectors", label: "Collectors" },
   { href: "/admin/visa-types", label: "Visa Types" },
   { href: "/admin/services", label: "Services" },
   { href: "/admin/reports", label: "Reports" },
@@ -45,35 +47,69 @@ export function RoleNav({
   role: "ADMIN" | "STAFF" | "AGENCY";
   userLabel?: string | null;
 }) {
+  // Admin routes now use shadcn Sidebar layout
+  if (role === "ADMIN") return null;
+
   return (
-    <header className="border-b border-sidebar-border bg-sidebar">
-      <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-6 gap-y-3 px-6 py-3">
-        <span className="text-sm font-semibold text-sidebar-foreground">
-          Visa Management
-        </span>
-        <nav className="flex flex-wrap gap-1">
-          {itemsForRole(role).map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={cn(
-                "rounded-lg px-3 py-1.5 text-sm font-medium transition-colors",
-                pathname === item.href || pathname.startsWith(`${item.href}/`)
-                  ? "bg-sidebar-primary text-sidebar-primary-foreground"
-                  : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-              )}
-            >
-              {item.label}
-            </Link>
-          ))}
-        </nav>
-        <div className="ml-auto flex items-center gap-3">
+    <header className="sticky top-0 z-40 border-b border-border/70 bg-background/95 backdrop-blur-md">
+      <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-x-4 gap-y-2.5 px-4 sm:px-6 py-2.5">
+        <div className="flex items-center gap-6">
+          <Link
+            href="/"
+            className="flex items-center gap-2.5 font-semibold text-sm tracking-tight text-foreground hover:opacity-90 transition-opacity"
+            title="Go to Homepage"
+          >
+            <div className="size-7 rounded-md bg-foreground text-background flex items-center justify-center font-bold shadow-xs">
+              <Stamp className="size-4" />
+            </div>
+            <span className="hidden sm:inline">Visa Management</span>
+          </Link>
+
+          <nav className="flex items-center gap-1 overflow-x-auto py-0.5 no-scrollbar">
+            {itemsForRole(role).map((item) => {
+              const isActive =
+                item.href === "/admin" || item.href === "/staff" || item.href === "/agency"
+                  ? pathname === item.href
+                  : pathname === item.href || pathname.startsWith(`${item.href}/`);
+
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={cn(
+                    "rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors whitespace-nowrap",
+                    isActive
+                      ? "bg-foreground text-background font-semibold shadow-xs"
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                  )}
+                >
+                  {item.label}
+                </Link>
+              );
+            })}
+          </nav>
+        </div>
+
+        <div className="flex items-center gap-2.5 ml-auto">
           {userLabel ? (
-            <span className="text-xs text-sidebar-foreground/70">{userLabel}</span>
+            <span className="hidden md:inline text-xs text-muted-foreground font-mono truncate max-w-[180px]">
+              {userLabel}
+            </span>
           ) : null}
-          <Badge variant="secondary">{role}</Badge>
+
+          <Badge variant="outline" className="font-mono text-[10px] tracking-wider uppercase px-2 py-0.5">
+            {role}
+          </Badge>
+
+          <ThemeToggle className="text-muted-foreground hover:text-foreground size-7" />
+
           <form action={signOutAction}>
-            <Button type="submit" variant="ghost" size="xs">
+            <Button
+              type="submit"
+              variant="ghost"
+              size="xs"
+              className="text-xs text-muted-foreground hover:text-destructive cursor-pointer"
+            >
               Sign out
             </Button>
           </form>

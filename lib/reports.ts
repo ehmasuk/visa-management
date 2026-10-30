@@ -79,7 +79,12 @@ type ReportParams = {
  * Requirement: Admin views passport count report — passports collected,
  * grouped by day / month / agency.
  */
-export type PassportReportRow = Bucket & { count: number };
+export type PassportReportRow = Bucket & {
+  count: number;
+  receivedCount: number;
+  deliveredCount: number;
+  totalFee: number;
+};
 
 export async function passportCountReport(
   params: ReportParams
@@ -104,17 +109,31 @@ export async function passportCountReport(
 
   const rows = await prisma.passport.findMany({
     where,
-    select: { receiptDate: true, agencyName: true },
+    select: { receiptDate: true, agencyName: true, status: true, fee: true },
   });
 
   const buckets = new Map<string, PassportReportRow>();
   for (const row of rows) {
     const { key, label } = bucketFor(groupBy, row.receiptDate, row.agencyName);
+    const isReceived = row.status === "RECEIVED";
+    const isDelivered = row.status === "DELIVERED";
+    const fee = row.fee || 0;
+
     const bucket = buckets.get(key);
     if (bucket) {
       bucket.count += 1;
+      if (isReceived) bucket.receivedCount += 1;
+      if (isDelivered) bucket.deliveredCount += 1;
+      bucket.totalFee += fee;
     } else {
-      buckets.set(key, { key, label, count: 1 });
+      buckets.set(key, {
+        key,
+        label,
+        count: 1,
+        receivedCount: isReceived ? 1 : 0,
+        deliveredCount: isDelivered ? 1 : 0,
+        totalFee: fee,
+      });
     }
   }
   return Array.from(buckets.values()).sort((a, b) => a.key.localeCompare(b.key));

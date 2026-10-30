@@ -183,4 +183,5 @@ enum PassportStatus {
 enum PaymentStatus {
   PAID
   UNPAID
+  REQUESTED
 }

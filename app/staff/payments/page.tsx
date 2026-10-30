@@ -1,6 +1,5 @@
 import { requireStaff } from "@/lib/guards";
 import { prisma } from "@/lib/prisma";
-import { RoleNav } from "@/components/role-nav";
 import { PageShell, SubmitButton } from "@/components/admin-ui";
 import { approvePayment, rejectPayment } from "@/app/actions/payment";
 import { Badge } from "@/components/ui/badge";
@@ -24,12 +23,10 @@ function fmt(value: Date | null): string {
 export default async function StaffPaymentsPage() {
   await requireStaff();
 
-  // Task 7.1 — pending list: unpaid requests (rejections excluded; they can
-  // be re-submitted by the agency and re-appear). On MongoDB an optional
-  // field that was never written is ABSENT from the document, so filter
-  // with isSet:false rather than rejectedAt:null.
+  // Task 7.1 — pending list: payment requests with status "REQUESTED" awaiting
+  // staff approval.
   const pending = await prisma.payment.findMany({
-    where: { status: "UNPAID", rejectedAt: { isSet: false } },
+    where: { status: "REQUESTED" },
     orderBy: { createdAt: "asc" },
     include: {
       passport: {
@@ -45,9 +42,7 @@ export default async function StaffPaymentsPage() {
   });
 
   return (
-    <div className="flex min-h-svh flex-col">
-      <RoleNav pathname="/staff/payments" role="STAFF" />
-      <PageShell
+    <PageShell
         title="Payment requests"
         subtitle="Agency payment requests on delivered passports — approve to mark paid, reject to keep unpaid."
       >
@@ -100,6 +95,5 @@ export default async function StaffPaymentsPage() {
           </ul>
         )}
       </PageShell>
-    </div>
   );
 }

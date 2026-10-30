@@ -45,9 +45,9 @@ export function PassportCard({
               <Badge variant="secondary">
                 {payment.status === "PAID"
                   ? "Paid"
-                  : payment.rejectedAt
-                    ? "Payment rejected"
-                    : "Payment requested"}
+                  : payment.status === "REQUESTED"
+                    ? "Requested"
+                    : "Unpaid"}
               </Badge>
             ) : null}
           </div>
