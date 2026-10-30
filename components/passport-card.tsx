@@ -18,16 +18,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Eye, Edit, Truck, CheckCircle2, Clock } from "lucide-react";
 
 type PassportWithPayment = Prisma.PassportGetPayload<{ include: { payment: true } }>;
 
-/**
- * Passport card shared by the staff and admin list pages: summary details,
- * View/Edit/Deliver buttons that reach the internal detail pages, the governed
- * status-change form, and the last-editor line. Admin and staff both drive the
- * inline forms; `returnTo` sends each server action back to the list page that
- * rendered the card (whitelisted server-side).
- */
 export function PassportCard({
   passport,
   collectors,
@@ -41,104 +35,131 @@ export function PassportCard({
   const [isDeliverOpen, setIsDeliverOpen] = useState(false);
 
   return (
-    <Card className="gap-0 py-3">
-      <CardContent className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="font-mono text-sm font-semibold">{passport.passportNumber}</span>
-            <Badge className={STATUS_BADGE[passport.status]}>{statusLabel(passport.status)}</Badge>
+    <Card className="rounded-2xl border border-border/80 bg-card p-5 shadow-xs hover:border-primary/40 transition-all">
+      <CardContent className="p-0 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="space-y-1.5">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="font-mono text-sm font-extrabold text-foreground">
+              {passport.passportNumber}
+            </span>
+            <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold ${STATUS_BADGE[passport.status]}`}>
+              <span className={`size-1.5 rounded-full ${passport.status === "DELIVERED" ? "bg-emerald-500" : "bg-blue-500"}`} />
+              {statusLabel(passport.status)}
+            </span>
             {payment ? (
-              <Badge variant="secondary">
+              <span
+                className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                  payment.status === "PAID"
+                    ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
+                    : payment.status === "REQUESTED"
+                    ? "bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20"
+                    : "bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20"
+                }`}
+              >
+                {payment.status === "PAID" ? (
+                  <CheckCircle2 className="size-3" />
+                ) : payment.status === "REQUESTED" ? (
+                  <Clock className="size-3" />
+                ) : null}
                 {payment.status === "PAID"
                   ? "Paid"
                   : payment.status === "REQUESTED"
-                    ? "Requested"
-                    : "Unpaid"}
-              </Badge>
+                  ? "Payment Requested"
+                  : "Unpaid"}
+              </span>
             ) : null}
           </div>
-          <p className="mt-1 text-sm">
-            {passport.holderName} · <span className="text-muted-foreground">{passport.agencyName}</span>
+
+          <p className="text-sm font-bold text-foreground">
+            {passport.holderName} · <span className="text-muted-foreground font-medium">{passport.agencyName}</span>
           </p>
+
           <p className="text-xs text-muted-foreground">
-            Contact {passport.contactNumber} · fee ৳{passport.fee} · brought by {passport.collectorName}
-            {passport.deliveryCollectorName ? ` · delivered by ${passport.deliveryCollectorName}` : null}
-            {passport.visaTypeName ? ` · visa: ${passport.visaTypeName}` : ""}
-            {passport.serviceName ? ` · service: ${passport.serviceName}` : ""}
+            Contact: <span className="text-foreground font-medium">{passport.contactNumber}</span> · Fee: <span className="font-mono font-bold text-foreground">৳{passport.fee.toLocaleString()}</span> · Brought by: <span className="text-foreground font-medium">{passport.collectorName}</span>
+            {passport.deliveryCollectorName ? ` · Delivered by: ${passport.deliveryCollectorName}` : null}
+            {passport.visaTypeName ? ` · Visa: ${passport.visaTypeName}` : ""}
+            {passport.serviceName ? ` · Service: ${passport.serviceName}` : ""}
           </p>
-          <p className="mt-1 text-xs text-muted-foreground">
-            Received {fmt(passport.receiptDate)}
-            {passport.deliveryDate ? ` · delivered ${fmt(passport.deliveryDate)}` : ""}
-          </p>
-          {/* Last editor: refreshed by every update (entry, details, comment, status) */}
-          <p className="mt-1 text-xs text-muted-foreground">
-            Last edited by {lastEditorLine(passport.lastEditedByName, passport.lastEditedByRole, passport.lastEditedAt)}
-          </p>
-        </div>
-        <div className="flex flex-col items-end gap-3">
-          <div className="flex gap-2">
-            <Link
-              href={`/passports/${passport.id}`}
-              className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
-            >
-              View
-            </Link>
-            <Link
-              href={`/passports/${passport.id}/edit`}
-              className={cn(buttonVariants({ variant: "default", size: "sm" }))}
-            >
-              Edit
-            </Link>
-            {passport.status !== "DELIVERED" && (
+
+          <div className="flex flex-wrap items-center gap-x-3 text-[11px] text-muted-foreground pt-1">
+            <span>Received: {fmt(passport.receiptDate)}</span>
+            {passport.deliveryDate ? (
               <>
-                <button
-                  onClick={() => setIsDeliverOpen(true)}
-                  className={cn(
-                    buttonVariants({ variant: "default", size: "sm" }),
-                    "bg-emerald-600 text-emerald-foreground hover:bg-emerald-700"
-                  )}
-                >
-                  Deliver
-                </button>
-                <Dialog open={isDeliverOpen} onOpenChange={setIsDeliverOpen}>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Deliver Passport</DialogTitle>
-                      <DialogDescription>
-                        Assign a delivery collector to take this passport back to the agency.
-                      </DialogDescription>
-                    </DialogHeader>
-                    <form action={updatePassportStatus} className="flex flex-col gap-3">
-                      <input type="hidden" name="id" value={passport.id} />
-                      <input type="hidden" name="returnTo" value={returnTo} />
-                      <input type="hidden" name="status" value="DELIVERED" />
-                      <Select
-                        label="Delivery collector (delivery man)"
-                        name="deliveryCollectorName"
-                        defaultValue={passport.deliveryCollectorName ?? ""}
-                        options={[
-                          {
-                            value: "",
-                            label:
-                              collectors.length === 0
-                                ? "No collectors registered yet"
-                                : "Select a collector",
-                          },
-                          ...collectors.map((collector) => ({
-                            value: collector.name,
-                            label: collector.name,
-                          })),
-                        ]}
-                      />
-                      <DialogFooter>
-                        <SubmitButton variant="primary">Deliver</SubmitButton>
-                      </DialogFooter>
-                    </form>
-                  </DialogContent>
-                </Dialog>
+                <span>•</span>
+                <span className="text-emerald-600 dark:text-emerald-400 font-medium">
+                  Delivered: {fmt(passport.deliveryDate)}
+                </span>
               </>
-            )}
+            ) : null}
+            <span>•</span>
+            <span>
+              Last edited by {lastEditorLine(passport.lastEditedByName, passport.lastEditedByRole, passport.lastEditedAt)}
+            </span>
           </div>
+        </div>
+
+        <div className="flex items-center gap-2 self-start md:self-center shrink-0">
+          <Link
+            href={`/passports/${passport.id}`}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-border bg-card hover:bg-muted text-xs font-semibold text-foreground transition-all shadow-2xs"
+          >
+            <Eye className="size-3.5 text-muted-foreground" />
+            <span>View</span>
+          </Link>
+          <Link
+            href={`/passports/${passport.id}/edit`}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-border bg-card hover:bg-muted text-xs font-semibold text-foreground transition-all shadow-2xs"
+          >
+            <Edit className="size-3.5 text-muted-foreground" />
+            <span>Edit</span>
+          </Link>
+          {passport.status !== "DELIVERED" && (
+            <>
+              <button
+                onClick={() => setIsDeliverOpen(true)}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-xs font-bold text-white transition-all shadow-sm cursor-pointer"
+              >
+                <Truck className="size-3.5" />
+                <span>Deliver</span>
+              </button>
+              <Dialog open={isDeliverOpen} onOpenChange={setIsDeliverOpen}>
+                <DialogContent className="rounded-2xl sm:max-w-md">
+                  <DialogHeader>
+                    <DialogTitle className="text-lg font-bold">Assign Delivery Courier</DialogTitle>
+                    <DialogDescription className="text-xs text-muted-foreground">
+                      Assign a delivery collector to return this passport back to the agency.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <form action={updatePassportStatus} className="flex flex-col gap-4 mt-2">
+                    <input type="hidden" name="id" value={passport.id} />
+                    <input type="hidden" name="returnTo" value={returnTo} />
+                    <input type="hidden" name="status" value="DELIVERED" />
+                    <Select
+                      label="Delivery collector (delivery man)"
+                      name="deliveryCollectorName"
+                      defaultValue={passport.deliveryCollectorName ?? ""}
+                      options={[
+                        {
+                          value: "",
+                          label:
+                            collectors.length === 0
+                              ? "No collectors registered yet"
+                              : "Select a collector",
+                        },
+                        ...collectors.map((collector) => ({
+                          value: collector.name,
+                          label: collector.name,
+                        })),
+                      ]}
+                    />
+                    <DialogFooter className="mt-2">
+                      <SubmitButton variant="primary">Confirm Delivery</SubmitButton>
+                    </DialogFooter>
+                  </form>
+                </DialogContent>
+              </Dialog>
+            </>
+          )}
         </div>
       </CardContent>
     </Card>

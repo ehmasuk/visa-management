@@ -5,11 +5,11 @@ import { CustodyTerminal } from "@/components/custody-terminal";
 import { ThemeToggle } from "@/components/theme-toggle";
 import {
   ArrowRight,
-  Lock,
-  Stamp,
+  ShieldCheck,
   Truck,
-  CheckCircle2,
+  CreditCard,
   FileCheck,
+  Stamp,
 } from "lucide-react";
 
 export default async function Page() {
@@ -19,221 +19,183 @@ export default async function Page() {
   const dashboardHref = userRole ? roleHomePath(userRole) : "/dashboard";
 
   return (
-    <main className="relative min-h-svh flex flex-col justify-between overflow-x-hidden bg-background selection:bg-foreground selection:text-background">
-      {/* Background Architectural Patterns */}
-      <div className="absolute inset-0 pointer-events-none -z-10">
-        {/* Subtle grid mesh */}
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,oklch(0.5_0_0/0.04)_1px,transparent_1px),linear-gradient(to_bottom,oklch(0.5_0_0/0.04)_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_80%_60%_at_50%_20%,#000_70%,transparent_100%)]" />
-        {/* Subtle radial ambient warmth */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[450px] bg-foreground/[0.025] blur-[100px] rounded-full pointer-events-none" />
+    <main className="relative min-h-svh flex flex-col justify-between overflow-x-hidden bg-background">
+      {/* Ambient background glow accents */}
+      <div className="absolute inset-0 pointer-events-none -z-10 overflow-hidden">
+        <div className="absolute -top-32 left-1/2 -translate-x-1/2 w-[1000px] h-[550px] bg-gradient-to-b from-primary/10 via-blue-500/5 to-transparent blur-[120px] rounded-full" />
+        <div className="absolute top-[40%] right-[-10%] w-[500px] h-[400px] bg-emerald-500/5 blur-[100px] rounded-full" />
       </div>
 
       {/* Top Navigation Bar */}
-      <header className="w-full border-b border-border/60 bg-background/80 backdrop-blur-md sticky top-0 z-30">
+      <header className="w-full border-b border-border/70 bg-background/80 backdrop-blur-md sticky top-0 z-30 transition-colors">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           {/* Brand Mark */}
           <Link
             href="/"
             className="flex items-center gap-3 group transition-opacity hover:opacity-90"
           >
-            <div className="size-9 rounded-lg bg-foreground text-background flex items-center justify-center font-bold shadow-sm transition-transform group-hover:scale-[1.02]">
+            <div className="size-9 rounded-xl bg-gradient-to-br from-primary to-blue-600 text-primary-foreground flex items-center justify-center font-bold shadow-sm transition-transform group-hover:scale-105">
               <Stamp className="size-5" />
             </div>
             <div className="flex flex-col">
-              <span className="font-semibold text-sm tracking-tight text-foreground flex items-center gap-2">
+              <span className="font-bold text-sm tracking-tight text-foreground flex items-center gap-2">
                 Visa Management
-                <span className="text-[10px] font-mono font-medium uppercase px-1.5 py-0.5 rounded bg-muted text-muted-foreground border border-border/60">
+                <span className="text-[10px] font-semibold uppercase px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
                   Operations
                 </span>
               </span>
               <span className="text-[11px] text-muted-foreground hidden sm:block">
-                Passport & Payment Tracking
+                Passport Custody & Settlement
               </span>
             </div>
           </Link>
 
           {/* Right Navigation & Status */}
           <div className="flex items-center gap-3">
-            {/* System Status Pill */}
-            <div className="hidden sm:flex items-center gap-2 px-2.5 py-1 rounded-full border border-border/60 bg-muted/40 text-[11px] text-muted-foreground">
-              <span className="size-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span>Allow-List Active</span>
-            </div>
+
 
             {/* Light / Dark Mode Toggle */}
             <ThemeToggle className="text-muted-foreground hover:text-foreground" />
 
             {/* User Session Action */}
             {user ? (
-              <div className="flex items-center gap-2">
-                <Link
-                  href={dashboardHref}
-                  className="inline-flex items-center gap-2 rounded-lg bg-primary px-3.5 py-1.5 text-xs font-medium text-primary-foreground transition-all hover:bg-primary/90 shadow-sm"
-                >
-                  <span>
-                    {userRole === "ADMIN"
-                      ? "Admin Dashboard"
-                      : userRole === "STAFF"
-                      ? "Staff Workspace"
-                      : "Agency Portal"}
-                  </span>
-                  <ArrowRight className="size-3.5" />
-                </Link>
-              </div>
+              <Link
+                href={dashboardHref}
+                className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground transition-all hover:bg-primary/90 shadow-sm"
+              >
+                <span>
+                  {userRole === "ADMIN"
+                    ? "Admin Portal"
+                    : userRole === "STAFF"
+                    ? "Staff Workspace"
+                    : "Agency Portal"}
+                </span>
+                <ArrowRight className="size-3.5" />
+              </Link>
             ) : (
               <Link
                 href="/login"
-                className="inline-flex items-center gap-2 rounded-lg border border-border bg-background px-3.5 py-1.5 text-xs font-medium text-foreground transition-all hover:bg-muted shadow-xs"
+                className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground transition-all hover:bg-primary/90 shadow-sm"
               >
-                <span>Sign in</span>
-                <ArrowRight className="size-3.5 text-muted-foreground" />
+                <span>Sign In</span>
+                <ArrowRight className="size-3.5" />
               </Link>
             )}
           </div>
         </div>
       </header>
 
-      {/* Hero Section Container */}
-      <section className="relative flex-1 flex items-center py-6 sm:py-8 lg:py-12 my-auto">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
-            {/* Left Column: Authoritative Editorial Copy */}
-            <div className="lg:col-span-6 flex flex-col justify-center">
-              {/* Main Heading (No kicker/eyebrow, heading carries its own weight) */}
-              <h1 className="text-4xl sm:text-5xl lg:text-[3.25rem] font-bold tracking-tight text-foreground leading-[1.12]">
-                Passport tracking & visa workflow.
-              </h1>
+      {/* Spacious Hero Section */}
+      <section className="relative pt-12 pb-16 sm:pt-16 sm:pb-20 lg:pt-20 lg:pb-24">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="max-w-3xl mx-auto text-center mb-12 sm:mb-16">
+            {/* Pill Tag */}
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-xs font-semibold text-primary mb-6">
+              <ShieldCheck className="size-3.5 text-primary" />
+              <span>Registry-Gated Passport Operations</span>
+            </div>
 
-              {/* Subheading / Value Proposition */}
-              <p className="mt-6 text-base sm:text-lg text-muted-foreground leading-relaxed max-w-[65ch]">
-                A role-based web system for visa-processing offices and client
-                agencies. Track passports from physical intake through embassy
-                processing to delivery, with Gmail allow-lists and payment
-                tracking.
-              </p>
+            {/* Main Headline */}
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-foreground leading-[1.15]">
+              Passport custody and visa workflow, <span className="text-primary">simplified</span>.
+            </h1>
 
-              {/* Action Area */}
-              <div className="mt-8 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-                {user ? (
-                  <Link
-                    href={dashboardHref}
-                    className="inline-flex items-center justify-center gap-2.5 rounded-lg bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-sm transition-all hover:bg-primary/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
-                  >
-                    <span>
-                      Open{" "}
-                      {userRole === "ADMIN"
-                        ? "Admin Dashboard"
-                        : userRole === "STAFF"
-                        ? "Staff Workspace"
-                        : "Agency Portal"}
-                    </span>
-                    <ArrowRight className="size-4" />
-                  </Link>
-                ) : (
-                  <Link
-                    href="/login"
-                    className="inline-flex items-center justify-center gap-2.5 rounded-lg bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-sm transition-all hover:bg-primary/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring group"
-                  >
-                    <svg
-                      className="size-4 fill-current transition-transform group-hover:scale-110"
-                      viewBox="0 0 24 24"
-                      aria-hidden="true"
-                    >
-                      <path d="M12.48 10.92v3.28h7.84c-.24 1.84-.853 3.187-1.787 4.133-1.147 1.147-2.933 2.4-6.053 2.4-4.827 0-8.6-3.893-8.6-8.72s3.773-8.72 8.6-8.72c2.6 0 4.507 1.027 5.907 2.347l2.307-2.307C18.747 1.44 16.133 0 12.48 0 5.867 0 .307 5.387.307 12s5.56 12 12.173 12c3.573 0 6.267-1.173 8.373-3.36 2.16-2.16 2.84-5.213 2.84-7.667 0-.76-.053-1.467-.173-2.053H12.48z" />
-                    </svg>
-                    <span>Sign in with Google</span>
-                    <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
-                  </Link>
-                )}
+            {/* Subheading */}
+            <p className="mt-6 text-base sm:text-lg text-muted-foreground leading-relaxed">
+              An enterprise operations system for visa-processing agencies. Track passports from physical counter intake through embassy clearance to final courier delivery with verified Gmail allow-lists and ৳ payment settlement.
+            </p>
 
-                <a
-                  href="#passport-record"
-                  className="inline-flex items-center justify-center gap-2 rounded-lg border border-border bg-background px-5 py-3 text-sm font-medium text-foreground transition-colors hover:bg-muted hover:text-foreground"
+            {/* CTA Buttons */}
+            <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
+              {user ? (
+                <Link
+                  href={dashboardHref}
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-6 py-3.5 text-sm font-semibold text-primary-foreground shadow-md transition-all hover:bg-primary/90 hover:scale-[1.02]"
                 >
-                  <FileCheck className="size-4 text-muted-foreground" />
-                  <span>View Status Progression</span>
-                </a>
+                  <span>
+                    Open{" "}
+                    {userRole === "ADMIN"
+                      ? "Admin Dashboard"
+                      : userRole === "STAFF"
+                      ? "Staff Workspace"
+                      : "Agency Portal"}
+                  </span>
+                  <ArrowRight className="size-4" />
+                </Link>
+              ) : (
+                <Link
+                  href="/login"
+                  className="inline-flex items-center justify-center gap-2.5 rounded-xl bg-primary px-6 py-3.5 text-sm font-semibold text-primary-foreground shadow-md transition-all hover:bg-primary/90 hover:scale-[1.02] group"
+                >
+                  <svg
+                    className="size-4 fill-current transition-transform group-hover:scale-110"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                  >
+                    <path d="M12.48 10.92v3.28h7.84c-.24 1.84-.853 3.187-1.787 4.133-1.147 1.147-2.933 2.4-6.053 2.4-4.827 0-8.6-3.893-8.6-8.72s3.773-8.72 8.6-8.72c2.6 0 4.507 1.027 5.907 2.347l2.307-2.307C18.747 1.44 16.133 0 12.48 0 5.867 0 .307 5.387.307 12s5.56 12 12.173 12c3.573 0 6.267-1.173 8.373-3.36 2.16-2.16 2.84-5.213 2.84-7.667 0-.76-.053-1.467-.173-2.053H12.48z" />
+                  </svg>
+                  <span>Sign in with Google</span>
+                  <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
+                </Link>
+              )}
+
+              <a
+                href="#interactive-terminal"
+                className="inline-flex items-center justify-center gap-2 rounded-xl border border-border bg-card px-6 py-3.5 text-sm font-semibold text-foreground transition-all hover:bg-muted shadow-xs"
+              >
+                <FileCheck className="size-4 text-primary" />
+                <span>Explore Live Console</span>
+              </a>
+            </div>
+
+            {/* 3 Pillar Signals */}
+            <div className="mt-12 pt-8 border-t border-border/60 grid grid-cols-1 sm:grid-cols-3 gap-6 text-left">
+              <div className="flex items-start gap-3">
+                <div className="size-9 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center shrink-0 text-blue-600 dark:text-blue-400">
+                  <ShieldCheck className="size-4.5" />
+                </div>
+                <div>
+                  <h4 className="text-xs font-bold text-foreground">
+                    Gmail Allow-List
+                  </h4>
+                  <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
+                    Strict identity gating: only registered Admin, Staff, and Agencies can sign in.
+                  </p>
+                </div>
               </div>
 
-              {/* Invariants & Trust Signals */}
-              <div className="mt-10 pt-8 border-t border-border/60">
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <div className="flex items-start gap-2.5">
-                    <div className="size-5 rounded-full bg-foreground/5 flex items-center justify-center shrink-0 mt-0.5">
-                      <Lock className="size-3 text-muted-foreground" />
-                    </div>
-                    <div>
-                      <p className="text-xs font-semibold text-foreground">
-                        Gmail Allow-List
-                      </p>
-                      <p className="text-[11px] text-muted-foreground mt-0.5">
-                        Only registered admin, staff, and agency Gmail addresses can sign in.
-                      </p>
-                    </div>
-                  </div>
+              <div className="flex items-start gap-3">
+                <div className="size-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shrink-0 text-emerald-600 dark:text-emerald-400">
+                  <Truck className="size-4.5" />
+                </div>
+                <div>
+                  <h4 className="text-xs font-bold text-foreground">
+                    Dual Collector Chain
+                  </h4>
+                  <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
+                    Intake courier recorded at entry; separate delivery courier assigned at completion.
+                  </p>
+                </div>
+              </div>
 
-                  <div className="flex items-start gap-2.5">
-                    <div className="size-5 rounded-full bg-foreground/5 flex items-center justify-center shrink-0 mt-0.5">
-                      <Truck className="size-3 text-muted-foreground" />
-                    </div>
-                    <div>
-                      <p className="text-xs font-semibold text-foreground">
-                        Two Collectors
-                      </p>
-                      <p className="text-[11px] text-muted-foreground mt-0.5">
-                        Intake collector recorded at entry; delivery collector assigned at delivery.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-2.5">
-                    <div className="size-5 rounded-full bg-foreground/5 flex items-center justify-center shrink-0 mt-0.5">
-                      <CheckCircle2 className="size-3 text-muted-foreground" />
-                    </div>
-                    <div>
-                      <p className="text-xs font-semibold text-foreground">
-                        Auto Timestamps
-                      </p>
-                      <p className="text-[11px] text-muted-foreground mt-0.5">
-                        Receipt date and delivery date are set by the system, never typed.
-                      </p>
-                    </div>
-                  </div>
+              <div className="flex items-start gap-3">
+                <div className="size-9 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center shrink-0 text-amber-600 dark:text-amber-400">
+                  <CreditCard className="size-4.5" />
+                </div>
+                <div>
+                  <h4 className="text-xs font-bold text-foreground">
+                    ৳ Settlement Control
+                  </h4>
+                  <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
+                    Agency payment requests on delivered passports, audited and approved by staff.
+                  </p>
                 </div>
               </div>
             </div>
-
-            {/* Right Column: Interactive Passport Record */}
-            <div id="passport-record" className="lg:col-span-6 w-full">
-              <CustodyTerminal />
-            </div>
           </div>
+
         </div>
       </section>
-
-      {/* Hero Bottom Anchor Bar */}
-      <footer className="w-full border-t border-border/60 bg-muted/20 py-4">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-muted-foreground">
-          <div className="flex items-center gap-2">
-            <span className="font-medium text-foreground">
-              Visa Management
-            </span>
-            <span>•</span>
-            <span>Gmail Allow-List Access</span>
-            <span>•</span>
-            <span>Bangladeshi Taka (৳) Settlement</span>
-          </div>
-
-          <div className="flex items-center gap-4">
-            <Link
-              href="/login"
-              className="text-foreground hover:underline transition-colors"
-            >
-              Sign In
-            </Link>
-          </div>
-        </div>
-      </footer>
     </main>
   );
 }

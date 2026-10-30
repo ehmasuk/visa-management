@@ -5,9 +5,9 @@ import { createPassport } from "@/app/actions/passport";
 import { PassportCard } from "@/components/passport-card";
 import { Card } from "@/components/ui/card";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
-import { IdCardIcon } from "lucide-react";
+import { IdCardIcon, PlusCircle, FileText } from "lucide-react";
 
-export const metadata = { title: "Passports — Staff" };
+export const metadata = { title: "Passports — Staff Desk" };
 
 export default async function StaffPassportsPage() {
   await requireStaff();
@@ -22,15 +22,28 @@ export default async function StaffPassportsPage() {
 
   return (
     <PageShell
-        title="Passports"
-        subtitle="Enter passports received from agencies via collectors; track status, dates, and comments."
-      >
-        {/* Entry form: eight required fields + optional comment. Agency/collector/
-            visa type/service are selects fed from the admin registries; receipt
-            date is set automatically */}
-        <Card className="mb-8 gap-0 px-5 py-5">
-          <form action={createPassport}>
-          <h2 className="mb-4 text-lg font-semibold">New passport entry</h2>
+      title="Passports Desk"
+      subtitle="Enter incoming passports received from travel agencies via couriers; track statuses, timestamps, and fees."
+    >
+      {/* Entry form: eight required fields + optional comment. Agency/collector/
+          visa type/service are selects fed from the admin registries; receipt
+          date is set automatically */}
+      <div className="rounded-2xl border border-border/80 bg-card p-6 shadow-sm mb-10">
+        <form action={createPassport}>
+          <div className="flex items-center gap-2.5 mb-5 pb-3 border-b border-border/60">
+            <div className="size-8 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-bold">
+              <PlusCircle className="size-4.5" />
+            </div>
+            <div>
+              <h2 className="text-base font-bold text-foreground">
+                New Passport Entry
+              </h2>
+              <p className="text-xs text-muted-foreground">
+                Receipt timestamp is recorded automatically by the system.
+              </p>
+            </div>
+          </div>
+
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <div>
               <Select
@@ -49,7 +62,7 @@ export default async function StaffPassportsPage() {
             </div>
             <div>
               <Select
-                label="Collector (brought the passport)"
+                label="Intake collector (courier)"
                 name="collectorName"
                 defaultValue=""
                 options={[
@@ -89,7 +102,7 @@ export default async function StaffPassportsPage() {
             </div>
             <div>
               <Select
-                label="Service"
+                label="Service tier"
                 name="serviceName"
                 defaultValue=""
                 options={[
@@ -98,7 +111,7 @@ export default async function StaffPassportsPage() {
                     label:
                       services.length === 0
                         ? "No services registered yet"
-                        : "Select a service",
+                        : "Select a service tier",
                   },
                   ...services.map((service) => ({
                     value: service.name,
@@ -107,50 +120,57 @@ export default async function StaffPassportsPage() {
                 ]}
               />
             </div>
-            <div className="grow">
+            <div>
               <Field label="Passport number" name="passportNumber" placeholder="e.g. AF1234567" />
             </div>
-            <div className="grow">
-              <Field label="Passport holder name" name="holderName" placeholder="e.g. Md. Rahim" />
+            <div>
+              <Field label="Passport holder name" name="holderName" placeholder="e.g. Mohammad Al-Amin" />
             </div>
-            <div className="grow">
+            <div>
               <Field label="Contact number" name="contactNumber" placeholder="e.g. 017XXXXXXXX" />
             </div>
-            <div className="grow md:col-span-2 lg:col-span-2">
+            <div>
+              <Field label="Service fee (৳ Taka)" name="fee" type="number" placeholder="8500" />
+            </div>
+            <div className="md:col-span-2 lg:col-span-4">
               <Field
-                label="Comment (optional)"
+                label="Operational Comment (optional)"
                 name="comment"
-                placeholder="e.g. 2 years validity, urgent processing"
+                placeholder="e.g. 2 years validity, urgent stamping requested by agency"
                 required={false}
                 multiline
               />
             </div>
-            <div className="w-32">
-              <Field label="Fee (taka)" name="fee" type="number" placeholder="3500" />
-            </div>
           </div>
-          <div className="mt-4 flex items-center gap-4">
-            <SubmitButton>Receive passport</SubmitButton>
+
+          <div className="mt-6 pt-4 border-t border-border/60 flex flex-wrap items-center justify-between gap-3">
+            <SubmitButton>Receive Passport at Counter</SubmitButton>
             <p className="text-xs text-muted-foreground">
-              Receipt date is set automatically. New entries start as <strong>Received</strong>.
+              New entry initializes in <strong className="text-blue-600 dark:text-blue-400">Received</strong> status.
             </p>
           </div>
-          </form>
-        </Card>
+        </form>
+      </div>
 
-        <h2 className="mb-3 text-lg font-semibold">
-          All passports <span className="text-sm font-normal text-muted-foreground">({passports.length})</span>
-        </h2>
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <FileText className="size-4 text-primary" />
+            <h2 className="text-base font-bold text-foreground">
+              All Passports ({passports.length})
+            </h2>
+          </div>
+        </div>
+
         {passports.length === 0 ? (
-          <Empty className="border">
+          <Empty className="border border-border/80 rounded-2xl bg-card p-12">
             <EmptyHeader>
-              <EmptyMedia variant="icon">
-                <IdCardIcon />
+              <EmptyMedia variant="icon" className="bg-primary/10 text-primary">
+                <IdCardIcon className="size-6" />
               </EmptyMedia>
               <EmptyTitle>No passports recorded yet</EmptyTitle>
               <EmptyDescription>
-                Enter the first passport above — it will appear here with its status and
-                payment trail.
+                Enter the first passport above — it will appear here with its status and payment custody trail.
               </EmptyDescription>
             </EmptyHeader>
           </Empty>
@@ -163,6 +183,7 @@ export default async function StaffPassportsPage() {
             ))}
           </ul>
         )}
-      </PageShell>
+      </div>
+    </PageShell>
   );
 }

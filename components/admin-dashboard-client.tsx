@@ -8,20 +8,18 @@ import {
   Building2,
   Truck,
   FileText,
-  BadgePercent,
   BarChart3,
-  BookOpen,
   ArrowRight,
   Clock,
   CheckCircle2,
-  Lock,
-  ArrowUpRight,
-  Layers,
-  Banknote,
-  Search,
   ShieldCheck,
   MapPin,
   Sparkles,
+  Layers,
+  ArrowUpRight,
+  Receipt,
+  PlusCircle,
+  Eye,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
@@ -52,487 +50,440 @@ export interface AdminDashboardData {
   adminEmail: string;
 }
 
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.05,
-      delayChildren: 0.05,
-    },
-  },
-};
+const taka = (n: number) => `৳ ${n.toLocaleString("en-US")}`;
 
-const itemVariants = {
-  hidden: { opacity: 0, y: 8 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: {
-      duration: 0.25,
-      ease: "easeOut" as const,
-    },
-  },
-};
+function formatDate(iso: string): string {
+  try {
+    const d = new Date(iso);
+    return d.toLocaleDateString("en-GB", {
+      day: "2-digit",
+      month: "short",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  } catch {
+    return iso;
+  }
+}
 
 export function AdminDashboardClient({ data }: { data: AdminDashboardData }) {
   const { counts, recentPassports, adminEmail } = data;
 
-  const registryGroups = [
-    {
-      groupTitle: "Gmail Allow-Lists",
-      groupDescription:
-        "Only Google accounts allow-listed here can sign in. Agency emails route to /agency, staff to /staff.",
-      items: [
-        {
-          title: "Agencies",
-          href: "/admin/agencies",
-          count: counts.agencies,
-          unit: "allow-listed agencies",
-          description:
-            "Agency Gmail allow-list. Gives registered client agencies self-service access to view their passports.",
-          icon: Building2,
-          badge: "Sign-in Gate",
-        },
-        {
-          title: "Staff",
-          href: "/admin/staff",
-          count: counts.staff,
-          unit: "authorized staff",
-          description:
-            "Staff Gmail allow-list. Authorized employees who enter passports, update statuses, and handle payments.",
-          icon: Users,
-          badge: "Sign-in Gate",
-        },
-      ],
-    },
-    {
-      groupTitle: "Master Registries",
-      groupDescription:
-        "Registries selectable by staff when entering passports and marking delivery.",
-      items: [
-        {
-          title: "Branches",
-          href: "/admin/branches",
-          count: counts.branches,
-          unit: "branches",
-          description:
-            "Branch office records of the business.",
-          icon: MapPin,
-        },
-        {
-          title: "Collectors",
-          href: "/admin/collectors",
-          count: counts.collectors,
-          unit: "collectors",
-          description:
-            "Couriers recorded as intake collector at entry, or assigned as delivery collector at delivery.",
-          icon: Truck,
-        },
-        {
-          title: "Visa Types",
-          href: "/admin/visa-types",
-          count: counts.visaTypes,
-          unit: "visa types",
-          description:
-            "Visa types offered by the business; staff select from this registry when entering a passport.",
-          icon: Layers,
-        },
-        {
-          title: "Services",
-          href: "/admin/services",
-          count: counts.services,
-          unit: "services",
-          description:
-            "Processing packages and services selectable at passport entry.",
-          icon: Sparkles,
-        },
-      ],
-    },
-    {
-      groupTitle: "Reports & Passports",
-      groupDescription:
-        "Passport counts, money collected reports, and complete passport records.",
-      items: [
-        {
-          title: "Reports",
-          href: "/admin/reports",
-          count: null,
-          unit: "Metrics & Reports",
-          description:
-            "Passport count reports and money collected reports (paid vs unpaid), grouped by day, month, or agency.",
-          icon: BarChart3,
-          badge: "Financial",
-        },
-        {
-          title: "Passports",
-          href: "/admin/passports",
-          count: counts.totalPassports,
-          unit: "total passports",
-          description:
-            "View, edit, and update status for every passport across all agencies; last editor is stamped on each change.",
-          icon: BookOpen,
-        },
-      ],
-    },
-  ];
+  const totalMoney = counts.paidAmount + counts.unpaidAmount;
+  const collectionRate =
+    totalMoney > 0 ? Math.round((counts.paidAmount / totalMoney) * 100) : 0;
 
   return (
-    <motion.div
-      variants={containerVariants}
-      initial="hidden"
-      animate="visible"
-      className="space-y-8"
-    >
-      {/* Admin Context Banner */}
-      <motion.div
-        variants={itemVariants}
-        className="rounded-xl border border-border/80 bg-card/60 p-5 sm:p-6 backdrop-blur-xs flex flex-col md:flex-row md:items-center justify-between gap-4"
-      >
+    <div className="space-y-8 pb-12">
+      {/* Executive Welcome & Actions Banner */}
+      <div className="rounded-2xl border border-border/80 bg-gradient-to-r from-card via-card to-primary/5 p-6 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
-              Admin Dashboard
+          <div className="flex items-center gap-2.5">
+            <h1 className="text-2xl font-bold tracking-tight text-foreground">
+              Admin Operations Center
             </h1>
-            <Badge
-              variant="secondary"
-              className="font-mono text-[10px] uppercase tracking-wider"
-            >
-              Primary Admin
+            <Badge className="bg-primary/10 text-primary border-primary/20 hover:bg-primary/15 text-[11px] font-semibold">
+              Root Authority
             </Badge>
           </div>
-          <p className="mt-1 text-xs sm:text-sm text-muted-foreground max-w-[70ch]">
-            Manage the organization registry — branches, agency and staff Gmail
-            allow-lists, collectors, visa types, services, and reports.
+          <p className="mt-1.5 text-xs sm:text-sm text-muted-foreground">
+            Signed in as <span className="font-medium text-foreground">{adminEmail}</span>. Real-time governance over registries, security allow-lists, and financial totals.
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        {/* Fast Action Buttons */}
+        <div className="flex flex-wrap items-center gap-3">
           <Link
             href="/admin/passports"
-            className="inline-flex items-center gap-2 rounded-lg border border-border bg-background px-3.5 py-2 text-xs font-medium text-foreground transition-all hover:bg-muted cursor-pointer shadow-2xs"
+            className="inline-flex items-center gap-2 rounded-xl border border-border bg-card px-4 py-2.5 text-xs font-semibold text-foreground transition-all hover:bg-muted shadow-2xs"
           >
-            <Search className="size-3.5 text-muted-foreground" />
-            <span>View Passports</span>
+            <FileText className="size-4 text-primary" />
+            <span>All Passports</span>
           </Link>
           <Link
             href="/admin/reports"
-            className="inline-flex items-center gap-2 rounded-lg bg-primary px-3.5 py-2 text-xs font-medium text-primary-foreground transition-all hover:bg-primary/90 cursor-pointer shadow-2xs"
+            className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-xs font-semibold text-primary-foreground transition-all hover:bg-primary/90 shadow-sm"
           >
-            <BarChart3 className="size-3.5" />
-            <span>Open Reports</span>
+            <BarChart3 className="size-4" />
+            <span>Financial Reports</span>
             <ArrowRight className="size-3.5" />
           </Link>
         </div>
-      </motion.div>
-
-      {/* Real-Time Passports & Money Overview */}
-      <motion.div variants={itemVariants}>
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-            Passport Counts & Money Overview
-          </h2>
-          <span className="text-[11px] text-muted-foreground font-mono">
-            Live Records
-          </span>
-        </div>
-
-        <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
-          {/* Total Passports */}
-          <Link
-            href="/admin/passports"
-            className="rounded-xl border border-border/80 bg-card p-4 transition-all hover:border-foreground/30 group"
-          >
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-muted-foreground">
-                Total Passports
-              </span>
-              <FileText className="size-4 text-muted-foreground group-hover:text-foreground transition-colors" />
-            </div>
-            <p className="mt-2 text-2xl font-bold tracking-tight font-mono text-foreground">
-              {counts.totalPassports}
-            </p>
-            <span className="text-[11px] text-muted-foreground mt-0.5 block">
-              All agencies
-            </span>
-          </Link>
-
-          {/* Received Status */}
-          <div className="rounded-xl border border-border/80 bg-card p-4">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-muted-foreground">
-                Received
-              </span>
-              <span className="size-2 rounded-full bg-blue-500" />
-            </div>
-            <p className="mt-2 text-2xl font-bold tracking-tight font-mono text-foreground">
-              {counts.receivedPassports}
-            </p>
-            <span className="text-[11px] text-blue-600 dark:text-blue-400 mt-0.5 block">
-              At office
-            </span>
-          </div>
-
-          {/* Delivered Status */}
-          <div className="rounded-xl border border-border/80 bg-card p-4">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-muted-foreground">
-                Delivered
-              </span>
-              <span className="size-2 rounded-full bg-emerald-500" />
-            </div>
-            <p className="mt-2 text-2xl font-bold tracking-tight font-mono text-foreground">
-              {counts.deliveredPassports}
-            </p>
-            <span className="text-[11px] text-emerald-600 dark:text-emerald-400 mt-0.5 block">
-              Delivered to agency
-            </span>
-          </div>
-
-          {/* Money Collected */}
-          <Link
-            href="/admin/reports"
-            className="col-span-2 lg:col-span-1 rounded-xl border border-border/80 bg-card p-4 transition-all hover:border-foreground/30 group"
-          >
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-muted-foreground">
-                Money Collected
-              </span>
-              <Banknote className="size-4 text-emerald-600 dark:text-emerald-400" />
-            </div>
-            <p className="mt-2 text-xl font-bold tracking-tight font-mono text-foreground">
-              ৳ {counts.paidAmount.toLocaleString()}
-            </p>
-            <span className="text-[11px] text-muted-foreground mt-0.5 block">
-              ৳ {counts.unpaidAmount.toLocaleString()} unpaid
-            </span>
-          </Link>
-        </div>
-      </motion.div>
-
-      {/* Registry Navigation Hub */}
-      <div className="space-y-6">
-        {registryGroups.map((group) => (
-          <motion.div key={group.groupTitle} variants={itemVariants}>
-            <div className="mb-3">
-              <h2 className="text-sm font-semibold tracking-tight text-foreground">
-                {group.groupTitle}
-              </h2>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                {group.groupDescription}
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-              {group.items.map((item) => {
-                const Icon = item.icon;
-                return (
-                  <motion.div
-                    key={item.href}
-                    whileHover={{ y: -2 }}
-                    transition={{ duration: 0.15, ease: "easeOut" }}
-                  >
-                    <Link
-                      href={item.href}
-                      className="group relative flex flex-col justify-between rounded-xl border border-border/80 bg-card p-5 transition-all hover:border-foreground/30 hover:shadow-xs h-full"
-                    >
-                      <div>
-                        <div className="flex items-center justify-between gap-2">
-                          <div className="flex items-center gap-2.5">
-                            <div className="size-8 rounded-lg bg-muted flex items-center justify-center text-foreground group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
-                              <Icon className="size-4" />
-                            </div>
-                            <h3 className="font-semibold text-sm text-foreground tracking-tight group-hover:text-primary transition-colors">
-                              {item.title}
-                            </h3>
-                          </div>
-
-                          <div className="flex items-center gap-2">
-                            {item.badge ? (
-                              <Badge
-                                variant="outline"
-                                className="text-[10px] uppercase font-mono px-1.5 py-0.5"
-                              >
-                                {item.badge}
-                              </Badge>
-                            ) : null}
-                            <ArrowUpRight className="size-4 text-muted-foreground/60 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-foreground" />
-                          </div>
-                        </div>
-
-                        <p className="mt-3 text-xs text-muted-foreground leading-relaxed">
-                          {item.description}
-                        </p>
-                      </div>
-
-                      <div className="mt-4 pt-3 border-t border-border/50 flex items-center justify-between">
-                        <span className="text-xs font-mono font-bold text-foreground">
-                          {item.count !== null ? (
-                            <>
-                              {item.count}{" "}
-                              <span className="font-normal font-sans text-muted-foreground text-[11px]">
-                                {item.unit}
-                              </span>
-                            </>
-                          ) : (
-                            <span className="font-normal font-sans text-muted-foreground text-[11px]">
-                              {item.unit}
-                            </span>
-                          )}
-                        </span>
-                        <span className="text-xs font-medium text-primary group-hover:underline inline-flex items-center gap-1">
-                          Manage
-                          <ArrowRight className="size-3 transition-transform group-hover:translate-x-0.5" />
-                        </span>
-                      </div>
-                    </Link>
-                  </motion.div>
-                );
-              })}
-            </div>
-          </motion.div>
-        ))}
       </div>
 
-      {/* Recent Movements & Access Model */}
-      <motion.div
-        variants={itemVariants}
-        className="grid grid-cols-1 lg:grid-cols-12 gap-6"
-      >
-        {/* Recent Passports List */}
-        <div className="lg:col-span-7 rounded-xl border border-border/80 bg-card p-5">
-          <div className="flex items-center justify-between pb-3 border-b border-border/60">
+      {/* Primary KPI Metrics Ribbon */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Total Passports */}
+        <Link
+          href="/admin/passports"
+          className="group rounded-2xl border border-border/80 bg-card p-5 shadow-xs hover:border-primary/40 hover:shadow-md transition-all cursor-pointer"
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              Total Passports
+            </span>
+            <div className="size-9 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-600 dark:text-blue-400 group-hover:scale-110 transition-transform">
+              <FileText className="size-4.5" />
+            </div>
+          </div>
+          <div className="mt-3 flex items-baseline gap-2">
+            <span className="text-3xl font-extrabold text-foreground tracking-tight font-mono">
+              {counts.totalPassports}
+            </span>
+            <span className="text-xs text-muted-foreground">registered</span>
+          </div>
+          <div className="mt-3 flex items-center gap-1.5 text-xs text-blue-600 dark:text-blue-400 font-medium">
+            <span>View directory</span>
+            <ArrowUpRight className="size-3.5" />
+          </div>
+        </Link>
+
+        {/* Counter Received (In Process) */}
+        <Link
+          href="/admin/passports"
+          className="group rounded-2xl border border-border/80 bg-card p-5 shadow-xs hover:border-sky-500/40 hover:shadow-md transition-all cursor-pointer"
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              In Processing
+            </span>
+            <div className="size-9 rounded-xl bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-600 dark:text-sky-400 group-hover:scale-110 transition-transform">
+              <Clock className="size-4.5" />
+            </div>
+          </div>
+          <div className="mt-3 flex items-baseline gap-2">
+            <span className="text-3xl font-extrabold text-foreground tracking-tight font-mono">
+              {counts.receivedPassports}
+            </span>
+            <span className="text-xs text-muted-foreground">received at desk</span>
+          </div>
+          <div className="mt-3 flex items-center gap-1.5 text-xs text-sky-600 dark:text-sky-400 font-medium">
+            <span>Active at counter</span>
+            <ArrowUpRight className="size-3.5" />
+          </div>
+        </Link>
+
+        {/* Delivered Passports */}
+        <Link
+          href="/admin/passports"
+          className="group rounded-2xl border border-border/80 bg-card p-5 shadow-xs hover:border-emerald-500/40 hover:shadow-md transition-all cursor-pointer"
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              Delivered
+            </span>
+            <div className="size-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400 group-hover:scale-110 transition-transform">
+              <CheckCircle2 className="size-4.5" />
+            </div>
+          </div>
+          <div className="mt-3 flex items-baseline gap-2">
+            <span className="text-3xl font-extrabold text-foreground tracking-tight font-mono">
+              {counts.deliveredPassports}
+            </span>
+            <span className="text-xs text-muted-foreground">handed to agency</span>
+          </div>
+          <div className="mt-3 flex items-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400 font-medium">
+            <span>Completed custody</span>
+            <ArrowUpRight className="size-3.5" />
+          </div>
+        </Link>
+
+        {/* Financial Settlement */}
+        <Link
+          href="/admin/reports"
+          className="group rounded-2xl border border-border/80 bg-card p-5 shadow-xs hover:border-purple-500/40 hover:shadow-md transition-all cursor-pointer"
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              Fees Settled
+            </span>
+            <div className="size-9 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-600 dark:text-purple-400 group-hover:scale-110 transition-transform">
+              <Receipt className="size-4.5" />
+            </div>
+          </div>
+          <div className="mt-3">
+            <span className="text-2xl font-extrabold text-emerald-600 dark:text-emerald-400 font-mono tracking-tight">
+              {taka(counts.paidAmount)}
+            </span>
+          </div>
+          <div className="mt-2 flex items-center justify-between text-[11px] text-muted-foreground">
+            <span>Unpaid: {taka(counts.unpaidAmount)}</span>
+            <span className="font-semibold text-foreground">{collectionRate}% Paid</span>
+          </div>
+        </Link>
+      </div>
+
+      {/* Two Hubs: Allow-Lists & Master Registries */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        {/* Left Column (5 Cols): Security Allow-Lists */}
+        <div className="lg:col-span-5 space-y-4">
+          <div className="flex items-center justify-between">
             <div>
-              <h3 className="font-semibold text-sm text-foreground tracking-tight">
-                Recent Passports
-              </h3>
+              <h2 className="text-base font-bold text-foreground">
+                Security Allow-Lists
+              </h2>
               <p className="text-xs text-muted-foreground">
-                Latest passport entries and updates across client agencies.
+                Google accounts authorized to authenticate into the system.
               </p>
             </div>
+            <ShieldCheck className="size-4 text-primary" />
+          </div>
+
+          <div className="space-y-3">
+            {/* Agencies Card */}
             <Link
-              href="/admin/passports"
-              className="text-xs font-medium text-muted-foreground hover:text-foreground hover:underline"
+              href="/admin/agencies"
+              className="group flex items-center justify-between p-4 rounded-2xl border border-border/80 bg-card hover:border-primary/50 hover:shadow-sm transition-all"
             >
-              View all →
+              <div className="flex items-center gap-3.5">
+                <div className="size-11 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-600 dark:text-blue-400 group-hover:scale-105 transition-transform">
+                  <Building2 className="size-5" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-foreground group-hover:text-primary transition-colors">
+                    Client Agencies
+                  </h3>
+                  <p className="text-xs text-muted-foreground">
+                    Self-service agency portal access
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2.5">
+                <span className="px-2.5 py-1 rounded-full text-xs font-bold font-mono bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
+                  {counts.agencies}
+                </span>
+                <ArrowRight className="size-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-0.5 transition-all" />
+              </div>
+            </Link>
+
+            {/* Staff Card */}
+            <Link
+              href="/admin/staff"
+              className="group flex items-center justify-between p-4 rounded-2xl border border-border/80 bg-card hover:border-emerald-500/50 hover:shadow-sm transition-all"
+            >
+              <div className="flex items-center gap-3.5">
+                <div className="size-11 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400 group-hover:scale-105 transition-transform">
+                  <Users className="size-5" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-foreground group-hover:text-emerald-600 transition-colors">
+                    Staff Personnel
+                  </h3>
+                  <p className="text-xs text-muted-foreground">
+                    Passport intake & status operators
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2.5">
+                <span className="px-2.5 py-1 rounded-full text-xs font-bold font-mono bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                  {counts.staff}
+                </span>
+                <ArrowRight className="size-4 text-muted-foreground group-hover:text-emerald-600 group-hover:translate-x-0.5 transition-all" />
+              </div>
             </Link>
           </div>
+        </div>
 
-          {recentPassports.length === 0 ? (
-            <div className="py-8 text-center text-xs text-muted-foreground">
-              No passports recorded yet. Entries created by staff will appear
-              here.
+        {/* Right Column (7 Cols): Operations Master Registries */}
+        <div className="lg:col-span-7 space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-base font-bold text-foreground">
+                Master Registries
+              </h2>
+              <p className="text-xs text-muted-foreground">
+                Configured data options selectable during passport intake & delivery.
+              </p>
             </div>
-          ) : (
-            <div className="divide-y divide-border/50">
-              {recentPassports.map((p) => (
-                <div
-                  key={p.id}
-                  className="py-3 flex items-center justify-between gap-3 text-xs"
-                >
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className="font-mono font-semibold text-foreground">
-                        {p.passportNumber}
-                      </span>
-                      <span
-                        className={`inline-block size-1.5 rounded-full ${
-                          p.status === "DELIVERED"
-                            ? "bg-emerald-500"
-                            : "bg-blue-500"
-                        }`}
-                      />
-                      <span className="text-muted-foreground truncate">
-                        {p.holderName}
-                      </span>
-                    </div>
-                    <div className="text-[11px] text-muted-foreground mt-0.5">
-                      Agency:{" "}
-                      <span className="text-foreground/80 font-medium">
-                        {p.agencyName}
-                      </span>{" "}
-                      • Last editor: {p.lastEditedByName ?? "Staff"}
-                    </div>
-                  </div>
+            <Layers className="size-4 text-primary" />
+          </div>
 
-                  <div className="text-right shrink-0">
-                    <span className="font-mono font-medium text-foreground block">
-                      ৳ {p.fee.toLocaleString()}
-                    </span>
-                    <Badge
-                      variant="outline"
-                      className={`text-[10px] uppercase font-mono px-1.5 py-0 mt-0.5 ${
-                        p.status === "DELIVERED"
-                          ? "border-emerald-500/40 text-emerald-600 dark:text-emerald-400"
-                          : "border-blue-500/40 text-blue-600 dark:text-blue-400"
-                      }`}
-                    >
-                      {p.status}
-                    </Badge>
-                  </div>
+          <div className="grid grid-cols-2 gap-3">
+            {/* Branches */}
+            <Link
+              href="/admin/branches"
+              className="group p-4 rounded-2xl border border-border/80 bg-card hover:border-primary/40 hover:shadow-xs transition-all"
+            >
+              <div className="flex items-center justify-between">
+                <div className="size-9 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary group-hover:scale-105 transition-transform">
+                  <MapPin className="size-4.5" />
                 </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Access Model Card */}
-        <div className="lg:col-span-5 rounded-xl border border-border/80 bg-muted/30 p-5 flex flex-col justify-between">
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              <Lock className="size-4 text-foreground" />
-              <h3 className="font-semibold text-sm text-foreground tracking-tight">
-                Access Model & System Rules
+                <span className="font-mono text-sm font-bold text-foreground">
+                  {counts.branches}
+                </span>
+              </div>
+              <h3 className="mt-3 text-sm font-bold text-foreground group-hover:text-primary transition-colors">
+                Branches
               </h3>
-            </div>
-            <p className="text-xs text-muted-foreground leading-relaxed">
-              Rules defined in the specification for authentication, roles, and
-              passports:
-            </p>
+              <p className="text-[11px] text-muted-foreground mt-0.5">
+                Office physical locations
+              </p>
+            </Link>
 
-            <ul className="mt-3 space-y-2.5 text-xs text-muted-foreground">
-              <li className="flex items-start gap-2">
-                <ShieldCheck className="size-3.5 text-foreground shrink-0 mt-0.5" />
-                <span>
-                  <strong>Single Admin Account:</strong> Only one active ADMIN
-                  account exists in the system (bootstrap admin:{" "}
-                  <code>{adminEmail}</code>).
+            {/* Collectors */}
+            <Link
+              href="/admin/collectors"
+              className="group p-4 rounded-2xl border border-border/80 bg-card hover:border-amber-500/40 hover:shadow-xs transition-all"
+            >
+              <div className="flex items-center justify-between">
+                <div className="size-9 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-600 dark:text-amber-400 group-hover:scale-105 transition-transform">
+                  <Truck className="size-4.5" />
+                </div>
+                <span className="font-mono text-sm font-bold text-foreground">
+                  {counts.collectors}
                 </span>
-              </li>
-              <li className="flex items-start gap-2">
-                <Users className="size-3.5 text-foreground shrink-0 mt-0.5" />
-                <span>
-                  <strong>Gmail Allow-List:</strong> Only emails allow-listed by
-                  the admin can sign in with Google. Agency emails go to{" "}
-                  <code>/agency</code>, staff emails to <code>/staff</code>.
-                </span>
-              </li>
-              <li className="flex items-start gap-2">
-                <Truck className="size-3.5 text-foreground shrink-0 mt-0.5" />
-                <span>
-                  <strong>Intake & Delivery Collectors:</strong> Intake
-                  collector (who brought the passport) is captured at entry.
-                  Delivery collector is assigned when status changes to
-                  delivered.
-                </span>
-              </li>
-              <li className="flex items-start gap-2">
-                <Clock className="size-3.5 text-foreground shrink-0 mt-0.5" />
-                <span>
-                  <strong>Automatic Timestamps:</strong> Receipt date is set
-                  automatically on creation; delivery date is set automatically
-                  on delivery. Neither is entered manually.
-                </span>
-              </li>
-            </ul>
-          </div>
+              </div>
+              <h3 className="mt-3 text-sm font-bold text-foreground group-hover:text-amber-600 transition-colors">
+                Collectors
+              </h3>
+              <p className="text-[11px] text-muted-foreground mt-0.5">
+                Intake & delivery couriers
+              </p>
+            </Link>
 
-          <div className="mt-4 pt-3 border-t border-border/60 text-[11px] text-muted-foreground flex items-center justify-between">
-            <span>Admin Status: Active</span>
-            <span className="font-mono">Google OAuth 2.0</span>
+            {/* Visa Types */}
+            <Link
+              href="/admin/visa-types"
+              className="group p-4 rounded-2xl border border-border/80 bg-card hover:border-purple-500/40 hover:shadow-xs transition-all"
+            >
+              <div className="flex items-center justify-between">
+                <div className="size-9 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-600 dark:text-purple-400 group-hover:scale-105 transition-transform">
+                  <Layers className="size-4.5" />
+                </div>
+                <span className="font-mono text-sm font-bold text-foreground">
+                  {counts.visaTypes}
+                </span>
+              </div>
+              <h3 className="mt-3 text-sm font-bold text-foreground group-hover:text-purple-600 transition-colors">
+                Visa Types
+              </h3>
+              <p className="text-[11px] text-muted-foreground mt-0.5">
+                Work, tourist, business visas
+              </p>
+            </Link>
+
+            {/* Services */}
+            <Link
+              href="/admin/services"
+              className="group p-4 rounded-2xl border border-border/80 bg-card hover:border-rose-500/40 hover:shadow-xs transition-all"
+            >
+              <div className="flex items-center justify-between">
+                <div className="size-9 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-600 dark:text-rose-400 group-hover:scale-105 transition-transform">
+                  <Sparkles className="size-4.5" />
+                </div>
+                <span className="font-mono text-sm font-bold text-foreground">
+                  {counts.services}
+                </span>
+              </div>
+              <h3 className="mt-3 text-sm font-bold text-foreground group-hover:text-rose-600 transition-colors">
+                Service Tiers
+              </h3>
+              <p className="text-[11px] text-muted-foreground mt-0.5">
+                Normal, urgent processing
+              </p>
+            </Link>
           </div>
         </div>
-      </motion.div>
-    </motion.div>
+      </div>
+
+      {/* Recent Custody Activity Feed */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-base font-bold text-foreground">
+              Recent Passport Activity
+            </h2>
+            <p className="text-xs text-muted-foreground">
+              Latest recorded mutations with last-editor audit trail.
+            </p>
+          </div>
+          <Link
+            href="/admin/passports"
+            className="text-xs font-semibold text-primary hover:underline flex items-center gap-1"
+          >
+            <span>View all passports</span>
+            <ArrowRight className="size-3.5" />
+          </Link>
+        </div>
+
+        {recentPassports.length === 0 ? (
+          <div className="rounded-2xl border border-dashed border-border p-8 text-center text-muted-foreground">
+            No passports recorded in the system yet.
+          </div>
+        ) : (
+          <div className="rounded-2xl border border-border/80 bg-card overflow-hidden shadow-xs">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="border-b border-border/60 bg-muted/40 font-semibold text-muted-foreground">
+                  <tr>
+                    <th className="px-4 py-3">Passport No.</th>
+                    <th className="px-4 py-3">Holder Name</th>
+                    <th className="px-4 py-3">Agency</th>
+                    <th className="px-4 py-3">Status</th>
+                    <th className="px-4 py-3">Fee</th>
+                    <th className="px-4 py-3">Audited By</th>
+                    <th className="px-4 py-3 text-right">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border/60">
+                  {recentPassports.map((p) => (
+                    <tr
+                      key={p.id}
+                      className="hover:bg-muted/30 transition-colors"
+                    >
+                      <td className="px-4 py-3 font-mono font-bold text-foreground">
+                        {p.passportNumber}
+                      </td>
+                      <td className="px-4 py-3 font-medium text-foreground">
+                        {p.holderName}
+                      </td>
+                      <td className="px-4 py-3 text-muted-foreground">
+                        {p.agencyName}
+                      </td>
+                      <td className="px-4 py-3">
+                        <span
+                          className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${
+                            p.status === "DELIVERED"
+                              ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
+                              : "bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20"
+                          }`}
+                        >
+                          <span
+                            className={`size-1.5 rounded-full ${
+                              p.status === "DELIVERED"
+                                ? "bg-emerald-500"
+                                : "bg-blue-500"
+                            }`}
+                          />
+                          {p.status === "DELIVERED" ? "Delivered" : "Received"}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 font-mono font-semibold text-foreground">
+                        {taka(p.fee)}
+                      </td>
+                      <td className="px-4 py-3 text-muted-foreground text-[11px]">
+                        <span>{p.lastEditedByName ?? "System"}</span>
+                        <span className="block text-[10px] text-muted-foreground/70">
+                          {formatDate(p.updatedAt)}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <Link
+                          href={`/passports/${p.id}`}
+                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-border bg-card hover:bg-muted font-medium text-foreground transition-colors"
+                        >
+                          <Eye className="size-3 text-muted-foreground" />
+                          <span>View</span>
+                        </Link>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
   );
 }

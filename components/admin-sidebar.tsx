@@ -29,6 +29,7 @@ import {
   Layers,
   Sparkles,
   BarChart3,
+  ShieldCheck,
 } from "lucide-react";
 
 interface AdminSidebarProps {
@@ -47,16 +48,19 @@ export function AdminSidebar({
       title: "Overview",
       href: "/admin",
       icon: LayoutDashboard,
+      iconColor: "text-primary",
     },
     {
       title: "Passports",
       href: "/admin/passports",
       icon: FileText,
+      iconColor: "text-blue-500",
     },
     {
       title: "Reports",
       href: "/admin/reports",
       icon: BarChart3,
+      iconColor: "text-purple-500",
     },
   ];
 
@@ -65,13 +69,15 @@ export function AdminSidebar({
       title: "Agencies",
       href: "/admin/agencies",
       icon: Building2,
-      hint: "Allow-list",
+      iconColor: "text-blue-600 dark:text-blue-400",
+      hint: "Gate",
     },
     {
       title: "Staff",
       href: "/admin/staff",
       icon: Users,
-      hint: "Allow-list",
+      iconColor: "text-emerald-600 dark:text-emerald-400",
+      hint: "Gate",
     },
   ];
 
@@ -80,41 +86,45 @@ export function AdminSidebar({
       title: "Branches",
       href: "/admin/branches",
       icon: MapPin,
+      iconColor: "text-sky-500",
     },
     {
       title: "Collectors",
       href: "/admin/collectors",
       icon: Truck,
+      iconColor: "text-amber-500",
     },
     {
       title: "Visa Types",
       href: "/admin/visa-types",
       icon: Layers,
+      iconColor: "text-indigo-500",
     },
     {
       title: "Services",
       href: "/admin/services",
       icon: Sparkles,
+      iconColor: "text-rose-500",
     },
   ];
 
   return (
     <Sidebar variant="inset" collapsible="icon">
       {/* Sidebar Header */}
-      <SidebarHeader className="border-b border-sidebar-border px-4 py-3">
+      <SidebarHeader className="border-b border-sidebar-border px-4 py-3.5">
         <Link
           href="/"
           className="flex items-center gap-2.5 group transition-opacity hover:opacity-90"
         >
-          <div className="size-8 rounded-lg bg-sidebar-primary text-sidebar-primary-foreground flex items-center justify-center font-bold shadow-xs transition-transform group-hover:scale-105">
+          <div className="size-8 rounded-xl bg-gradient-to-br from-primary to-blue-600 text-primary-foreground flex items-center justify-center font-bold shadow-xs transition-transform group-hover:scale-105">
             <Stamp className="size-4" />
           </div>
           <div className="flex flex-col min-w-0">
-            <span className="font-semibold text-sm tracking-tight text-sidebar-foreground truncate">
+            <span className="font-bold text-sm tracking-tight text-sidebar-foreground truncate">
               Visa Management
             </span>
-            <span className="text-[11px] text-muted-foreground truncate">
-              Admin Dashboard
+            <span className="text-[11px] text-muted-foreground truncate font-medium">
+              Admin Portal
             </span>
           </div>
         </Link>
@@ -124,8 +134,8 @@ export function AdminSidebar({
       <SidebarContent className="px-2 py-3">
         {/* Main Section */}
         <SidebarGroup>
-          <SidebarGroupLabel className="text-xs font-medium text-muted-foreground px-2">
-            Main
+          <SidebarGroupLabel className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground/80 px-2">
+            Operations
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
@@ -138,10 +148,14 @@ export function AdminSidebar({
                       render={<Link href={item.href} />}
                       isActive={isActive}
                       tooltip={item.title}
-                      className="cursor-pointer"
+                      className={`cursor-pointer font-medium ${
+                        isActive
+                          ? "bg-primary/10 text-primary font-bold shadow-2xs"
+                          : ""
+                      }`}
                     >
-                      <Icon className="size-4 shrink-0" />
-                      <span className="text-sm font-medium">{item.title}</span>
+                      <Icon className={`size-4 shrink-0 ${item.iconColor}`} />
+                      <span className="text-sm">{item.title}</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 );
@@ -154,8 +168,9 @@ export function AdminSidebar({
 
         {/* Gmail Allow-Lists */}
         <SidebarGroup>
-          <SidebarGroupLabel className="text-xs font-medium text-muted-foreground px-2">
-            Gmail Allow-Lists
+          <SidebarGroupLabel className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground/80 px-2 flex items-center justify-between">
+            <span>Identity & Access</span>
+            <ShieldCheck className="size-3 text-primary opacity-60" />
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
@@ -169,12 +184,16 @@ export function AdminSidebar({
                       render={<Link href={item.href} />}
                       isActive={isActive}
                       tooltip={item.title}
-                      className="cursor-pointer"
+                      className={`cursor-pointer font-medium ${
+                        isActive
+                          ? "bg-primary/10 text-primary font-bold shadow-2xs"
+                          : ""
+                      }`}
                     >
-                      <Icon className="size-4 shrink-0" />
-                      <span className="text-sm font-medium">{item.title}</span>
+                      <Icon className={`size-4 shrink-0 ${item.iconColor}`} />
+                      <span className="text-sm">{item.title}</span>
                       {item.hint ? (
-                        <span className="ml-auto text-[10px] text-muted-foreground uppercase font-mono px-1.5 py-0.5 rounded bg-muted/70 group-data-[collapsible=icon]:hidden">
+                        <span className="ml-auto text-[9px] uppercase font-bold px-1.5 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20 group-data-[collapsible=icon]:hidden">
                           {item.hint}
                         </span>
                       ) : null}
@@ -190,7 +209,7 @@ export function AdminSidebar({
 
         {/* Master Registries */}
         <SidebarGroup>
-          <SidebarGroupLabel className="text-xs font-medium text-muted-foreground px-2">
+          <SidebarGroupLabel className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground/80 px-2">
             Master Registries
           </SidebarGroupLabel>
           <SidebarGroupContent>
@@ -205,10 +224,14 @@ export function AdminSidebar({
                       render={<Link href={item.href} />}
                       isActive={isActive}
                       tooltip={item.title}
-                      className="cursor-pointer"
+                      className={`cursor-pointer font-medium ${
+                        isActive
+                          ? "bg-primary/10 text-primary font-bold shadow-2xs"
+                          : ""
+                      }`}
                     >
-                      <Icon className="size-4 shrink-0" />
-                      <span className="text-sm font-medium">{item.title}</span>
+                      <Icon className={`size-4 shrink-0 ${item.iconColor}`} />
+                      <span className="text-sm">{item.title}</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 );
@@ -221,10 +244,11 @@ export function AdminSidebar({
       {/* Sidebar Footer */}
       <SidebarFooter className="border-t border-sidebar-border p-3">
         <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2 min-w-0">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="size-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
             <div className="flex flex-col min-w-0">
-              <span className="text-xs font-medium text-sidebar-foreground truncate">
-                {userName ?? userEmail ?? "Admin"}
+              <span className="text-xs font-bold text-sidebar-foreground truncate">
+                {userName ?? "Administrator"}
               </span>
               <span className="text-[10px] font-mono text-muted-foreground truncate">
                 {userEmail}
@@ -232,8 +256,7 @@ export function AdminSidebar({
             </div>
           </div>
           <Badge
-            variant="outline"
-            className="text-[10px] font-mono uppercase px-1.5 py-0 shrink-0"
+            className="text-[10px] font-bold uppercase px-2 py-0.5 bg-primary/10 text-primary border-primary/20 shrink-0"
           >
             Admin
           </Badge>
@@ -241,6 +264,7 @@ export function AdminSidebar({
 
         <div className="mt-2 pt-2 border-t border-sidebar-border/60 flex items-center justify-between">
           <ThemeToggle className="size-7 text-muted-foreground hover:text-foreground" />
+          <span className="text-[10px] text-muted-foreground font-mono">v1.0</span>
         </div>
       </SidebarFooter>
     </Sidebar>

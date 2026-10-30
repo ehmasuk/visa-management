@@ -10,19 +10,17 @@ import { Card, CardContent } from "@/components/ui/card";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { fmt, lastEditorLine, STATUS_BADGE, statusLabel } from "@/lib/passport-format";
+import { Edit, ArrowLeft, FileCheck2, Clock, CreditCard, ShieldCheck } from "lucide-react";
 
-export const metadata = { title: "Passport details" };
+export const metadata = { title: "Passport Dossier Details — Visa Management" };
 
-/**
- * One labelled value in the read-only detail grid. Unset data renders as an
- * em dash so every known field of the passport always has a home on this
- * view (spec: fields never captured are shown as empty, not hidden).
- */
+const taka = (n: number) => `৳ ${n.toLocaleString("en-US")}`;
+
 function Detail({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div className="min-w-0">
-      <p className="text-xs font-medium text-muted-foreground">{label}</p>
-      <div className="mt-0.5 text-sm">{children}</div>
+      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{label}</p>
+      <div className="mt-1 text-sm font-medium text-foreground">{children}</div>
     </div>
   );
 }
@@ -45,115 +43,169 @@ export default async function PassportDetailPage({
   const payment = passport.payment;
 
   return (
-    <div className="flex min-h-svh flex-col">
+    <div className="flex min-h-svh flex-col bg-background">
       <RoleNav
         pathname={`/passports/${id}`}
         role={session.user.role}
         userLabel={session.user.name ?? session.user.email}
       />
       <PageShell
-        title="Passport details"
-        subtitle={`${passport.passportNumber} · ${passport.holderName} · ${passport.agencyName}`}
+        title={`Passport ${passport.passportNumber}`}
+        subtitle={`${passport.holderName} · Agency: ${passport.agencyName}`}
       >
-        <div className="mb-4 flex items-center gap-3">
-          {/* Edit button on every field-level landing: back to the prefilled edit form */}
-          <Link href={`/passports/${id}/edit`} className={cn(buttonVariants({ variant: "default" }))}>
-            Edit passport
+        <div className="mb-6 flex flex-wrap items-center gap-3">
+          <Link
+            href={`/passports/${id}/edit`}
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-primary text-primary-foreground font-semibold text-xs shadow-sm hover:bg-primary/90 transition-all"
+          >
+            <Edit className="size-3.5" />
+            <span>Edit Passport</span>
           </Link>
-          <Link href={backTo} className={cn(buttonVariants({ variant: "outline" }))}>
-            Back to passports
+          <Link
+            href={backTo}
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border border-border bg-card text-foreground font-semibold text-xs shadow-2xs hover:bg-muted transition-all"
+          >
+            <ArrowLeft className="size-3.5" />
+            <span>Back to Passports</span>
           </Link>
         </div>
 
-        {/* Entry details */}
-        <Card className="mb-6 gap-0 px-5 py-5">
-          <CardContent className="gap-0 p-0">
-            <h2 className="mb-4 text-lg font-semibold">Details</h2>
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              <Detail label="Passport number">
-                <span className="font-mono font-semibold">{passport.passportNumber}</span>
+        <div className="space-y-6">
+          {/* Entry details */}
+          <div className="rounded-2xl border border-border/80 bg-card p-6 shadow-xs">
+            <div className="flex items-center gap-2 mb-4 pb-3 border-b border-border/60">
+              <FileCheck2 className="size-4.5 text-primary" />
+              <h2 className="text-base font-bold text-foreground">
+                Passport Identification & Custody
+              </h2>
+            </div>
+            <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+              <Detail label="Passport Number">
+                <span className="font-mono font-bold text-primary text-base">{passport.passportNumber}</span>
               </Detail>
               <Detail label="Status">
-                <Badge className={STATUS_BADGE[passport.status]}>{statusLabel(passport.status)}</Badge>
+                <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold ${STATUS_BADGE[passport.status]}`}>
+                  <span className={`size-1.5 rounded-full ${passport.status === "DELIVERED" ? "bg-emerald-500" : "bg-blue-500"}`} />
+                  {statusLabel(passport.status)}
+                </span>
               </Detail>
-              <Detail label="Fee (taka)">৳{passport.fee}</Detail>
-              <Detail label="Agency name">{passport.agencyName}</Detail>
-              <Detail label="Agency Gmail (ownership reference)">{passport.agencyGmail}</Detail>
-              <Detail label="Intake collector (brought the passport)">{passport.collectorName}</Detail>
-              <Detail label="Passport holder name">{passport.holderName}</Detail>
-              <Detail label="Contact number">{passport.contactNumber}</Detail>
-              <Detail label="Visa type">
+              <Detail label="Service Fee">
+                <span className="font-mono font-bold text-foreground">{taka(passport.fee)}</span>
+              </Detail>
+              <Detail label="Agency Name">{passport.agencyName}</Detail>
+              <Detail label="Agency Gmail (Ownership)">{passport.agencyGmail}</Detail>
+              <Detail label="Intake Collector (Courier)">{passport.collectorName}</Detail>
+              <Detail label="Passport Holder Name">{passport.holderName}</Detail>
+              <Detail label="Contact Number">{passport.contactNumber}</Detail>
+              <Detail label="Visa Type">
                 {passport.visaTypeName ?? "—"}
               </Detail>
-              <Detail label="Service">{passport.serviceName ?? "—"}</Detail>
-              <Detail label="Comment" >
-                {passport.comment ? passport.comment : "—"}
-              </Detail>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Status timeline */}
-        <Card className="mb-6 gap-0 px-5 py-5">
-          <CardContent className="gap-0 p-0">
-            <h2 className="mb-4 text-lg font-semibold">Status timeline</h2>
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              <Detail label="Receipt date (set automatically)">{fmt(passport.receiptDate)}</Detail>
-              <Detail label="Delivery date (set automatically)">
-                {fmt(passport.deliveryDate)}
-              </Detail>
-              <Detail label="Delivery collector (delivery man)">
-                {passport.deliveryCollectorName ?? "—"}
-              </Detail>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Payment trail */}
-        <Card className="mb-6 gap-0 px-5 py-5">
-          <CardContent className="gap-0 p-0">
-            <h2 className="mb-4 text-lg font-semibold">Payment</h2>
-            {payment ? (
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                <Detail label="Amount (taka)">৳{payment.amount}</Detail>
-                <Detail label="Status">
-                  <Badge variant={payment.status === "PAID" ? "default" : "secondary"}>
-                    {payment.status === "PAID" ? "Paid" : payment.rejectedAt ? "Payment rejected" : "Payment requested"}
-                  </Badge>
+              <Detail label="Service Tier">{passport.serviceName ?? "—"}</Detail>
+              <div className="md:col-span-2 lg:col-span-3">
+                <Detail label="Operational Comment">
+                  {passport.comment ? (
+                    <span className="text-muted-foreground">{passport.comment}</span>
+                  ) : (
+                    "—"
+                  )}
                 </Detail>
-                <Detail label="Requested at">{fmt(payment.createdAt)}</Detail>
-                <Detail label="Approved at">{fmt(payment.paidAt)}</Detail>
-                <Detail label="Rejected at">{fmt(payment.rejectedAt)}</Detail>
+              </div>
+            </div>
+          </div>
+
+          {/* Status timeline */}
+          <div className="rounded-2xl border border-border/80 bg-card p-6 shadow-xs">
+            <div className="flex items-center gap-2 mb-4 pb-3 border-b border-border/60">
+              <Clock className="size-4.5 text-emerald-600 dark:text-emerald-400" />
+              <h2 className="text-base font-bold text-foreground">
+                Lifecycle & Timestamps
+              </h2>
+            </div>
+            <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+              <Detail label="Receipt Timestamp (Auto)">{fmt(passport.receiptDate)}</Detail>
+              <Detail label="Delivery Timestamp (Auto)">
+                {passport.deliveryDate ? (
+                  <span className="text-emerald-600 dark:text-emerald-400 font-bold">{fmt(passport.deliveryDate)}</span>
+                ) : (
+                  "—"
+                )}
+              </Detail>
+              <Detail label="Assigned Delivery Courier">
+                {passport.deliveryCollectorName ? (
+                  <span className="font-semibold text-foreground">{passport.deliveryCollectorName}</span>
+                ) : (
+                  "—"
+                )}
+              </Detail>
+            </div>
+          </div>
+
+          {/* Payment trail */}
+          <div className="rounded-2xl border border-border/80 bg-card p-6 shadow-xs">
+            <div className="flex items-center gap-2 mb-4 pb-3 border-b border-border/60">
+              <CreditCard className="size-4.5 text-purple-600 dark:text-purple-400" />
+              <h2 className="text-base font-bold text-foreground">
+                Settlement & Payment Ledger
+              </h2>
+            </div>
+            {payment ? (
+              <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+                <Detail label="Settlement Amount">
+                  <span className="font-mono font-bold text-foreground">{taka(payment.amount)}</span>
+                </Detail>
+                <Detail label="Settlement Status">
+                  <span
+                    className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold ${
+                      payment.status === "PAID"
+                        ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
+                        : payment.status === "REQUESTED"
+                        ? "bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20"
+                        : "bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20"
+                    }`}
+                  >
+                    {payment.status === "PAID"
+                      ? "Settled (Approved)"
+                      : payment.rejectedAt
+                      ? "Payment Rejected"
+                      : "Awaiting Staff Approval"}
+                  </span>
+                </Detail>
+                <Detail label="Requested At">{fmt(payment.createdAt)}</Detail>
+                <Detail label="Approved At">{fmt(payment.paidAt)}</Detail>
+                <Detail label="Rejected At">{fmt(payment.rejectedAt)}</Detail>
               </div>
             ) : (
-              <p className="text-sm text-muted-foreground">
-                No payment requested yet — the agency can request payment on a delivered passport.
+              <p className="text-xs text-muted-foreground">
+                No payment requested yet — client agency can initiate settlement once delivered.
               </p>
             )}
-          </CardContent>
-        </Card>
+          </div>
 
-        {/* Last editor */}
-        <Card className="gap-0 px-5 py-5">
-          <CardContent className="gap-0 p-0">
-            <h2 className="mb-4 text-lg font-semibold">Last editor</h2>
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              <Detail label="Edited by (name · role · time)">
+          {/* Last editor audit trail */}
+          <div className="rounded-2xl border border-border/80 bg-card p-6 shadow-xs">
+            <div className="flex items-center gap-2 mb-4 pb-3 border-b border-border/60">
+              <ShieldCheck className="size-4.5 text-blue-600 dark:text-blue-400" />
+              <h2 className="text-base font-bold text-foreground">
+                Audit Trail
+              </h2>
+            </div>
+            <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+              <Detail label="Last Edited By">
                 {lastEditorLine(
                   passport.lastEditedByName,
                   passport.lastEditedByRole,
                   passport.lastEditedAt
                 )}
               </Detail>
-              <Detail label="Editor email">{passport.lastEditedByEmail ?? "—"}</Detail>
-              <Detail label="Edit note">
+              <Detail label="Editor Gmail">{passport.lastEditedByEmail ?? "—"}</Detail>
+              <Detail label="Audit Attribution">
                 {passport.lastEditedAt
-                  ? "Reflects the most recent change to this passport."
-                  : "Never edited since it was recorded — attribution starts from the entry."}
+                  ? "Stamps the exact acting user on every update."
+                  : "Original counter intake record."}
               </Detail>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </PageShell>
     </div>
   );

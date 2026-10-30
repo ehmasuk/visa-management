@@ -23,11 +23,15 @@ export function PageShell({
   children: ReactNode;
 }) {
   return (
-    <main className="mx-auto w-full max-w-6xl flex-1 px-6 py-8">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
+    <main className="mx-auto w-full max-w-6xl flex-1 px-4 sm:px-6 py-8">
+      <div className="mb-8">
+        <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground">
+          {title}
+        </h1>
         {subtitle ? (
-          <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p>
+          <p className="mt-1.5 text-xs sm:text-sm text-muted-foreground leading-relaxed">
+            {subtitle}
+          </p>
         ) : null}
       </div>
       {children}
@@ -56,14 +60,14 @@ export function Field({
 }) {
   return (
     <label className="flex min-w-0 flex-col gap-1.5">
-      <span className="text-xs font-medium text-muted-foreground">{label}</span>
+      <span className="text-xs font-semibold text-foreground/80">{label}</span>
       {multiline ? (
         <Textarea
           name={name}
           required={required}
           defaultValue={defaultValue ?? ""}
           placeholder={placeholder}
-          className={narrow ? "w-56 max-w-none" : undefined}
+          className={`rounded-xl border-border/80 text-xs ${narrow ? "w-56 max-w-none" : ""}`}
         />
       ) : (
         <Input
@@ -72,7 +76,7 @@ export function Field({
           required={required}
           defaultValue={defaultValue ?? ""}
           placeholder={placeholder}
-          className={narrow ? "w-56 max-w-none" : undefined}
+          className={`rounded-xl border-border/80 text-xs h-9.5 ${narrow ? "w-56 max-w-none" : ""}`}
         />
       )}
     </label>
@@ -92,8 +96,8 @@ export function Select({
 }) {
   return (
     <label className="flex min-w-0 flex-col gap-1.5">
-      <span className="text-xs font-medium text-muted-foreground">{label}</span>
-      <NativeSelect name={name} defaultValue={defaultValue} className="w-full">
+      <span className="text-xs font-semibold text-foreground/80">{label}</span>
+      <NativeSelect name={name} defaultValue={defaultValue} className="w-full rounded-xl border-border/80 text-xs h-9.5">
         {options.map((o) => (
           <option key={o.value} value={o.value}>
             {o.label}
@@ -114,7 +118,11 @@ export function SubmitButton({
   const buttonVariant =
     variant === "ghost" ? "outline" : variant === "danger" ? "destructive" : "default";
   return (
-    <Button type="submit" variant={buttonVariant}>
+    <Button
+      type="submit"
+      variant={buttonVariant}
+      className="rounded-xl px-4 py-2 font-semibold text-xs cursor-pointer shadow-xs transition-all hover:scale-[1.01]"
+    >
       {children}
     </Button>
   );
