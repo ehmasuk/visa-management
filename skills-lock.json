@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "skills": {
+    "nextjs-authentication": {
+      "source": "giuseppe-trisciuoglio/developer-kit",
+      "sourceType": "github",
+      "skillPath": "plugins/developer-kit-typescript/skills/nextjs-authentication/SKILL.md",
+      "computedHash": "2db7188c1a1e02ec51953f91bec0e3b48c192cad2cfe921aa016399feb1ae74d"
+    },
+    "prisma-database-setup": {
+      "source": "prisma/skills",
+      "sourceType": "github",
+      "skillPath": "prisma-database-setup/SKILL.md",
+      "computedHash": "523066b1fe4b17a97d4f72f6190f8749815029a51a7e4fe190d8f74af1a8e74e"
+    }
+  }
+}

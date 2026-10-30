@@ -47,7 +47,10 @@ function ThemeHotkey() {
         return
       }
 
-      if (event.key.toLowerCase() !== "d") {
+      // Chrome fires keydown events with `event.key` undefined when
+      // interacting with the native datalist suggestion popup (arrow keys /
+      // Enter inside the dropdown). Treat those as non-hotkey input.
+      if (typeof event.key !== "string" || event.key.toLowerCase() !== "d") {
         return
       }
 

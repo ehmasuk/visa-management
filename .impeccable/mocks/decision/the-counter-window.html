@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<style>
+  :root{
+    --ink:#171717; --ink-fill:#1e1e1e; --paper:#fff; --gray:#f2f2f2;
+    --band:#f7f7f7; --hair:#e5e5e5; --muted:#575757;
+    --sans:'Inter',system-ui,sans-serif; --mono:'Geist Mono',ui-monospace,monospace;
+  }
+  *{margin:0;box-sizing:border-box}
+  body{width:1440px;height:900px;overflow:hidden;background:var(--band);
+       font-family:var(--sans);color:var(--ink);-webkit-font-smoothing:antialiased}
+  .cap{font-family:var(--mono);font-size:11px;letter-spacing:.14em;color:var(--muted);text-transform:uppercase}
+  .band{height:56px;border-bottom:1px solid var(--hair);display:flex;align-items:center;
+        padding:0 32px;justify-content:space-between}
+  .brand{font-size:14px;font-weight:600;letter-spacing:-.01em}
+  .main{max-width:1080px;margin:0 auto;padding-top:64px;text-align:center}
+  .kicker{display:block}
+  h1{font-size:60px;line-height:1.06;font-weight:700;letter-spacing:-.025em;margin-top:18px}
+  .sub{margin:16px auto 0;max-width:660px;font-size:16px;line-height:1.55;color:var(--muted)}
+  .window{position:relative;background:var(--paper);border:1px solid var(--hair);
+          border-radius:14px;margin-top:40px;text-align:left}
+  .whead{display:flex;align-items:center;justify-content:space-between;
+         padding:13px 24px;border-bottom:1px solid var(--hair);background:var(--gray);
+         border-radius:14px 14px 0 0}
+  .ident{font-size:13px;color:var(--muted)}
+  .serial{font-family:var(--mono);font-weight:600;font-size:14px;color:var(--ink)}
+  .syn{font-family:var(--mono);font-size:10px;letter-spacing:.12em;color:var(--muted);text-transform:uppercase}
+  .track{display:flex;align-items:center;padding:30px 36px 34px}
+  .stage{min-width:190px}
+  .pill{display:inline-flex;align-items:center;height:20px;padding:0 8px;border-radius:26px;
+        font-weight:500;font-size:12px;border:.5px solid transparent}
+  .received{background:rgba(59,130,246,.15);color:#2563eb;border-color:rgba(59,130,246,.3)}
+  .processing{background:rgba(245,158,11,.15);color:#d97706;border-color:rgba(245,158,11,.3)}
+  .delivered{background:rgba(16,185,129,.15);color:#059669;border-color:rgba(16,185,129,.3)}
+  .date{margin-top:9px;font-size:13px;color:var(--muted)}
+  .run{flex:1;height:1px;background:var(--hair);margin:0 22px}
+  .plaque{position:absolute;left:50%;bottom:-23px;transform:translateX(-50%)}
+  .btn{display:inline-flex;align-items:center;height:46px;padding:0 28px;border-radius:10px;
+       background:var(--ink-fill);color:#fafafa;font-size:14px;font-weight:500}
+  .note{margin-top:52px}
+  .roles{margin-top:14px;font-family:var(--mono);font-size:11px;letter-spacing:.1em;
+         color:var(--muted)}
+</style>
+</head>
+<body>
+  <header class="band">
+    <div class="brand">Visa Management</div>
+    <div class="cap">Registry-gated · Google sign-in</div>
+  </header>
+
+  <main class="main">
+    <span class="cap kicker">Office front desk — passport custody system</span>
+    <h1>Every passport, tracked from<br>intake to delivery.</h1>
+    <p class="sub">Passports arrive from agencies through collectors, staff record each
+      entry, and dates are stamped by the system — never typed. Agencies watch their
+      own passports without calling the office.</p>
+
+    <section class="window">
+      <div class="whead">
+        <div class="ident"><span class="serial">BX2048513</span>&nbsp;&nbsp;Rafiqul Islam&nbsp;&nbsp;·&nbsp;&nbsp;Sunrise Travels</div>
+        <div class="syn">Sample record · synthetic</div>
+      </div>
+      <div class="track">
+        <div class="stage">
+          <div class="syn">01 · Intake</div>
+          <div class="received pill" style="margin-top:10px">Received</div>
+          <div class="date">22 Oct 2026</div>
+        </div>
+        <div class="run"></div>
+        <div class="stage">
+          <div class="syn">02 · Processing</div>
+          <div class="processing pill" style="margin-top:10px">Processing</div>
+          <div class="date">26 Oct 2026</div>
+        </div>
+        <div class="run"></div>
+        <div class="stage">
+          <div class="syn">03 · Delivery</div>
+          <div class="delivered pill" style="margin-top:10px">Delivered</div>
+          <div class="date">29 Oct 2026</div>
+        </div>
+      </div>
+      <a class="plaque btn" href="/login">Sign in to continue</a>
+    </section>
+
+    <p class="cap note">Only addresses allow-listed by the administrator can sign in.</p>
+    <p class="roles">Staff record intake &nbsp;·&nbsp; agencies watch their own &nbsp;·&nbsp; admin runs registries</p>
+  </main>
+</body>
+</html>

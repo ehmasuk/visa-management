@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<style>
+  :root{
+    --ink:#171717; --ink-fill:#1e1e1e; --paper:#fff; --gray:#f2f2f2;
+    --hair:#e5e5e5; --muted:#575757;
+    --sans:'Inter',system-ui,sans-serif; --mono:'Geist Mono',ui-monospace,monospace;
+  }
+  *{margin:0;box-sizing:border-box}
+  body{width:1440px;height:900px;overflow:hidden;background:var(--paper);
+       font-family:var(--sans);color:var(--ink);-webkit-font-smoothing:antialiased;
+       display:grid;grid-template-rows:56px 1fr;grid-template-columns:1fr 1.15fr;
+       column-gap:72px;padding:0 88px 0 96px}
+  .cap{font-family:var(--mono);font-size:11px;letter-spacing:.14em;color:var(--muted);text-transform:uppercase}
+  .band{grid-column:1/3;border-bottom:1px solid var(--hair);display:flex;
+        align-items:center;justify-content:space-between;margin:0 -96px 0 -88px;padding:0 120px}
+  .brand{font-size:14px;font-weight:600;letter-spacing:-.01em}
+  .left{align-self:center;padding-top:24px}
+  h1{font-size:52px;line-height:1.1;font-weight:700;letter-spacing:-.025em;margin-top:16px}
+  .sub{margin-top:18px;font-size:15px;line-height:1.6;color:var(--muted);max-width:520px}
+  .btn{display:inline-flex;align-items:center;height:46px;padding:0 28px;border-radius:10px;
+       background:var(--ink-fill);color:#fafafa;font-size:14px;font-weight:500;
+       text-decoration:none;margin-top:34px}
+  .note{margin-top:16px;max-width:480px}
+  .ledger{align-self:center;border:1px solid var(--hair);border-radius:14px;overflow:hidden}
+  .lhead{display:grid;grid-template-columns:128px 1.1fr 1.1fr 132px 88px;gap:12px;
+         align-items:center;background:var(--gray);padding:13px 22px;border-bottom:1px solid var(--hair)}
+  .lh{font-size:11px;font-weight:500;letter-spacing:.08em;color:var(--muted);text-transform:uppercase}
+  .lrow{display:grid;grid-template-columns:128px 1.1fr 1.1fr 132px 88px;gap:12px;
+        align-items:center;padding:17px 22px;border-bottom:1px solid var(--hair);font-size:13px}
+  .lrow:last-child{border-bottom:none}
+  .serial{font-family:var(--mono);font-weight:600;font-size:13px}
+  .pill{display:inline-flex;align-items:center;height:20px;padding:0 8px;border-radius:26px;
+        font-weight:500;font-size:12px;border:.5px solid transparent}
+  .received{background:rgba(59,130,246,.15);color:#2563eb;border-color:rgba(59,130,246,.3)}
+  .processing{background:rgba(245,158,11,.15);color:#d97706;border-color:rgba(245,158,11,.3)}
+  .delivered{background:rgba(16,185,129,.15);color:#059669;border-color:rgba(16,185,129,.3)}
+  .dash{color:var(--muted)}
+  .mark{margin-top:12px;text-align:right}
+  .syn{font-family:var(--mono);font-size:10px;letter-spacing:.12em;color:var(--muted);text-transform:uppercase}
+</style>
+</head>
+<body>
+  <header class="band">
+    <div class="brand">Visa Management</div>
+    <div class="cap">Registry-gated · Google sign-in</div>
+  </header>
+
+  <section class="left">
+    <span class="cap">Office front desk · Intake to delivery</span>
+    <h1>Track every passport the office hands you.</h1>
+    <p class="sub">Agencies send passports through collectors, staff record each entry,
+      and every date is stamped by the system — never typed. Agencies watch their own
+      passports without calling the office.</p>
+    <a class="btn" href="/login">Sign in to continue</a>
+    <p class="cap note">Only addresses allow-listed by the administrator can sign in.</p>
+  </section>
+
+  <section class="ledger">
+    <div class="lhead">
+      <span class="lh">Passport</span><span class="lh">Holder</span><span class="lh">Agency</span>
+      <span class="lh">Status</span><span class="lh">Payment</span>
+    </div>
+    <div class="lrow">
+      <span class="serial">BX2048513</span><span>Rafiqul Islam</span><span>Sunrise Travels</span>
+      <span class="received pill">Received</span><span class="dash">—</span>
+    </div>
+    <div class="lrow">
+      <span class="serial">BG7711268</span><span>Sumaiya Akter</span><span>Meghna Air Tours</span>
+      <span class="processing pill">Processing</span><span class="dash">—</span>
+    </div>
+    <div class="lrow">
+      <span class="serial">BM3390745</span><span>Tanvir Rahman</span><span>Nova Visa Desk</span>
+      <span class="delivered pill">Delivered</span><span class="delivered pill">Paid</span>
+    </div>
+  </section>
+
+  <div></div>
+  <p class="cap mark" style="align-self:end;grid-column:2;margin-bottom:64px">Sample records · synthetic data</p>
+</body>
+</html>

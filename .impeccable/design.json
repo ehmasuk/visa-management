@@ -1,0 +1,141 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-30T12:00:00Z",
+  "title": "Design System: Visa Management",
+  "extensions": {
+    "colorMeta": {
+      "primary": { "role": "primary", "displayName": "Desk Ink", "canonical": "oklch(0.205 0 0)", "tonalRamp": ["oklch(15% 0 0)", "oklch(25% 0 0)", "oklch(35% 0 0)", "oklch(45% 0 0)", "oklch(55% 0 0)", "oklch(70% 0 0)", "oklch(85% 0 0)", "oklch(95% 0 0)"] },
+      "background": { "role": "neutral", "displayName": "White Paper", "canonical": "oklch(1 0 0)", "tonalRamp": ["oklch(15% 0 0)", "oklch(25% 0 0)", "oklch(35% 0 0)", "oklch(45% 0 0)", "oklch(55% 0 0)", "oklch(70% 0 0)", "oklch(85% 0 0)", "oklch(95% 0 0)"] },
+      "muted": { "role": "neutral", "displayName": "Paper Gray", "canonical": "oklch(0.97 0 0)", "tonalRamp": ["oklch(15% 0 0)", "oklch(25% 0 0)", "oklch(35% 0 0)", "oklch(45% 0 0)", "oklch(55% 0 0)", "oklch(70% 0 0)", "oklch(85% 0 0)", "oklch(95% 0 0)"] },
+      "border": { "role": "neutral", "displayName": "Table Border", "canonical": "oklch(0.922 0 0)", "tonalRamp": ["oklch(15% 0 0)", "oklch(25% 0 0)", "oklch(35% 0 0)", "oklch(45% 0 0)", "oklch(55% 0 0)", "oklch(70% 0 0)", "oklch(85% 0 0)", "oklch(95% 0 0)"] },
+      "status-trust-blue": { "role": "status", "displayName": "Trust Blue", "canonical": "#2563eb", "tonalRamp": ["oklch(15% 0.05 255)", "oklch(25% 0.09 255)", "oklch(35% 0.13 255)", "oklch(45% 0.16 255)", "oklch(55% 0.18 255)", "oklch(70% 0.13 255)", "oklch(85% 0.08 255)", "oklch(95% 0.04 255)"] },
+      "status-caution-amber": { "role": "status", "displayName": "Caution Amber", "canonical": "#d97706", "tonalRamp": ["oklch(15% 0.05 58)", "oklch(25% 0.09 58)", "oklch(35% 0.12 58)", "oklch(45% 0.14 58)", "oklch(55% 0.155 58)", "oklch(70% 0.12 58)", "oklch(85% 0.07 58)", "oklch(95% 0.04 58)"] },
+      "status-delivered-emerald": { "role": "status", "displayName": "Delivered Emerald", "canonical": "#059669", "tonalRamp": ["oklch(15% 0.04 163)", "oklch(25% 0.07 163)", "oklch(35% 0.10 163)", "oklch(45% 0.115 163)", "oklch(55% 0.13 163)", "oklch(70% 0.10 163)", "oklch(85% 0.06 163)", "oklch(95% 0.03 163)"] },
+      "destructive": { "role": "destructive", "displayName": "Rejection Red", "canonical": "oklch(0.577 0.245 27.325)", "tonalRamp": ["oklch(15% 0.07 27)", "oklch(25% 0.12 27)", "oklch(35% 0.16 27)", "oklch(45% 0.21 27)", "oklch(58% 0.245 27)", "oklch(70% 0.16 27)", "oklch(85% 0.08 27)", "oklch(95% 0.04 27)"] }
+    },
+    "typographyMeta": {
+      "headline": { "displayName": "Headline", "purpose": "Page titles only — one per screen." },
+      "title": { "displayName": "Title", "purpose": "Section headings inside cards." },
+      "body": { "displayName": "Body", "purpose": "The desk's working size — card content, records, filters." },
+      "label": { "displayName": "Label", "purpose": "Field captions, table headers (uppercase), timestamps." },
+      "serial": { "displayName": "Serial Stamp", "purpose": "Geist Mono for document identifiers — passport numbers only." }
+    },
+    "shadows": [],
+    "motion": [
+      { "name": "desk-transition", "value": "150ms cubic-bezier(0.4, 0, 0.2, 1)", "purpose": "Color/box-shadow state changes on controls; flat surfaces, never translate except the active press (translate-y-px)." }
+    ],
+    "breakpoints": [
+      { "name": "md", "value": "768px" },
+      { "name": "lg", "value": "1024px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Desk Ink fill — the only filled element in the palette; one primary action per composition.",
+      "html": "<button class='ds-btn-primary'>Receive passport</button>",
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; justify-content: center; height: 32px; padding: 0 10px; border-radius: 10px; border: none; background: oklch(0.205 0 0); color: oklch(0.985 0 0); font-family: Inter, system-ui, sans-serif; font-size: 14px; font-weight: 500; white-space: nowrap; cursor: pointer; transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1); } .ds-btn-primary:hover { background: oklch(0.205 0 0 / 0.8); } .ds-btn-primary:focus-visible { outline: none; border-color: oklch(0.708 0 0); box-shadow: 0 0 0 3px oklch(0.708 0 0 / 0.5); } .ds-btn-primary:active { transform: translateY(1px); }"
+    },
+    {
+      "name": "Outline Button",
+      "kind": "button",
+      "refersTo": "button-outline",
+      "description": "Paper surface with Table Border stroke; hover fills Paper Gray flat. Secondary actions and list-card interstitials.",
+      "html": "<button class='ds-btn-outline'>View</button>",
+      "css": ".ds-btn-outline { display: inline-flex; align-items: center; justify-content: center; height: 32px; padding: 0 10px; border-radius: 10px; border: 1px solid oklch(0.922 0 0); background: oklch(1 0 0); color: oklch(0.145 0 0); font-family: Inter, system-ui, sans-serif; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1); } .ds-btn-outline:hover { background: oklch(0.97 0 0); } .ds-btn-outline:focus-visible { outline: none; border-color: oklch(0.708 0 0); box-shadow: 0 0 0 3px oklch(0.708 0 0 / 0.5); }"
+    },
+    {
+      "name": "Input",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "32px paper field under a 12px muted caption; focus earns the system's only glow.",
+      "html": "<div class='ds-field'><span class='ds-field-label'>Passport number</span><input class='ds-input' value='AF1234567' /></div>",
+      "css": ".ds-field { display: flex; flex-direction: column; gap: 6px; } .ds-field-label { font-family: Inter, system-ui, sans-serif; font-size: 12px; font-weight: 500; color: oklch(0.556 0 0); line-height: 1.4; } .ds-input { height: 32px; width: 240px; padding: 0 10px; border-radius: 10px; border: 1px solid oklch(0.922 0 0); background: transparent; color: oklch(0.145 0 0); font-family: Inter, system-ui, sans-serif; font-size: 14px; transition: border-color 150ms, box-shadow 150ms; } .ds-input:focus-visible { outline: none; border-color: oklch(0.708 0 0); box-shadow: 0 0 0 3px oklch(0.708 0 0 / 0.5); } .ds-input::placeholder { color: oklch(0.556 0 0); }"
+    },
+    {
+      "name": "Select",
+      "kind": "custom",
+      "refersTo": "input",
+      "description": "Native select fed from admin registries; same desk anatomy as inputs, full width.",
+      "html": "<div class='ds-field'><span class='ds-field-label'>Agency name</span><select class='ds-select'><option>Select an agency</option><option selected>Cox's Visa Service</option></select></div>",
+      "css": ".ds-field { display: flex; flex-direction: column; gap: 6px; } .ds-field-label { font-family: Inter, system-ui, sans-serif; font-size: 12px; font-weight: 500; color: oklch(0.556 0 0); line-height: 1.4; } .ds-select { height: 32px; padding: 0 10px; border-radius: 10px; border: 1px solid oklch(0.922 0 0); background: oklch(1 0 0); color: oklch(0.145 0 0); font-family: Inter, system-ui, sans-serif; font-size: 14px; cursor: pointer; transition: border-color 150ms, box-shadow 150ms; } .ds-select:focus-visible { outline: none; border-color: oklch(0.708 0 0); box-shadow: 0 0 0 3px oklch(0.708 0 0 / 0.5); }"
+    },
+    {
+      "name": "Status Badge — Trust Blue",
+      "kind": "chip",
+      "refersTo": "badge-status",
+      "description": "The 20px pill tint window: ~15% blue fill behind medium-weight blue-600 text; passport RECEIVED.",
+      "html": "<span class='ds-badge-trust'>Received</span>",
+      "css": ".ds-badge-trust { display: inline-flex; align-items: center; height: 20px; padding: 0 8px; border-radius: 26px; background: rgba(59, 130, 246, 0.15); color: #2563eb; font-family: Inter, system-ui, sans-serif; font-size: 12px; font-weight: 500; white-space: nowrap; border: 1px solid transparent; }"
+    },
+    {
+      "name": "Status Badge — Caution Amber",
+      "kind": "chip",
+      "refersTo": "badge-status",
+      "description": "Caution window for PROCESSING status and payments awaiting approval.",
+      "html": "<span class='ds-badge-caution'>Processing</span>",
+      "css": ".ds-badge-caution { display: inline-flex; align-items: center; height: 20px; padding: 0 8px; border-radius: 26px; background: rgba(245, 158, 11, 0.15); color: #d97706; font-family: Inter, system-ui, sans-serif; font-size: 12px; font-weight: 500; white-space: nowrap; border: 1px solid transparent; }"
+    },
+    {
+      "name": "Status Badge — Delivered Emerald",
+      "kind": "chip",
+      "refersTo": "badge-status",
+      "description": "Delivered window for DELIVERED and PAID.",
+      "html": "<span class='ds-badge-delivered'>Delivered</span>",
+      "css": ".ds-badge-delivered { display: inline-flex; align-items: center; height: 20px; padding: 0 8px; border-radius: 26px; background: rgba(16, 185, 129, 0.15); color: #059669; font-family: Inter, system-ui, sans-serif; font-size: 12px; font-weight: 500; white-space: nowrap; border: 1px solid transparent; }"
+    },
+    {
+      "name": "Passport Card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "The desk surface: white paper, hairline ink ring, 16px padding, flat — never a shadow. Summary block left, action cluster right.",
+      "html": "<div class='ds-card'><div><div class='ds-card-row'><span class='ds-serial'>AF1234567</span><span class='ds-badge-trust'>Received</span></div><p class='ds-card-line'>Md. Rahim · Cox's Visa Service</p><p class='ds-card-caption'>Contact 017XXXXXXXX · fee ৳3500 · brought by Kamal</p><p class='ds-card-caption'>Last edited by —</p></div><div class='ds-card-actions'><button class='ds-btn-outline'>View</button><button class='ds-btn-primary'>Edit</button></div></div>",
+      "css": ".ds-card { display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 12px; border-radius: 14px; background: oklch(1 0 0); box-shadow: inset 0 0 0 1px oklch(0.145 0 0 / 0.10); padding: 12px 16px; font-family: Inter, system-ui, sans-serif; } .ds-card-row { display: flex; align-items: center; gap: 8px; } .ds-serial { font-family: 'Geist Mono', ui-monospace, monospace; font-size: 14px; font-weight: 600; color: oklch(0.145 0 0); } .ds-card-line { margin-top: 4px; font-size: 14px; color: oklch(0.145 0 0); } .ds-card-caption { margin-top: 2px; font-size: 12px; color: oklch(0.556 0 0); } .ds-card-actions { display: flex; gap: 8px; align-items: center; } .ds-badge-trust { display: inline-flex; align-items: center; height: 20px; padding: 0 8px; border-radius: 26px; background: rgba(59, 130, 246, 0.15); color: #2563eb; font-family: Inter, system-ui, sans-serif; font-size: 12px; font-weight: 500; } .ds-btn-outline { display: inline-flex; align-items: center; justify-content: center; height: 28px; padding: 0 10px; border-radius: 10px; border: 1px solid oklch(0.922 0 0); background: oklch(1 0 0); color: oklch(0.145 0 0); font-family: Inter, system-ui, sans-serif; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1); } .ds-btn-outline:hover { background: oklch(0.97 0 0); } .ds-btn-primary { display: inline-flex; align-items: center; justify-content: center; height: 28px; padding: 0 10px; border-radius: 10px; border: none; background: oklch(0.205 0 0); color: oklch(0.985 0 0); font-family: Inter, system-ui, sans-serif; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1); } .ds-btn-primary:hover { background: oklch(0.205 0 0 / 0.8); }"
+    },
+    {
+      "name": "Top Navigation Segment",
+      "kind": "nav",
+      "refersTo": "card",
+      "description": "Counter Band nav: off-white strip, pill segments; active = Desk Ink fill with white text.",
+      "html": "<div class='ds-nav'><span class='ds-nav-brand'>Visa Management</span><nav class='ds-nav-bar'><a class='ds-nav-inactive' href='#'>Overview</a><a class='ds-nav-active' href='#'>Passports</a><a class='ds-nav-inactive' href='#'>Reports</a></nav><span class='ds-nav-role'>STAFF</span></div>",
+      "css": ".ds-nav { display: flex; align-items: center; gap: 24px; background: oklch(0.985 0 0); border-bottom: 1px solid oklch(0.922 0 0); padding: 12px 24px; font-family: Inter, system-ui, sans-serif; } .ds-nav-brand { font-size: 14px; font-weight: 600; color: oklch(0.145 0 0); } .ds-nav-bar { display: flex; gap: 4px; } .ds-nav-active, .ds-nav-inactive { display: inline-flex; align-items: center; padding: 6px 12px; border-radius: 12px; font-size: 14px; font-weight: 500; text-decoration: none; transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1); } .ds-nav-active { background: oklch(0.205 0 0); color: oklch(0.985 0 0); } .ds-nav-inactive { color: oklch(0.145 0 0); } .ds-nav-inactive:hover { background: oklch(0.97 0 0); } .ds-nav-role { margin-left: auto; display: inline-flex; align-items: center; height: 20px; padding: 0 8px; border-radius: 26px; background: oklch(0.97 0 0); color: oklch(0.205 0 0); font-size: 12px; font-weight: 500; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Passport Desk",
+    "overview": "A clean government counter at a visa-processing office: precise paperwork, calm process, no wasted ink. Every screen is a desk surface — white paper laid flat on a neutral band, enclosed by a hairline stroke instead of a shadow, and labeled by a system that speaks in small, exact captions. The palette is intentionally monochrome: near-black ink is the only element that ever fills a surface, while color appears exclusively and sparingly inside tinted status pills. The interface feels confident, orderly, and unhurried — officialese without oppressive density.",
+    "keyCharacteristics": [
+      "Grayscale OKLCH system; color reserved for status pills and destructive relief",
+      "Hairline-outline depth (never drop shadows); glow belongs to focus rings only",
+      "Compact, procedural controls (32px) with strong primary-ink fills",
+      "Passport numbers set in Geist Mono like official serial stamps",
+      "Tinted status windows: ~15% fill behind the hue's 600-step text at medium weight",
+      "Fully supported dark mode (system default, class attribute, Ctrl+D toggle)"
+    ],
+    "rules": [
+      { "name": "The Ink-Only Primary Rule", "body": "The palette's only filled element is near-black ink. No brand hue, no colored buttons; rarity IS the discipline.", "section": "colors" },
+      { "name": "The Tint-Window Rule", "body": "Status hues live in one shape only: a pill with ~15% tinted background and the hue's 600-step text at medium weight. Never solid fills, never colored borders.", "section": "colors" },
+      { "name": "The One-Status Pill Rule", "body": "A passport carries at most one status tint and one payment tint; two pills max on any record row.", "section": "colors" },
+      { "name": "The Serial-Stencil Rule", "body": "Any identifier printed on the physical document — passport numbers — is set in Geist Mono (14px/600). No other text uses mono.", "section": "typography" },
+      { "name": "The Focus-Glow Exception", "body": "The focus-visible ring (3px, ring/50%) is the one place light blooms. Hover states stay flat; nothing floats, nothing drops a shadow.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do keep all surfaces flat: white paper, hairline ring strokes (ring-1 ring-foreground/10 / border-input), Paper Gray hover fills.",
+      "Do confine every chroma to a pill: ~15% tinted window + the hue's 600-step hue text at medium weight (blue/600, amber/600, emerald/600), or destructive/10 + Rejection Red.",
+      "Do set passport numbers in Geist Mono at 14px/600 — the serial stamp treatment.",
+      "Do keep interactive controls at 32px with 10px radius and a 3px focus ring glow; label every field in 12px/500 muted caption.",
+      "Do align forms on the 2-col/4-col responsive grids with 16px gaps; align table headers uppercase with wide tracking.",
+      "Do maintain dispatches for dark mode (class strategy): tinted borders and surface contrast stand in for every light-mode hairline."
+    ],
+    "donts": [
+      "Don't drop shadows for depth — ring strokes only; the focus ring is the sole glow.",
+      "Don't color buttons, inputs, or backgrounds with palette hues; Desk Ink is the only fill.",
+      "Don't use solid status fills or colored borders for status information.",
+      "Don't put more than two status pills on one record row (one status + one payment).",
+      "Don't apply the pill (26px radius) to anything except badges; controls stay rectangular at their scale step.",
+      "Don't uppercase body text or headings — the uppercase voice belongs to table headers and 12px labels only."
+    ]
+  }
+}

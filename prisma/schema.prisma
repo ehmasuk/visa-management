@@ -1,0 +1,186 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+// Starter model — adjust or replace with your visa-management domain models.
+enum Role {
+  ADMIN
+  STAFF
+  AGENCY
+}
+
+model User {
+  id            String    @id @default(auto()) @map("_id") @db.ObjectId
+  email         String    @unique
+  name          String?
+  image         String?
+  emailVerified DateTime? @map("email_verified")
+  role          Role      @default(AGENCY)
+  agencyId      String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@map("users")
+}
+
+// Audit documentation for admin recovery/replacement and authorized role changes.
+model AdminAudit {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  action      String
+  actorEmail  String   @map("actor_email")
+  actorRole   String?  @map("actor_role")
+  targetEmail String?  @map("target_email")
+  fromRole    String?  @map("from_role")
+  toRole      String?  @map("to_role")
+  reason      String
+  createdAt   DateTime @default(now())
+
+  @@map("admin_audit")
+}
+
+// Admin-managed registry: branch offices of the business.
+model Branch {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  name      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("branches")
+}
+
+// Admin-managed registry: agencies allow-listed by Gmail so they can log in.
+// Gmail is unique — it is the natural key used for sign-in lookups and the
+// agency dashboard (see auth.ts signIn callback).
+model Agency {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  name      String   @unique
+  gmail     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("agencies")
+}
+
+// Admin-managed registry: collectors are name-only display records (no login).
+model Collector {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  name      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("collectors")
+}
+
+// Admin-managed registry: visa types offered by the business. Staff must
+// select one from this registry when entering a passport.
+model VisaType {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  name      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("visa_types")
+}
+
+// Admin-managed registry: services (e.g. processing packages) selectable at
+// passport entry — name-only records, like visa types.
+model Service {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  name      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("services")
+}
+
+// Admin-managed registry: staff members allow-listed by Gmail with a role.
+model Staff {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  name      String
+  gmail     String   @unique
+  role      String   @default("STAFF")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("staffs")
+}
+
+// Passport entered by staff. receiptDate/deliveryDate are system-managed:
+// set automatically on entry / on transition to DELIVERED. Never user-provided.
+model Passport {
+  id             String         @id @default(auto()) @map("_id") @db.ObjectId
+  agencyName     String
+  agencyGmail    String
+  collectorName  String
+  passportNumber String         @unique
+  holderName     String
+  contactNumber  String
+  comment        String
+  fee            Int
+  status         PassportStatus @default(RECEIVED)
+  receiptDate    DateTime       @default(now()) @map("receipt_date")
+  deliveryDate   DateTime?      @map("delivery_date")
+  // collectorName = intake collector: who BROUGHT the passport from the
+  // agency (recorded at entry, never changed by delivery transitions).
+  // deliveryCollectorName = "delivery man": who RECEIVED the delivered
+  // passport to take it back to the agency (set/updated only by a delivery
+  // transition, so it never overwrites the intake collector).
+  deliveryCollectorName String? @map("delivery_collector_name")
+  // Registry-backed selections recorded at entry: staff must pick both from
+  // the admin visa-type and service registries. Optional in storage so
+  // passports recorded before the registries existed still read cleanly.
+  visaTypeName   String? @map("visa_type_name")
+  serviceName    String? @map("service_name")
+  // Last editor: the internal user (STAFF or ADMIN) behind the passport's
+  // most recent change — name/role/email copied from the acting session and
+  // a timestamp set at mutation time. Stamped on entry (the creating staff
+  // as initial editor) and refreshed by every update that touches a
+  // passport (details edit, comment edit, status/delivery flow). Optional
+  // in storage so passports recorded before this existed read cleanly.
+  lastEditedByName  String?   @map("last_edited_by_name")
+  lastEditedByRole  String?   @map("last_edited_by_role")
+  lastEditedByEmail String?   @map("last_edited_by_email")
+  lastEditedAt      DateTime? @map("last_edited_at")
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  payment        Payment?
+
+  @@index([status])
+  @@index([agencyName])
+  @@index([agencyGmail])
+  @@map("passports")
+}
+
+// Payment request created when an agency clicks "pay" on a delivered passport.
+// One payment per passport (passportId unique). amount is captured from the
+// passport fee at request time for the admin money report.
+model Payment {
+  id         String        @id @default(auto()) @map("_id") @db.ObjectId
+  passport   Passport      @relation(fields: [passportId], references: [id])
+  passportId String        @unique @map("passport_id") @db.ObjectId
+  amount     Int
+  status     PaymentStatus @default(UNPAID)
+  paidAt     DateTime?     @map("paid_at")
+  rejectedAt DateTime?     @map("rejected_at")
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+
+  @@index([status])
+  @@map("payments")
+}
+
+enum PassportStatus {
+  RECEIVED
+  PROCESSING
+  DELIVERED
+}
+
+enum PaymentStatus {
+  PAID
+  UNPAID
+}
