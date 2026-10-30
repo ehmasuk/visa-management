@@ -20,7 +20,7 @@ const BASE = "/staff/passports";
 /** List pages hosting the shared passport card forms. */
 const LIST_HOMES = ["/staff/passports", "/admin/passports"] as const;
 
-const STATUS_SET = ["RECEIVED", "PROCESSING", "DELIVERED"] as const;
+const STATUS_SET = ["RECEIVED", "DELIVERED"] as const;
 type AllowedStatus = (typeof STATUS_SET)[number];
 
 async function fail(message: string, redirectTo: string = BASE): Promise<never> {
@@ -309,7 +309,7 @@ export async function updatePassportComment(formData: FormData) {
 }
 
 /**
- * Tasks 5.1–5.3 — Status change between RECEIVED/PROCESSING/DELIVERED.
+ * Tasks 5.1–5.3 — Status change between RECEIVED/DELIVERED.
  * DELIVERED requires a delivery collector ("delivery man", 5.2) — validated
  * against the registry — and sets deliveryDate to the transition timestamp
  * (5.3). The delivery collector is stored on deliveryCollectorName so the

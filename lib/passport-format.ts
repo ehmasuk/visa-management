@@ -18,11 +18,10 @@ export function fmt(value: Date | null | undefined): string {
 /** Tailwind classes for the status badge, keyed by PassportStatus. */
 export const STATUS_BADGE: Record<string, string> = {
   RECEIVED: "bg-blue-500/15 text-blue-600",
-  PROCESSING: "bg-amber-500/15 text-amber-600",
   DELIVERED: "bg-emerald-500/15 text-emerald-600",
 };
 
-/** "Received" / "Processing" / "Delivered" from the status enum value. */
+/** "Received" / "Delivered" from the status enum value. */
 export function statusLabel(status: string): string {
   return status.charAt(0) + status.slice(1).toLowerCase();
 }

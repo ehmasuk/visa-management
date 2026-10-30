@@ -35,7 +35,6 @@ export interface AdminDashboardData {
     services: number;
     totalPassports: number;
     receivedPassports: number;
-    processingPassports: number;
     deliveredPassports: number;
     paidAmount: number;
     unpaidAmount: number;
@@ -45,7 +44,7 @@ export interface AdminDashboardData {
     passportNumber: string;
     holderName: string;
     agencyName: string;
-    status: "RECEIVED" | "PROCESSING" | "DELIVERED";
+    status: "RECEIVED" | "DELIVERED";
     fee: number;
     lastEditedByName: string | null;
     updatedAt: string;
@@ -274,22 +273,6 @@ export function AdminDashboardClient({ data }: { data: AdminDashboardData }) {
             </span>
           </div>
 
-          {/* Processing Status */}
-          <div className="rounded-xl border border-border/80 bg-card p-4">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-muted-foreground">
-                Processing
-              </span>
-              <span className="size-2 rounded-full bg-amber-500" />
-            </div>
-            <p className="mt-2 text-2xl font-bold tracking-tight font-mono text-foreground">
-              {counts.processingPassports}
-            </p>
-            <span className="text-[11px] text-amber-600 dark:text-amber-400 mt-0.5 block">
-              Visa in process
-            </span>
-          </div>
-
           {/* Delivered Status */}
           <div className="rounded-xl border border-border/80 bg-card p-4">
             <div className="flex items-center justify-between">
@@ -456,8 +439,6 @@ export function AdminDashboardClient({ data }: { data: AdminDashboardData }) {
                         className={`inline-block size-1.5 rounded-full ${
                           p.status === "DELIVERED"
                             ? "bg-emerald-500"
-                            : p.status === "PROCESSING"
-                            ? "bg-amber-500"
                             : "bg-blue-500"
                         }`}
                       />
@@ -483,8 +464,6 @@ export function AdminDashboardClient({ data }: { data: AdminDashboardData }) {
                       className={`text-[10px] uppercase font-mono px-1.5 py-0 mt-0.5 ${
                         p.status === "DELIVERED"
                           ? "border-emerald-500/40 text-emerald-600 dark:text-emerald-400"
-                          : p.status === "PROCESSING"
-                          ? "border-amber-500/40 text-amber-600 dark:text-amber-400"
                           : "border-blue-500/40 text-blue-600 dark:text-blue-400"
                       }`}
                     >

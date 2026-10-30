@@ -176,7 +176,6 @@ model Payment {
 
 enum PassportStatus {
   RECEIVED
-  PROCESSING
   DELIVERED
 }
 

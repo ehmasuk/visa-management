@@ -25,7 +25,7 @@ Internal operations system, not a storefront. Its distinctive mechanism is regis
 - Visa-processing office serving multiple client agencies; passports are physically sent via collectors, so tracking mirrors real-world custody.
 - Money is settled **outside** the system (in person, e.g. cash or transfer). The app records only the payment request → approve/reject state an agency initiates on a delivered passport and staff decide.
 - Fees are recorded in Bangladeshi taka (৳). The interface currently ships in English; **the confirmed product direction is to convert the interface to Bengali only.**
-- Passport lifecycle is fixed: RECEIVED → PROCESSING → DELIVERED, with receipt date set automatically on entry and delivery date set automatically on the transition to DELIVERED.
+- Passport lifecycle is fixed: RECEIVED → DELIVERED, with receipt date set automatically on entry and delivery date set automatically on the transition to DELIVERED.
 
 ## Capabilities and Constraints
 

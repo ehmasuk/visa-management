@@ -10,7 +10,7 @@ Defines how staff change passport status and record the delivery collector ("del
 The system SHALL allow an authenticated staff member to update the status of a passport record.
 
 #### Scenario: Status change is persisted
-- **WHEN** a staff member changes a passport's status from "received" to "processing"
+- **WHEN** a staff member changes a passport's status from "received" to "delivered"
 - **THEN** the system updates the passport record's status field
 
 ### Requirement: Delivered status requires a registered delivery collector assignment
@@ -43,7 +43,7 @@ The system SHALL record the intake collector (who brought the passport from the 
 - **THEN** the passport's intake collector remains "A" and the delivery collector is recorded as "B"
 
 #### Scenario: Leaving delivered clears delivery recording
-- **WHEN** a delivered passport's status is changed to "received" or "processing"
+- **WHEN** a delivered passport's status is changed to "received"
 - **THEN** the delivery date and the delivery collector are cleared
 
 #### Scenario: Passport never delivered has no delivery collector
@@ -51,8 +51,8 @@ The system SHALL record the intake collector (who brought the passport from the 
 - **THEN** its delivery date and delivery collector are unset
 
 ### Requirement: Passport statuses are from a defined set
-The system SHALL restrict passport status to a defined set: received, processing, delivered.
+The system SHALL restrict passport status to a defined set: received, delivered.
 
 #### Scenario: Valid status values
 - **WHEN** a passport record is read
-- **THEN** its status is one of received, processing, or delivered
+- **THEN** its status is one of received or delivered

@@ -19,7 +19,6 @@ export default async function AdminPage() {
     services,
     totalPassports,
     receivedPassports,
-    processingPassports,
     deliveredPassports,
     paidAggregate,
     unpaidAggregate,
@@ -33,7 +32,6 @@ export default async function AdminPage() {
     prisma.service.count(),
     prisma.passport.count(),
     prisma.passport.count({ where: { status: "RECEIVED" } }),
-    prisma.passport.count({ where: { status: "PROCESSING" } }),
     prisma.passport.count({ where: { status: "DELIVERED" } }),
     prisma.payment.aggregate({
       _sum: { amount: true },
@@ -69,7 +67,6 @@ export default async function AdminPage() {
       services,
       totalPassports,
       receivedPassports,
-      processingPassports,
       deliveredPassports,
       paidAmount: paidAggregate._sum.amount ?? 0,
       unpaidAmount: unpaidAggregate._sum.amount ?? 0,

@@ -15,7 +15,7 @@ See proposal.md - Why. The existing `visa/payment` spec restricts payment status
 
 **Non-Goals:**
 - Actual money transfer or integration with a payment gateway.
-- Changing passport status (received/processing/delivered) as a result of payment.
+- Changing passport status (received/delivered) as a result of payment.
 - Refunds or partial payments.
 
 ## Decisions
@@ -34,7 +34,7 @@ See proposal.md - Why. The existing `visa/payment` spec restricts payment status
 |---|---|
 | Agency may click "pay" multiple times on the same passport | UI disables the button while a request is pending; backend rejects duplicate requests. |
 | Staff may forget to approve pending requests | Staff dashboard shows pending requests prominently; agency can follow up outside the system. |
-| Payment status and passport status are separate concepts | Clear documentation and UI labeling to avoid confusion between passport status (received/processing/delivered) and payment status (unpaid/requested/paid). |
+| Payment status and passport status are separate concepts | Clear documentation and UI labeling to avoid confusion between passport status (received/delivered) and payment status (unpaid/requested/paid). |
 
 ## Migration Plan
 

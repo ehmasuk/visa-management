@@ -1,27 +1,32 @@
+"use client";
+
 import Link from "next/link";
+import { useState } from "react";
 import type { Prisma } from "@prisma/client";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { buttonVariants } from "@/components/ui/button";
-import { Field, Select, SubmitButton } from "@/components/admin-ui";
-import { updatePassportComment, updatePassportStatus } from "@/app/actions/passport";
+import { Select, SubmitButton } from "@/components/admin-ui";
+import { updatePassportStatus } from "@/app/actions/passport";
 import { cn } from "@/lib/utils";
 import { fmt, lastEditorLine, STATUS_BADGE, statusLabel } from "@/lib/passport-format";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 type PassportWithPayment = Prisma.PassportGetPayload<{ include: { payment: true } }>;
 
-const STATUS_OPTIONS = [
-  { value: "RECEIVED", label: "Received" },
-  { value: "PROCESSING", label: "Processing" },
-  { value: "DELIVERED", label: "Delivered" },
-];
-
 /**
  * Passport card shared by the staff and admin list pages: summary details,
- * View/Edit buttons that reach the internal detail pages, the governed
- * status-change and comment forms, and the last-editor line. Admin and
- * staff both drive the inline forms; `returnTo` sends each server action
- * back to the list page that rendered the card (whitelisted server-side).
+ * View/Edit/Deliver buttons that reach the internal detail pages, the governed
+ * status-change form, and the last-editor line. Admin and staff both drive the
+ * inline forms; `returnTo` sends each server action back to the list page that
+ * rendered the card (whitelisted server-side).
  */
 export function PassportCard({
   passport,
@@ -33,6 +38,7 @@ export function PassportCard({
   returnTo: string;
 }) {
   const payment = passport.payment;
+  const [isDeliverOpen, setIsDeliverOpen] = useState(false);
 
   return (
     <Card className="gap-0 py-3">
@@ -83,46 +89,55 @@ export function PassportCard({
             >
               Edit
             </Link>
-          </div>
-          <div className="flex flex-wrap items-end justify-end gap-4">
-            {/* Governed status change; DELIVERED records the "delivery man" on deliveryCollectorName */}
-            <form action={updatePassportStatus} className="flex items-end gap-2">
-              <input type="hidden" name="id" value={passport.id} />
-              <input type="hidden" name="returnTo" value={returnTo} />
-              <div className="w-32">
-                <Select label="Status" name="status" defaultValue={passport.status} options={STATUS_OPTIONS} />
-              </div>
-              <div className="w-48">
-                <Select
-                  label="Delivery collector (delivery man)"
-                  name="deliveryCollectorName"
-                  defaultValue={passport.deliveryCollectorName ?? ""}
-                  options={[
-                    {
-                      value: "",
-                      label:
-                        collectors.length === 0
-                          ? "No collectors registered yet"
-                          : "Select a collector",
-                    },
-                    ...collectors.map((collector) => ({
-                      value: collector.name,
-                      label: collector.name,
-                    })),
-                  ]}
-                />
-              </div>
-              <SubmitButton variant="ghost">Update</SubmitButton>
-            </form>
-            {/* Comment edit any time */}
-            <form action={updatePassportComment} className="flex items-end gap-2">
-              <input type="hidden" name="id" value={passport.id} />
-              <input type="hidden" name="returnTo" value={returnTo} />
-              <div className="w-64">
-                <Field label="Comment" name="comment" defaultValue={passport.comment} multiline />
-              </div>
-              <SubmitButton variant="ghost">Save comment</SubmitButton>
-            </form>
+            {passport.status !== "DELIVERED" && (
+              <>
+                <button
+                  onClick={() => setIsDeliverOpen(true)}
+                  className={cn(
+                    buttonVariants({ variant: "default", size: "sm" }),
+                    "bg-emerald-600 text-emerald-foreground hover:bg-emerald-700"
+                  )}
+                >
+                  Deliver
+                </button>
+                <Dialog open={isDeliverOpen} onOpenChange={setIsDeliverOpen}>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Deliver Passport</DialogTitle>
+                      <DialogDescription>
+                        Assign a delivery collector to take this passport back to the agency.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <form action={updatePassportStatus} className="flex flex-col gap-3">
+                      <input type="hidden" name="id" value={passport.id} />
+                      <input type="hidden" name="returnTo" value={returnTo} />
+                      <input type="hidden" name="status" value="DELIVERED" />
+                      <Select
+                        label="Delivery collector (delivery man)"
+                        name="deliveryCollectorName"
+                        defaultValue={passport.deliveryCollectorName ?? ""}
+                        options={[
+                          {
+                            value: "",
+                            label:
+                              collectors.length === 0
+                                ? "No collectors registered yet"
+                                : "Select a collector",
+                          },
+                          ...collectors.map((collector) => ({
+                            value: collector.name,
+                            label: collector.name,
+                          })),
+                        ]}
+                      />
+                      <DialogFooter>
+                        <SubmitButton variant="primary">Deliver</SubmitButton>
+                      </DialogFooter>
+                    </form>
+                  </DialogContent>
+                </Dialog>
+              </>
+            )}
           </div>
         </div>
       </CardContent>

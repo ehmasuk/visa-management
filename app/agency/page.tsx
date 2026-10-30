@@ -14,7 +14,6 @@ export const metadata = { title: "Agency — Visa Management" };
 
 const STATUS_BADGE: Record<string, string> = {
   RECEIVED: "bg-blue-500/15 text-blue-600",
-  PROCESSING: "bg-amber-500/15 text-amber-600",
   DELIVERED: "bg-emerald-500/15 text-emerald-600",
 };
 

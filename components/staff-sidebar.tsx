@@ -17,25 +17,21 @@ import {
 } from "@/components/ui/sidebar";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
   Stamp,
   LayoutDashboard,
   FileText,
   ReceiptText,
-  LogOut,
 } from "lucide-react";
 
 interface StaffSidebarProps {
   userEmail?: string | null;
   userName?: string | null;
-  onSignOut: () => Promise<void>;
 }
 
 export function StaffSidebar({
   userEmail,
   userName,
-  onSignOut,
 }: StaffSidebarProps) {
   const pathname = usePathname();
 
@@ -137,12 +133,6 @@ export function StaffSidebar({
 
         <div className="mt-2 pt-2 border-t border-sidebar-border/60 flex items-center justify-between">
           <ThemeToggle className="size-7 text-muted-foreground hover:text-foreground" />
-          <form action={onSignOut}>
-            <Button type="submit" variant="outline" size="sm">
-              <LogOut className="size-3.5" />
-              <span>Sign out</span>
-            </Button>
-          </form>
         </div>
       </SidebarFooter>
     </Sidebar>

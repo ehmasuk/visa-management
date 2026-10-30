@@ -15,7 +15,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
-type PassportStatus = "RECEIVED" | "PROCESSING" | "DELIVERED";
+type PassportStatus = "RECEIVED" | "DELIVERED";
 
 interface MockPassport {
   id: string;
@@ -47,19 +47,6 @@ const PRESETS: Record<PassportStatus, MockPassport> = {
     paymentStatus: "UNPAID",
     lastEditor: "Tanvir (Staff)",
   },
-  PROCESSING: {
-    id: "rec_02",
-    passportNumber: "BK-4920193",
-    holderName: "Farhana Yasmin",
-    agencyName: "Dhaka Global Aviation",
-    visaType: "UAE (2-Year Employment)",
-    service: "Embassy Clearance",
-    fee: 12000,
-    intakeCollector: "Rafiq Collector",
-    receivedAt: "Yesterday, 02:15 PM",
-    paymentStatus: "PENDING",
-    lastEditor: "Nusrat (Staff)",
-  },
   DELIVERED: {
     id: "rec_03",
     passportNumber: "EE-7182930",
@@ -79,7 +66,7 @@ const PRESETS: Record<PassportStatus, MockPassport> = {
 
 export function CustodyTerminal() {
   const [selectedStatus, setSelectedStatus] =
-    React.useState<PassportStatus>("PROCESSING");
+    React.useState<PassportStatus>("RECEIVED");
   const [customSearch, setCustomSearch] = React.useState("");
   const [isCopied, setIsCopied] = React.useState(false);
 
@@ -119,7 +106,7 @@ export function CustodyTerminal() {
 
           {/* Interactive Lifecycle Switcher Tabs */}
           <div className="flex items-center rounded-lg bg-muted/80 p-1 border border-border/60">
-            {(["RECEIVED", "PROCESSING", "DELIVERED"] as PassportStatus[]).map(
+            {(["RECEIVED", "DELIVERED"] as PassportStatus[]).map(
               (status) => {
                 const isActive = selectedStatus === status;
                 return (
@@ -131,8 +118,7 @@ export function CustodyTerminal() {
                     className="relative rounded-md px-3 py-1.5 text-xs font-medium cursor-pointer transition-all"
                   >
                     {status === "RECEIVED" && "1. Received"}
-                    {status === "PROCESSING" && "2. Processing"}
-                    {status === "DELIVERED" && "3. Delivered"}
+                    {status === "DELIVERED" && "2. Delivered"}
                   </Button>
                 );
               }
@@ -195,7 +181,6 @@ export function CustodyTerminal() {
             <div
               className={`flex items-start gap-3 p-3 rounded-xl border transition-all ${
                 selectedStatus === "RECEIVED" ||
-                selectedStatus === "PROCESSING" ||
                 selectedStatus === "DELIVERED"
                   ? "border-emerald-500/30 bg-emerald-500/5 text-foreground"
                   : "border-border/50 bg-background/50 text-muted-foreground"
@@ -223,49 +208,7 @@ export function CustodyTerminal() {
               </div>
             </div>
 
-            {/* Step 2: Processing */}
-            <div
-              className={`flex items-start gap-3 p-3 rounded-xl border transition-all ${
-                selectedStatus === "PROCESSING"
-                  ? "border-amber-500/40 bg-amber-500/5 text-foreground"
-                  : selectedStatus === "DELIVERED"
-                  ? "border-emerald-500/30 bg-emerald-500/5 text-foreground"
-                  : "border-border/40 bg-background/30 text-muted-foreground opacity-60"
-              }`}
-            >
-              <div
-                className={`mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full ${
-                  selectedStatus === "PROCESSING"
-                    ? "bg-amber-500/20 text-amber-600 dark:text-amber-400"
-                    : selectedStatus === "DELIVERED"
-                    ? "bg-emerald-500/20 text-emerald-600 dark:text-emerald-400"
-                    : "bg-muted text-muted-foreground"
-                }`}
-              >
-                {selectedStatus === "DELIVERED" ? (
-                  <CheckCircle2 className="size-4" />
-                ) : (
-                  <Clock className="size-4" />
-                )}
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between gap-2">
-                  <span className="text-xs font-semibold">
-                    Processing: {activeRecord.visaType}
-                  </span>
-                  {selectedStatus === "PROCESSING" && (
-                    <span className="text-[10px] font-medium bg-amber-500/15 text-amber-700 dark:text-amber-300 px-2 py-0.5 rounded-full">
-                      In Process
-                    </span>
-                  )}
-                </div>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  Service: {activeRecord.service}. Visa processing underway.
-                </p>
-              </div>
-            </div>
-
-            {/* Step 3: Delivery */}
+            {/* Step 2: Delivery */}
             <div
               className={`flex items-start gap-3 p-3 rounded-xl border transition-all ${
                 selectedStatus === "DELIVERED"

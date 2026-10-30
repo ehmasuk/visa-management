@@ -18,7 +18,7 @@ The system SHALL display to an authenticated agency only the passport records as
 - **THEN** the system does not display passports belonging to other agencies
 
 ### Requirement: Agency sees passport status
-The system SHALL show the current status (received, processing, delivered) for each passport on the agency dashboard.
+The system SHALL show the current status (received, delivered) for each passport on the agency dashboard.
 
 #### Scenario: Status displayed per passport
 - **WHEN** an agency views its passport list
@@ -32,7 +32,7 @@ The system SHALL display a "pay" button on each delivered passport belonging to 
 - **THEN** the system displays a "pay" button for that passport
 
 #### Scenario: No pay button on non-delivered passport
-- **WHEN** an agency views a received or processing passport on its dashboard
+- **WHEN** an agency views a received passport on its dashboard
 - **THEN** the system does not display a "pay" button
 
 ### Requirement: Agency payment status is visible

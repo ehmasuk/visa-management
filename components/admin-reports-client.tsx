@@ -14,7 +14,7 @@ interface PassportItem {
   collectorName: string
   deliveryCollectorName?: string | null
   fee: number
-  status: "RECEIVED" | "PROCESSING" | "DELIVERED"
+  status: "RECEIVED" | "DELIVERED"
   receiptDate: string
   deliveryDate?: string | null
   paymentStatus?: "PAID" | "UNPAID" | "REQUESTED" | null

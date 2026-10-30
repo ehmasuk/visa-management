@@ -151,7 +151,7 @@ A paper-and-ink palette that keeps every chroma for status and rejection.
 ### Status (tint windows, not fills)
 Hues never appear as solid fills, borders, or full-text colors — only inside their ~15% tint window, with the hue's 600-step color (blue-600, amber-600, emerald-600) set at medium weight on an otherwise ink-free pill.
 - **Trust Blue** (#2563eb on blue-500/15): passport status RECEIVED.
-- **Caution Amber** (#d97706 on amber-500/15): PROCESSING, and a pending payment awaiting approval.
+- **Caution Amber** (#d97706 on amber-500/15): a pending payment awaiting approval.
 - **Delivered Emerald** (#059669 on emerald-500/15): DELIVERED, and PAID.
 - **Rejection Red** (oklch(0.577 0.245 27.325) on destructive/10): rejected payment requests; also destructive buttons/badges (aria-invalid borders and rings).
 

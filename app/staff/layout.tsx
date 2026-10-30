@@ -3,6 +3,7 @@ import { StaffSidebar } from "@/components/staff-sidebar";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { Separator } from "@/components/ui/separator";
 import { signOut } from "@/auth";
+import { Button } from "@/components/ui/button";
 
 export default async function StaffLayout({
   children,
@@ -21,7 +22,6 @@ export default async function StaffLayout({
       <StaffSidebar
         userEmail={session.user.email}
         userName={session.user.name}
-        onSignOut={handleSignOut}
       />
       <SidebarInset className="min-h-svh flex flex-col bg-background">
         <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center justify-between border-b border-border/70 bg-background/95 px-4 sm:px-6 backdrop-blur-md">
@@ -38,6 +38,11 @@ export default async function StaffLayout({
               {session.user.email}
             </span>
             <span className="inline-block size-1.5 rounded-full bg-emerald-500" title="Online" />
+            <form action={handleSignOut}>
+              <Button type="submit" variant="ghost" size="sm" className="text-xs">
+                Sign out
+              </Button>
+            </form>
           </div>
         </header>
 
