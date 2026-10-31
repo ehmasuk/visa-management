@@ -22,6 +22,7 @@ import {
   LayoutDashboard,
   FileText,
   ReceiptText,
+  PlusCircle,
 } from "lucide-react";
 
 interface StaffSidebarProps {
@@ -48,6 +49,12 @@ export function StaffSidebar({
       href: "/staff/passports",
       icon: FileText,
       iconColor: "text-blue-500",
+    },
+    {
+      title: "Passport Entry",
+      href: "/staff/passport-entry",
+      icon: PlusCircle,
+      iconColor: "text-emerald-500",
     },
     {
       title: "Payments",

@@ -76,7 +76,7 @@ export default async function StaffPage() {
             </Link>
 
             <Link
-              href="/staff/passports"
+              href="/staff/passport-entry"
               className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-xs font-semibold text-primary-foreground hover:bg-primary/90 transition-all shadow-sm"
             >
               <PlusCircle className="size-4" />

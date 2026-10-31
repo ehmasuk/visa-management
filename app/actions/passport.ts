@@ -15,7 +15,7 @@ import { setFlash } from "@/lib/flash";
  * user's role server-side and stamps the last editor on the passport.
  */
 
-const BASE = "/staff/passports";
+const BASE = "/staff/passport-entry";
 
 /** List pages hosting the shared passport card forms. */
 const LIST_HOMES = ["/staff/passports", "/admin/passports"] as const;

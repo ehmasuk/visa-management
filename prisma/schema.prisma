@@ -153,6 +153,8 @@ model Passport {
   @@index([status])
   @@index([agencyName])
   @@index([agencyGmail])
+  // Powers the report time-window range filters and the receipt-date desc sort.
+  @@index([receiptDate])
   @@map("passports")
 }
 
