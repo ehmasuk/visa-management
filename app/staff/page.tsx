@@ -4,16 +4,16 @@ import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import {
   FileText,
-  Clock,
+  FileSearch,
+  Send,
   CheckCircle2,
   Receipt,
   ArrowRight,
   PlusCircle,
-  Truck,
   Eye,
-  Building,
+  CreditCardIcon,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { STATUS_BADGE, STATUS_DOT, statusLabel } from "@/lib/passport-format";
 
 export const metadata = { title: "Staff Workspace — Visa Management" };
 
@@ -32,13 +32,17 @@ export default async function StaffPage() {
   const session = await requireStaff();
 
   const [
-    receivedPassports,
-    deliveredPassports,
+    receivedCount,
+    underReviewCount,
+    submittedCount,
+    deliveredCount,
     unpaidPassports,
     pendingPayments,
     recentPassports,
   ] = await Promise.all([
     prisma.passport.count({ where: { status: "RECEIVED" } }),
+    prisma.passport.count({ where: { status: "UNDER_REVIEW" } }),
+    prisma.passport.count({ where: { status: "SUBMITTED" } }),
     prisma.passport.count({ where: { status: "DELIVERED" } }),
     prisma.payment.count({ where: { status: "UNPAID" } }),
     prisma.payment.count({ where: { status: "REQUESTED" } }),
@@ -86,30 +90,73 @@ export default async function StaffPage() {
           </div>
         </div>
 
-        {/* Operational Counters Grid */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          {/* Received / In Processing */}
+        {/* Operational Counters Grid — one card per pipeline stage plus
+            payment statuses */}
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+          {/* Received */}
           <Link
             href="/staff/passports"
             className="group rounded-2xl border border-border/80 bg-card p-5 shadow-xs hover:border-blue-500/40 hover:shadow-sm transition-all"
           >
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                In Processing
+                Received
               </span>
               <div className="size-8 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center group-hover:scale-105 transition-transform">
-                <Clock className="size-4" />
+                <FileText className="size-4" />
               </div>
             </div>
             <p className="mt-3 font-mono text-3xl font-extrabold text-foreground">
-              {receivedPassports}
+              {receivedCount}
             </p>
             <p className="mt-1 text-xs text-blue-600 dark:text-blue-400 font-medium">
+              Newly entered, pending review
+            </p>
+          </Link>
+
+          {/* Under Review */}
+          <Link
+            href="/staff/passports"
+            className="group rounded-2xl border border-border/80 bg-card p-5 shadow-xs hover:border-amber-500/40 hover:shadow-sm transition-all"
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                Under Review
+              </span>
+              <div className="size-8 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center group-hover:scale-105 transition-transform">
+                <FileSearch className="size-4" />
+              </div>
+            </div>
+            <p className="mt-3 font-mono text-3xl font-extrabold text-foreground">
+              {underReviewCount}
+            </p>
+            <p className="mt-1 text-xs text-amber-600 dark:text-amber-400 font-medium">
+              Being examined by operators
+            </p>
+          </Link>
+
+          {/* Submitted */}
+          <Link
+            href="/staff/passports"
+            className="group rounded-2xl border border-border/80 bg-card p-5 shadow-xs hover:border-purple-500/40 hover:shadow-sm transition-all"
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                Submitted
+              </span>
+              <div className="size-8 rounded-lg bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center group-hover:scale-105 transition-transform">
+                <Send className="size-4" />
+              </div>
+            </div>
+            <p className="mt-3 font-mono text-3xl font-extrabold text-foreground">
+              {submittedCount}
+            </p>
+            <p className="mt-1 text-xs text-purple-600 dark:text-purple-400 font-medium">
               Awaiting delivery to agency
             </p>
           </Link>
 
-          {/* Delivered Passports */}
+          {/* Delivered */}
           <Link
             href="/staff/passports"
             className="group rounded-2xl border border-border/80 bg-card p-5 shadow-xs hover:border-emerald-500/40 hover:shadow-sm transition-all"
@@ -123,7 +170,7 @@ export default async function StaffPage() {
               </div>
             </div>
             <p className="mt-3 font-mono text-3xl font-extrabold text-foreground">
-              {deliveredPassports}
+              {deliveredCount}
             </p>
             <p className="mt-1 text-xs text-emerald-600 dark:text-emerald-400 font-medium">
               Completed custody chain
@@ -161,7 +208,7 @@ export default async function StaffPage() {
                 Unpaid Passports
               </span>
               <div className="size-8 rounded-lg bg-rose-500/20 text-rose-600 dark:text-rose-400 flex items-center justify-center group-hover:scale-105 transition-transform">
-                <FileText className="size-4" />
+                <CreditCardIcon className="size-4" />
               </div>
             </div>
             <p className="mt-3 font-mono text-3xl font-extrabold text-rose-700 dark:text-rose-300">
@@ -200,7 +247,6 @@ export default async function StaffPage() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {recentPassports.map((p) => {
-                const isDelivered = p.status === "DELIVERED";
                 const isPaid = p.payment?.status === "PAID";
                 const isRequested = p.payment?.status === "REQUESTED";
 
@@ -215,18 +261,12 @@ export default async function StaffPage() {
                           {p.passportNumber}
                         </span>
                         <span
-                          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                            isDelivered
-                              ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
-                              : "bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20"
-                          }`}
+                          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${STATUS_BADGE[p.status]}`}
                         >
                           <span
-                            className={`size-1.5 rounded-full ${
-                              isDelivered ? "bg-emerald-500" : "bg-blue-500"
-                            }`}
+                            className={`size-1.5 rounded-full ${STATUS_DOT[p.status]}`}
                           />
-                          {p.status}
+                          {statusLabel(p.status)}
                         </span>
                       </div>
 

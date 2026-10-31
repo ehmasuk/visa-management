@@ -26,6 +26,7 @@
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/guards";
 import type { Prisma } from "@prisma/client";
+import type { PassportStage } from "@/lib/passport-format";
 
 const PAGE_SIZE = 50;
 
@@ -52,7 +53,7 @@ export type ReportRow = {
   agencyName: string;
   collectorName: string;
   fee: number;
-  status: "RECEIVED" | "DELIVERED";
+  status: PassportStage;
   receiptDate: string;
   paymentStatus: "PAID" | "UNPAID" | "REQUESTED" | null;
   paymentAmount: number | null;
@@ -74,7 +75,7 @@ export type ReportResult = {
   capped: boolean;
 };
 
-const STATUSES = ["RECEIVED", "DELIVERED"] as const;
+const STATUSES = ["RECEIVED", "UNDER_REVIEW", "SUBMITTED", "DELIVERED"] as const;
 const PAYMENTS = ["PAID", "UNPAID", "REQUESTED"] as const;
 
 /** System-managed receipt-date window; anchor computed at query time. */
@@ -239,7 +240,7 @@ async function loadReport(input: ReportQuery): Promise<ReportResult> {
       agencyName: p.agencyName,
       collectorName: p.collectorName,
       fee: p.fee,
-      status: p.status as "RECEIVED" | "DELIVERED",
+      status: p.status as PassportStage,
       receiptDate: p.receiptDate.toISOString(),
       paymentStatus: p.payment?.status ?? null,
       paymentAmount: p.payment?.amount ?? null,

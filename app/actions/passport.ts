@@ -6,6 +6,7 @@ import type { Session } from "next-auth";
 import { prisma } from "@/lib/prisma";
 import { requireStaff, requireStaffOrAdmin } from "@/lib/guards";
 import { setFlash } from "@/lib/flash";
+import { NEXT_STAGE, STAGES, statusLabel, type PassportStage } from "@/lib/passport-format";
 
 /**
  * Passport server actions: entry (task 4.1/4.2), full-details edit, comment
@@ -19,9 +20,6 @@ const BASE = "/staff/passport-entry";
 
 /** List pages hosting the shared passport card forms. */
 const LIST_HOMES = ["/staff/passports", "/admin/passports"] as const;
-
-const STATUS_SET = ["RECEIVED", "DELIVERED"] as const;
-type AllowedStatus = (typeof STATUS_SET)[number];
 
 async function fail(message: string, redirectTo: string = BASE): Promise<never> {
   await setFlash("error", message);
@@ -309,14 +307,17 @@ export async function updatePassportComment(formData: FormData) {
 }
 
 /**
- * Tasks 5.1–5.3 — Status change between RECEIVED/DELIVERED.
- * DELIVERED requires a delivery collector ("delivery man", 5.2) — validated
- * against the registry — and sets deliveryDate to the transition timestamp
- * (5.3). The delivery collector is stored on deliveryCollectorName so the
- * intake collector (collectorName, recorded at entry) is never overwritten.
- * Leaving DELIVERED clears the delivery date and delivery collector (the
- * passport is no longer delivered). Staff and admin both drive the flow;
- * every transition stamps the acting user as the passport's last editor.
+ * Tasks 5.1–5.3 (revised) — Stage advance on the custody pipeline.
+ * Passports move EXACTLY one stage forward per call through
+ * RECEIVED → UNDER_REVIEW → SUBMITTED → DELIVERED; skips, backward moves and
+ * re-advancing a delivered passport are rejected. UNDER_REVIEW stamps
+ * underReviewDate and SUBMITTED stamps submittedDate with the transition
+ * timestamp (never user-provided). DELIVERED keeps the delivery rules:
+ * a registered delivery collector is required, deliveryDate becomes the
+ * transition timestamp (5.3), and the intake collector (collectorName,
+ * recorded at entry) is never overwritten. Staff and admin both drive the
+ * flow; every transition stamps the acting user as the passport's last
+ * editor.
  */
 export async function updatePassportStatus(formData: FormData) {
   const session = await requireStaffOrAdmin();
@@ -326,14 +327,30 @@ export async function updatePassportStatus(formData: FormData) {
   const deliveryCollectorName = str(formData, "deliveryCollectorName");
 
   if (!id) await fail("Missing passport id.", returnTo);
-  if (!(STATUS_SET as readonly string[]).includes(statusRaw)) {
+  if (!(STAGES as readonly string[]).includes(statusRaw)) {
     await fail(`Invalid status "${statusRaw}".`, returnTo);
   }
-  const status = statusRaw as AllowedStatus;
+  const status = statusRaw as PassportStage;
   const current = await prisma.passport.findUnique({ where: { id } });
   if (!current) {
     await fail("Passport record not found.", returnTo);
     return;
+  }
+
+  const next = NEXT_STAGE[current.status as PassportStage];
+  if (next === null) {
+    await fail(
+      "Delivered is final: a delivered passport cannot move to another stage.",
+      returnTo
+    );
+  }
+  if (next !== status) {
+    await fail(
+      next
+        ? `Wrong stage order: from ${statusLabel(current.status)} the only possible next stage is ${statusLabel(next)}.`
+        : "Passport record not found.",
+      returnTo
+    );
   }
 
   if (status === "DELIVERED") {
@@ -366,9 +383,13 @@ export async function updatePassportStatus(formData: FormData) {
       where: { id },
       data: {
         status,
-        deliveryDate: current.status === "DELIVERED" ? null : current.deliveryDate,
-        deliveryCollectorName:
-          current.status === "DELIVERED" ? null : current.deliveryCollectorName,
+        // Milestone stamps are set by the pipeline the first time the
+        // passport enters the stage; later transitions never touch earlier
+        // milestones. Any posted date value for them is ignored.
+        underReviewDate: status === "UNDER_REVIEW" ? new Date() : current.underReviewDate,
+        submittedDate: status === "SUBMITTED" ? new Date() : current.submittedDate,
+        deliveryDate: current.deliveryDate,
+        deliveryCollectorName: current.deliveryCollectorName,
         ...lastEditorStamp(session),
       },
     });
@@ -378,7 +399,11 @@ export async function updatePassportStatus(formData: FormData) {
   revalidatePath(`/passports/${id}`);
   await setFlash(
     "success",
-    status === "DELIVERED" ? "Passport delivered." : "Status updated."
+    status === "DELIVERED"
+      ? "Passport delivered."
+      : status === "UNDER_REVIEW"
+        ? "Passport marked under review."
+        : "Passport submitted."
   );
   redirect(returnTo);
 }

@@ -123,7 +123,12 @@ model Passport {
   comment        String
   fee            Int
   status         PassportStatus @default(RECEIVED)
+  // Lifecycle milestones, ALWAYS system-stamped by the stage pipeline (never
+  // user-provided): receipt at entry, under review on entering UNDER_REVIEW,
+  // submitted on entering SUBMITTED, delivered on entering DELIVERED.
   receiptDate    DateTime       @default(now()) @map("receipt_date")
+  underReviewDate DateTime?     @map("under_review_date")
+  submittedDate  DateTime?      @map("submitted_date")
   deliveryDate   DateTime?      @map("delivery_date")
   // collectorName = intake collector: who BROUGHT the passport from the
   // agency (recorded at entry, never changed by delivery transitions).
@@ -152,7 +157,9 @@ model Passport {
 
   @@index([status])
   @@index([agencyName])
-  @@index([agencyGmail])
+  // Powers the agency default listing AND its receipt-day window: equality on
+  // agencyGmail + sort/range on the second field in one index walk.
+  @@index([agencyGmail, receiptDate])
   // Powers the report time-window range filters and the receipt-date desc sort.
   @@index([receiptDate])
   @@map("passports")
@@ -178,6 +185,8 @@ model Payment {
 
 enum PassportStatus {
   RECEIVED
+  UNDER_REVIEW
+  SUBMITTED
   DELIVERED
 }
 

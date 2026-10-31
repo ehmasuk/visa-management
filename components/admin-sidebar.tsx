@@ -262,10 +262,7 @@ export function AdminSidebar({
           </Badge>
         </div>
 
-        <div className="mt-2 pt-2 border-t border-sidebar-border/60 flex items-center justify-between">
-          <ThemeToggle className="size-7 text-muted-foreground hover:text-foreground" />
-          <span className="text-[10px] text-muted-foreground font-mono">v1.0</span>
-        </div>
+
       </SidebarFooter>
     </Sidebar>
   );

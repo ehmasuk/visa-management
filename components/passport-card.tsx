@@ -3,13 +3,21 @@
 import Link from "next/link";
 import { useState } from "react";
 import type { Prisma } from "@prisma/client";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { Select, SubmitButton } from "@/components/admin-ui";
+import { Spinner } from "@/components/ui/spinner";
 import { updatePassportStatus } from "@/app/actions/passport";
 import { cn } from "@/lib/utils";
-import { fmt, lastEditorLine, STATUS_BADGE, statusLabel } from "@/lib/passport-format";
+import {
+  fmt,
+  lastEditorLine,
+  NEXT_STAGE,
+  PassportStage,
+  STATUS_BADGE,
+  STATUS_DOT,
+  statusLabel,
+} from "@/lib/passport-format";
 import {
   Dialog,
   DialogContent,
@@ -18,9 +26,44 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Eye, Edit, Truck, CheckCircle2, Clock } from "lucide-react";
+import { Eye, Edit, FileSearch, Send, Truck, CheckCircle2, Clock } from "lucide-react";
+import { useFormStatus } from "react-dom";
 
 type PassportWithPayment = Prisma.PassportGetPayload<{ include: { payment: true } }>;
+
+/** Next pipeline stage for the card's status; null once delivered. */
+function nextStageOf(status: string): PassportStage | null {
+  return NEXT_STAGE[status as PassportStage];
+}
+
+/**
+ * Submit button for an inline stage-advance form: spun and disabled while
+ * the transition posts (useFormStatus sees the enclosing form), so a double
+ * click cannot fire the action twice.
+ */
+function StagePendingButton({
+  children,
+  className,
+}: {
+  children: React.ReactNode;
+  className: string;
+}) {
+  const { pending } = useFormStatus();
+  return (
+    <Button
+      type="submit"
+      disabled={pending}
+      className={cn(
+        "gap-1.5 text-xs font-bold cursor-pointer transition-all",
+        pending ? "opacity-75" : "",
+        className
+      )}
+    >
+      {pending ? <Spinner className="size-3.5" /> : null}
+      {children}
+    </Button>
+  );
+}
 
 export function PassportCard({
   passport,
@@ -33,6 +76,7 @@ export function PassportCard({
 }) {
   const payment = passport.payment;
   const [isDeliverOpen, setIsDeliverOpen] = useState(false);
+  const nextStage = nextStageOf(passport.status);
 
   return (
     <Card className="rounded-2xl border border-border/80 bg-card p-5 shadow-xs hover:border-primary/40 transition-all">
@@ -43,7 +87,7 @@ export function PassportCard({
               {passport.passportNumber}
             </span>
             <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold ${STATUS_BADGE[passport.status]}`}>
-              <span className={`size-1.5 rounded-full ${passport.status === "DELIVERED" ? "bg-emerald-500" : "bg-blue-500"}`} />
+              <span className={`size-1.5 rounded-full ${STATUS_DOT[passport.status]}`} />
               {statusLabel(passport.status)}
             </span>
             {payment ? (
@@ -113,7 +157,29 @@ export function PassportCard({
             <Edit className="size-3.5 text-muted-foreground" />
             <span>Edit</span>
           </Link>
-          {passport.status !== "DELIVERED" && (
+          {nextStage === "UNDER_REVIEW" && (
+            <form action={updatePassportStatus}>
+              <input type="hidden" name="id" value={passport.id} />
+              <input type="hidden" name="returnTo" value={returnTo} />
+              <input type="hidden" name="status" value="UNDER_REVIEW" />
+              <StagePendingButton className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-xs font-bold text-white transition-all shadow-sm">
+                <FileSearch className="size-3.5" />
+                <span>Start Review</span>
+              </StagePendingButton>
+            </form>
+          )}
+          {nextStage === "SUBMITTED" && (
+            <form action={updatePassportStatus}>
+              <input type="hidden" name="id" value={passport.id} />
+              <input type="hidden" name="returnTo" value={returnTo} />
+              <input type="hidden" name="status" value="SUBMITTED" />
+              <StagePendingButton className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-xs font-bold text-white transition-all shadow-sm">
+                <Send className="size-3.5" />
+                <span>Submit</span>
+              </StagePendingButton>
+            </form>
+          )}
+          {nextStage === "DELIVERED" && (
             <>
               <button
                 onClick={() => setIsDeliverOpen(true)}

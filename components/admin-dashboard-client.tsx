@@ -2,7 +2,6 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { motion } from "motion/react";
 import {
   Users,
   Building2,
@@ -18,10 +17,15 @@ import {
   Layers,
   ArrowUpRight,
   Receipt,
-  PlusCircle,
   Eye,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import {
+  STATUS_BADGE,
+  STATUS_DOT,
+  statusLabel,
+  type PassportStage,
+} from "@/lib/passport-format";
 
 export interface AdminDashboardData {
   counts: {
@@ -42,7 +46,7 @@ export interface AdminDashboardData {
     passportNumber: string;
     holderName: string;
     agencyName: string;
-    status: "RECEIVED" | "DELIVERED";
+    status: PassportStage;
     fee: number;
     lastEditedByName: string | null;
     updatedAt: string;
@@ -442,20 +446,12 @@ export function AdminDashboardClient({ data }: { data: AdminDashboardData }) {
                       </td>
                       <td className="px-4 py-3">
                         <span
-                          className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${
-                            p.status === "DELIVERED"
-                              ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
-                              : "bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20"
-                          }`}
+                          className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${STATUS_BADGE[p.status]}`}
                         >
                           <span
-                            className={`size-1.5 rounded-full ${
-                              p.status === "DELIVERED"
-                                ? "bg-emerald-500"
-                                : "bg-blue-500"
-                            }`}
+                            className={`size-1.5 rounded-full ${STATUS_DOT[p.status]}`}
                           />
-                          {p.status === "DELIVERED" ? "Delivered" : "Received"}
+                          {statusLabel(p.status)}
                         </span>
                       </td>
                       <td className="px-4 py-3 font-mono font-semibold text-foreground">

@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { NativeSelect } from "@/components/ui/native-select";
 import { Spinner } from "@/components/ui/spinner";
 import { cn } from "@/lib/utils";
+import { STATUS_BADGE, STATUS_DOT, statusLabel } from "@/lib/passport-format";
 import {
   searchReportData,
   type ReportResult,
@@ -372,6 +373,8 @@ export function AdminReportsClient({
             >
               <option value="">All Statuses</option>
               <option value="RECEIVED">Received</option>
+              <option value="UNDER_REVIEW">Under Review</option>
+              <option value="SUBMITTED">Submitted</option>
               <option value="DELIVERED">Delivered</option>
             </NativeSelect>
           </div>
@@ -548,20 +551,12 @@ export function AdminReportsClient({
                       </td>
                       <td className="px-4 py-3">
                         <span
-                          className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
-                            p.status === "DELIVERED"
-                              ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
-                              : "bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20"
-                          }`}
+                          className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold ${STATUS_BADGE[p.status]}`}
                         >
                           <span
-                            className={`size-1.5 rounded-full ${
-                              p.status === "DELIVERED"
-                                ? "bg-emerald-500"
-                                : "bg-blue-500"
-                            }`}
+                            className={`size-1.5 rounded-full ${STATUS_DOT[p.status]}`}
                           />
-                          {p.status}
+                          {statusLabel(p.status)}
                         </span>
                       </td>
                       <td className="px-4 py-3 text-right font-mono font-bold text-foreground">

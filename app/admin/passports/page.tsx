@@ -2,9 +2,8 @@ import { requireAdmin } from "@/lib/guards";
 import { prisma } from "@/lib/prisma";
 import { RoleNav } from "@/components/role-nav";
 import { PageShell } from "@/components/admin-ui";
-import { PassportCard } from "@/components/passport-card";
-import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
-import { IdCardIcon } from "lucide-react";
+import { PassportListClient } from "@/components/passport-list-client";
+import { searchInternalPassports } from "@/app/actions/passport-search";
 
 export const metadata = { title: "Passports — Admin" };
 
@@ -13,13 +12,14 @@ export const metadata = { title: "Passports — Admin" };
  * same shared cards the staff list uses — View/Edit buttons and the inline
  * status/comment forms, all stamped with the acting user as last editor.
  * The staff-only entry form is deliberately absent (entry stays a staff
- * workflow).
+ * workflow). Paged and searchable exactly like the staff desk via the
+ * shared island; the staff registry list feeds the cards' Deliver dialog.
  */
 export default async function AdminPassportsPage() {
   await requireAdmin();
 
-  const [passports, collectors] = await Promise.all([
-    prisma.passport.findMany({ orderBy: { receiptDate: "desc" }, include: { payment: true } }),
+  const [initial, collectors] = await Promise.all([
+    searchInternalPassports({}),
     prisma.collector.findMany({ orderBy: { name: "asc" }, select: { name: true } }),
   ]);
 
@@ -30,28 +30,12 @@ export default async function AdminPassportsPage() {
         title="Passports"
         subtitle="View, edit, and drive every passport across agencies; the last editor is recorded on each change."
       >
-        {passports.length === 0 ? (
-          <Empty className="border">
-            <EmptyHeader>
-              <EmptyMedia variant="icon">
-                <IdCardIcon />
-              </EmptyMedia>
-              <EmptyTitle>No passports recorded yet</EmptyTitle>
-              <EmptyDescription>
-                Passports entered by staff appear here immediately, with their status and
-                payment trail.
-              </EmptyDescription>
-            </EmptyHeader>
-          </Empty>
-        ) : (
-          <ul className="space-y-3">
-            {passports.map((passport) => (
-              <li key={passport.id}>
-                <PassportCard passport={passport} collectors={collectors} returnTo="/admin/passports" />
-              </li>
-            ))}
-          </ul>
-        )}
+        <PassportListClient
+          initial={initial}
+          collectors={collectors}
+          returnTo="/admin/passports"
+          emptyHint="Passports entered by staff appear here immediately, with their status and payment trail."
+        />
       </PageShell>
     </div>
   );
