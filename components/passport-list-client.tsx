@@ -219,7 +219,7 @@ export function PassportListClient({
                 value={date}
                 max={todayIso()}
                 onChange={(e) => pickDate(e.target.value)}
-                aria-label="Filter by receipt date"
+                aria-label="Filter by received date"
                 title="Show only passports received on this date"
                 className="pl-8 pr-2 h-9 w-full sm:w-40 rounded-xl text-xs font-medium cursor-pointer"
               />
@@ -370,7 +370,7 @@ export function PassportListClient({
       )}
       {result.capped && (
         <p className="text-center text-xs text-muted-foreground">
-          Refine the search or pick a receipt date to reach older records beyond
+          Refine the search or pick a received date to reach older records beyond
           the deepest reachable page.
         </p>
       )}

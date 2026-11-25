@@ -111,10 +111,23 @@ export async function searchInternalPassports(
 export async function searchAgencyPassports(
   input: PassportListQuery
 ): Promise<PassportListResult> {
-  return loadList(async (where) => {
+  const result = await loadList(async (where) => {
     const session = await requireAgency();
     // Data isolation is enforced here: the agency mailbox comes from the
     // authenticated session, never from action input.
     return { ...where, agencyGmail: session.user.email.toLowerCase() };
   }, input, { pageSize: 50 });
+
+  // Agencies only see the first and last custody states. UNDER_REVIEW and
+  // SUBMITTED stay internal and are reported as RECEIVED at the data boundary,
+  // so the real stage never reaches the browser. DELIVERED is unchanged, which
+  // is also the only state that enables the payment request action.
+  return {
+    ...result,
+    rows: result.rows.map((row) =>
+      row.status === "DELIVERED"
+        ? row
+        : { ...row, status: "RECEIVED" as typeof row.status }
+    ),
+  };
 }

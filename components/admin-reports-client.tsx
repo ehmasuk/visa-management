@@ -290,7 +290,7 @@ export function AdminReportsClient({
                 value={date}
                 max={todayIso()}
                 onChange={(e) => pickDate(e.target.value)}
-                aria-label="Filter by receipt date"
+                aria-label="Filter by received date"
                 title="Show only records received on this date"
                 className="pl-8 pr-2 h-9 w-full sm:w-40 rounded-xl text-xs font-medium cursor-pointer"
               />

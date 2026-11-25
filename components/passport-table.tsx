@@ -98,16 +98,17 @@ export function PassportTable({
               <th className={HEAD}>Passport No.</th>
               <th className={HEAD}>Holder</th>
               <th className={HEAD}>Agency</th>
+              <th className={HEAD}>Status</th>
+              <th className={HEAD}>Fee (৳)</th>
+              <th className={HEAD}>Status Change</th>
               <th className={HEAD}>Agency Gmail</th>
               <th className={HEAD}>Visa Type</th>
               <th className={HEAD}>Service</th>
               <th className={HEAD}>Intake Collector</th>
               <th className={HEAD}>Delivery Collector</th>
               <th className={HEAD}>Contact</th>
-              <th className={HEAD}>Fee (৳)</th>
-              <th className={HEAD}>Status</th>
-              <th className={HEAD}>Receipt Date</th>
-              <th className={HEAD}>Under Review</th>
+              <th className={HEAD}>Received</th>
+              <th className={HEAD}>Reviewed</th>
               <th className={HEAD}>Submitted</th>
               <th className={HEAD}>Delivered</th>
               <th className={HEAD}>Comment</th>
@@ -115,7 +116,6 @@ export function PassportTable({
               <th className={HEAD}>Paid Amount</th>
               <th className={HEAD}>Paid At</th>
               <th className={HEAD}>Last Edited By</th>
-              <th className={HEAD}>Status Change</th>
               <th className={HEAD}>Actions</th>
             </tr>
           </thead>
@@ -146,15 +146,6 @@ export function PassportTable({
                   </td>
                   <td className={cn(CELL, "font-semibold")}>{p.holderName}</td>
                   <td className={CELL}>{p.agencyName}</td>
-                  <td className={cn(CELL, "text-muted-foreground")}>{p.agencyGmail}</td>
-                  <td className={CELL}>{p.visaTypeName ?? "—"}</td>
-                  <td className={CELL}>{p.serviceName ?? "—"}</td>
-                  <td className={CELL}>{p.collectorName}</td>
-                  <td className={CELL}>{p.deliveryCollectorName ?? "—"}</td>
-                  <td className={cn(CELL, "tabular-nums")}>{p.contactNumber}</td>
-                  <td className={cn(CELL, "tabular-nums font-semibold")}>
-                    {p.fee.toLocaleString()}
-                  </td>
                   <td className={CELL}>
                     <span
                       className={cn(
@@ -166,31 +157,8 @@ export function PassportTable({
                       {statusLabel(p.status)}
                     </span>
                   </td>
-                  <td className={cn(CELL, "tabular-nums text-muted-foreground")}>{fmtDate(p.receiptDate)}</td>
-                  <td className={cn(CELL, "tabular-nums text-muted-foreground")}>{fmtDate(p.underReviewDate)}</td>
-                  <td className={cn(CELL, "tabular-nums text-muted-foreground")}>{fmtDate(p.submittedDate)}</td>
-                  <td className={cn(CELL, "tabular-nums text-muted-foreground")}>{fmtDate(p.deliveryDate)}</td>
-                  <td className={cn(CELL, "max-w-72 text-muted-foreground")}>{p.comment || "—"}</td>
-                  <td className={CELL}>
-                    <span
-                      className={cn(
-                        "inline-flex rounded-full px-2 py-0.5 text-xs font-bold",
-                        payment?.status === "PAID"
-                          ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
-                          : payment?.status === "REQUESTED"
-                            ? "bg-amber-500/10 text-amber-600 dark:text-amber-400"
-                            : "bg-rose-500/10 text-rose-600 dark:text-rose-400"
-                      )}
-                    >
-                      {payment?.status ?? "UNPAID"}
-                    </span>
-                  </td>
                   <td className={cn(CELL, "tabular-nums font-semibold")}>
-                    {payment ? payment.amount.toLocaleString() : "—"}
-                  </td>
-                  <td className={cn(CELL, "tabular-nums text-muted-foreground")}>{fmtDate(payment?.paidAt)}</td>
-                  <td className={cn(CELL, "text-muted-foreground")}>
-                    {lastEditorLine(p.lastEditedByName, p.lastEditedByRole, p.lastEditedAt, false)}
+                    {p.fee.toLocaleString()}
                   </td>
                   <td className={CELL}>
                     {next === "DELIVERED" ? (
@@ -219,6 +187,38 @@ export function PassportTable({
                     ) : (
                       <span className="text-muted-foreground">—</span>
                     )}
+                  </td>
+                  <td className={cn(CELL, "text-muted-foreground")}>{p.agencyGmail}</td>
+                  <td className={CELL}>{p.visaTypeName ?? "—"}</td>
+                  <td className={CELL}>{p.serviceName ?? "—"}</td>
+                  <td className={CELL}>{p.collectorName}</td>
+                  <td className={CELL}>{p.deliveryCollectorName ?? "—"}</td>
+                  <td className={cn(CELL, "tabular-nums")}>{p.contactNumber}</td>
+                  <td className={cn(CELL, "tabular-nums text-muted-foreground")}>{fmtDate(p.receiptDate)}</td>
+                  <td className={cn(CELL, "tabular-nums text-muted-foreground")}>{fmtDate(p.underReviewDate)}</td>
+                  <td className={cn(CELL, "tabular-nums text-muted-foreground")}>{fmtDate(p.submittedDate)}</td>
+                  <td className={cn(CELL, "tabular-nums text-muted-foreground")}>{fmtDate(p.deliveryDate)}</td>
+                  <td className={cn(CELL, "max-w-72 text-muted-foreground")}>{p.comment || "—"}</td>
+                  <td className={CELL}>
+                    <span
+                      className={cn(
+                        "inline-flex rounded-full px-2 py-0.5 text-xs font-bold",
+                        payment?.status === "PAID"
+                          ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                          : payment?.status === "REQUESTED"
+                            ? "bg-amber-500/10 text-amber-600 dark:text-amber-400"
+                            : "bg-rose-500/10 text-rose-600 dark:text-rose-400"
+                      )}
+                    >
+                      {payment?.status ?? "UNPAID"}
+                    </span>
+                  </td>
+                  <td className={cn(CELL, "tabular-nums font-semibold")}>
+                    {payment ? payment.amount.toLocaleString() : "—"}
+                  </td>
+                  <td className={cn(CELL, "tabular-nums text-muted-foreground")}>{fmtDate(payment?.paidAt)}</td>
+                  <td className={cn(CELL, "text-muted-foreground")}>
+                    {lastEditorLine(p.lastEditedByName, p.lastEditedByRole, p.lastEditedAt, false)}
                   </td>
                   <td className={CELL}>
                     <div className="flex items-center gap-1.5">

@@ -27,7 +27,9 @@ const STAFF_ITEMS: NavItem[] = [
   { href: "/staff/payments", label: "Payments" },
 ];
 
-const AGENCY_ITEMS: NavItem[] = [{ href: "/agency", label: "My Passports" }];
+// Agencies only have their own passport view, which is the page itself —
+// no secondary navigation is needed in the header.
+const AGENCY_ITEMS: NavItem[] = [];
 
 export function itemsForRole(role: string): NavItem[] {
   if (role === "ADMIN") return ADMIN_ITEMS;
@@ -51,6 +53,8 @@ export function RoleNav({
   // Admin routes now use shadcn Sidebar layout
   if (role === "ADMIN") return null;
 
+  const items = itemsForRole(role);
+
   return (
     <header className="sticky top-0 z-40 border-b border-border/70 bg-background/90 backdrop-blur-md">
       <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-x-4 gap-y-2.5 px-4 sm:px-6 py-3">
@@ -60,14 +64,17 @@ export function RoleNav({
             className="flex items-center gap-2.5 font-bold text-sm tracking-tight text-foreground hover:opacity-90 transition-opacity"
             title="Go to Homepage"
           >
-            <div className="size-8 rounded-xl bg-gradient-to-br from-primary to-blue-600 text-primary-foreground flex items-center justify-center font-bold shadow-xs">
-              <Stamp className="size-4" />
-            </div>
+            {role === "AGENCY" ? null : (
+              <div className="size-8 rounded-xl bg-gradient-to-br from-primary to-blue-600 text-primary-foreground flex items-center justify-center font-bold shadow-xs">
+                <Stamp className="size-4" />
+              </div>
+            )}
             <span className="hidden sm:inline">Visa Management</span>
           </Link>
 
+          {items.length === 0 ? null : (
           <nav className="flex items-center gap-1.5 overflow-x-auto py-0.5 no-scrollbar">
-            {itemsForRole(role).map((item) => {
+            {items.map((item) => {
               const isActive =
                 item.href === "/admin" || item.href === "/staff" || item.href === "/agency"
                   ? pathname === item.href
@@ -89,6 +96,7 @@ export function RoleNav({
               );
             })}
           </nav>
+          )}
         </div>
 
         <div className="flex items-center gap-3 ml-auto">

@@ -19,7 +19,11 @@ export default async function AgencyPage() {
   const [totalCount, receivedCount, deliveredCount, unpaidCount, initial] =
     await Promise.all([
       prisma.passport.count({ where: { agencyGmail } }),
-      prisma.passport.count({ where: { agencyGmail, status: "RECEIVED" } }),
+      // Agencies see every non-delivered passport as RECEIVED; include the
+      // internal review/submission stages in that figure.
+      prisma.passport.count({
+        where: { agencyGmail, status: { in: ["RECEIVED", "UNDER_REVIEW", "SUBMITTED"] } },
+      }),
       prisma.passport.count({ where: { agencyGmail, status: "DELIVERED" } }),
       prisma.passport.count({
         where: { agencyGmail, payment: { status: "UNPAID" } },
@@ -48,7 +52,7 @@ export default async function AgencyPage() {
 
             <div className="rounded-2xl border border-blue-500/30 bg-blue-500/5 p-4 shadow-2xs">
               <span className="text-[11px] font-bold uppercase tracking-wider text-blue-700 dark:text-blue-400">
-                In Processing
+                Received
               </span>
               <p className="mt-2 font-mono text-2xl font-bold text-blue-700 dark:text-blue-300">
                 {receivedCount}

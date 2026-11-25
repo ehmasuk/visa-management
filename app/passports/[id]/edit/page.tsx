@@ -118,7 +118,7 @@ export default async function PassportEditPage({
               </Link>
               <p className="text-xs text-muted-foreground">
                 Agency, collector, visa type, and service must be registered. Changing the agency re-homes the passport
-                on the dashboard of the new agency. Status, receipt date, delivery date, and delivery collector are
+                on the dashboard of the new agency. Status, received date, delivery date, and delivery collector are
                 managed by the status flow — they are not editable here.
               </p>
             </div>

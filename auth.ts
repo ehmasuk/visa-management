@@ -61,10 +61,7 @@ export const {
 
       try {
         const resolved = await resolveRegistration(user.email);
-        if (!resolved) {
-          console.warn(`Sign-in denied: ${user.email} is not in the admin registry`);
-          return false;
-        }
+        if (!resolved) return false;
 
         // Google can deliver emails with different casing than the registry
         // stores; normalize once so lookup and upsert agree on identity.
@@ -97,8 +94,7 @@ export const {
         user.id = dbUser.id;
         user.role = dbUser.role;
         return true;
-      } catch (error) {
-        console.error("Error resolving registration / creating user:", error);
+      } catch {
         return false;
       }
     },
@@ -136,10 +132,9 @@ export const {
         try {
           registration = await registrationForSession(token.email);
           checked = true;
-        } catch (error) {
+        } catch {
           // A transient DB outage must not permanently revoke sessions;
           // every guarded action hits the DB again before returning data.
-          console.error("Registration re-check failed:", error);
         }
 
         if (checked) {

@@ -36,7 +36,7 @@ export default async function StaffPassportEntryPage() {
                 New Passport Entry
               </h2>
               <p className="text-xs text-muted-foreground">
-                Receipt timestamp is recorded automatically by the system.
+                Received date is recorded automatically by the system.
               </p>
             </div>
           </div>
