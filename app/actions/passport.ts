@@ -19,7 +19,11 @@ import { NEXT_STAGE, STAGES, statusLabel, type PassportStage } from "@/lib/passp
 const BASE = "/staff/passport-entry";
 
 /** List pages hosting the shared passport card forms. */
-const LIST_HOMES = ["/staff/passports", "/admin/passports"] as const;
+const LIST_HOMES = [
+  "/staff/passports",
+  "/admin/passports",
+  "/admin/reports",
+] as const;
 
 async function fail(message: string, redirectTo: string = BASE): Promise<never> {
   await setFlash("error", message);
@@ -36,10 +40,11 @@ function listHome(formData: FormData): string {
   return (LIST_HOMES as readonly string[]).includes(returnTo) ? returnTo : BASE;
 }
 
-/** Both list pages re-render after any passport write. */
+/** Every list/report surface re-renders after any passport write. */
 function revalidateListPages(): void {
   revalidatePath("/staff/passports");
   revalidatePath("/admin/passports");
+  revalidatePath("/admin/reports");
 }
 
 function str(formData: FormData, key: string): string {

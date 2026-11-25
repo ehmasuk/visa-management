@@ -21,10 +21,7 @@ export default async function AdminLayout({
 
   return (
     <SidebarProvider>
-      <AdminSidebar
-        userEmail={session.user.email}
-        userName={session.user.name}
-      />
+      <AdminSidebar />
       <SidebarInset className="min-h-svh flex flex-col bg-background">
         <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center justify-between border-b border-border/70 bg-background/90 px-4 sm:px-6 backdrop-blur-md">
           <div className="flex items-center gap-3">
@@ -59,7 +56,9 @@ export default async function AdminLayout({
           </div>
         </header>
 
-        <div className="flex-1 w-full p-4 sm:p-6 lg:p-8">{children}</div>
+        <div className="flex-1 w-full min-w-0 overflow-x-hidden p-4 sm:p-6 lg:p-8">
+          {children}
+        </div>
       </SidebarInset>
     </SidebarProvider>
   );

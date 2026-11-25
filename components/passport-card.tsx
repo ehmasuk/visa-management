@@ -20,6 +20,7 @@ import {
 } from "@/lib/passport-format";
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -69,13 +70,17 @@ export function PassportCard({
   passport,
   collectors,
   returnTo,
+  confirmStatusChanges = false,
 }: {
   passport: PassportWithPayment;
   collectors: Array<{ name: string }>;
   returnTo: string;
+  /** Staff desk asks for confirmation before advancing a passport's stage. */
+  confirmStatusChanges?: boolean;
 }) {
   const payment = passport.payment;
   const [isDeliverOpen, setIsDeliverOpen] = useState(false);
+  const [pendingStage, setPendingStage] = useState<PassportStage | null>(null);
   const nextStage = nextStageOf(passport.status);
 
   return (
@@ -157,28 +162,48 @@ export function PassportCard({
             <Edit className="size-3.5 text-muted-foreground" />
             <span>Edit</span>
           </Link>
-          {nextStage === "UNDER_REVIEW" && (
-            <form action={updatePassportStatus}>
-              <input type="hidden" name="id" value={passport.id} />
-              <input type="hidden" name="returnTo" value={returnTo} />
-              <input type="hidden" name="status" value="UNDER_REVIEW" />
-              <StagePendingButton className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-xs font-bold text-white transition-all shadow-sm">
+          {nextStage === "UNDER_REVIEW" &&
+            (confirmStatusChanges ? (
+              <button
+                type="button"
+                onClick={() => setPendingStage("UNDER_REVIEW")}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-xs font-bold text-white transition-all shadow-sm cursor-pointer"
+              >
                 <FileSearch className="size-3.5" />
                 <span>Start Review</span>
-              </StagePendingButton>
-            </form>
-          )}
-          {nextStage === "SUBMITTED" && (
-            <form action={updatePassportStatus}>
-              <input type="hidden" name="id" value={passport.id} />
-              <input type="hidden" name="returnTo" value={returnTo} />
-              <input type="hidden" name="status" value="SUBMITTED" />
-              <StagePendingButton className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-xs font-bold text-white transition-all shadow-sm">
+              </button>
+            ) : (
+              <form action={updatePassportStatus}>
+                <input type="hidden" name="id" value={passport.id} />
+                <input type="hidden" name="returnTo" value={returnTo} />
+                <input type="hidden" name="status" value="UNDER_REVIEW" />
+                <StagePendingButton className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-xs font-bold text-white transition-all shadow-sm">
+                  <FileSearch className="size-3.5" />
+                  <span>Start Review</span>
+                </StagePendingButton>
+              </form>
+            ))}
+          {nextStage === "SUBMITTED" &&
+            (confirmStatusChanges ? (
+              <button
+                type="button"
+                onClick={() => setPendingStage("SUBMITTED")}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-xs font-bold text-white transition-all shadow-sm cursor-pointer"
+              >
                 <Send className="size-3.5" />
                 <span>Submit</span>
-              </StagePendingButton>
-            </form>
-          )}
+              </button>
+            ) : (
+              <form action={updatePassportStatus}>
+                <input type="hidden" name="id" value={passport.id} />
+                <input type="hidden" name="returnTo" value={returnTo} />
+                <input type="hidden" name="status" value="SUBMITTED" />
+                <StagePendingButton className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-xs font-bold text-white transition-all shadow-sm">
+                  <Send className="size-3.5" />
+                  <span>Submit</span>
+                </StagePendingButton>
+              </form>
+            ))}
           {nextStage === "DELIVERED" && (
             <>
               <button
@@ -193,7 +218,7 @@ export function PassportCard({
                   <DialogHeader>
                     <DialogTitle className="text-lg font-bold">Assign Delivery Courier</DialogTitle>
                     <DialogDescription className="text-xs text-muted-foreground">
-                      Assign a delivery collector to return this passport back to the agency.
+                      Confirm the status change to Delivered and assign a delivery collector to return this passport back to the agency.
                     </DialogDescription>
                   </DialogHeader>
                   <form action={updatePassportStatus} className="flex flex-col gap-4 mt-2">
@@ -226,6 +251,42 @@ export function PassportCard({
               </Dialog>
             </>
           )}
+          <Dialog
+            open={pendingStage !== null}
+            onOpenChange={(open) => {
+              if (!open) setPendingStage(null);
+            }}
+          >
+            <DialogContent className="rounded-2xl sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle className="text-lg font-bold">Confirm status change</DialogTitle>
+                <DialogDescription className="text-xs text-muted-foreground">
+                  Passport{" "}
+                  <span className="font-mono font-bold text-foreground">{passport.passportNumber}</span>{" "}
+                  ({passport.holderName}) will move from{" "}
+                  <span className="font-semibold text-foreground">{statusLabel(passport.status)}</span>{" "}
+                  to{" "}
+                  <span className="font-semibold text-foreground">
+                    {pendingStage ? statusLabel(pendingStage) : ""}
+                  </span>
+                  . The timestamp and your name are recorded automatically.
+                </DialogDescription>
+              </DialogHeader>
+              <form action={updatePassportStatus} className="flex flex-col gap-4 mt-2">
+                <input type="hidden" name="id" value={passport.id} />
+                <input type="hidden" name="returnTo" value={returnTo} />
+                <input type="hidden" name="status" value={pendingStage ?? ""} />
+                <DialogFooter className="mt-2">
+                  <DialogClose render={<Button type="button" variant="outline" />}>
+                    Cancel
+                  </DialogClose>
+                  <StagePendingButton className="rounded-xl px-4 py-2 font-semibold text-xs cursor-pointer shadow-xs transition-all hover:scale-[1.01]">
+                    Confirm change
+                  </StagePendingButton>
+                </DialogFooter>
+              </form>
+            </DialogContent>
+          </Dialog>
         </div>
       </CardContent>
     </Card>

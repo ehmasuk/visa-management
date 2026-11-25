@@ -16,8 +16,9 @@
  *  - receipt-day: two-point range on the receiptDate index; for the agency
  *    the (agencyGmail, receiptDate) compound serves filter AND sort.
  *  - holder-name substring: the unanchored predicate — scanned inside
- *    MongoDB (C++), throttled by the client's 300 ms debounce, page ≤ 50.
- *  - total: a `count()` on the same indexed where clause.
+ *    MongoDB (C++), throttled by the client's 300 ms debounce, page ≤ 20.
+ *  - total: a `count()` on the same indexed where clause, done once per page
+ *    request so the client gets an exact page count without extra round trips.
  */
 
 import { prisma } from "@/lib/prisma";
@@ -28,11 +29,14 @@ import {
   type PassportListQuery,
 } from "@/lib/passport-list-filters";
 
-const PAGE_SIZE = 50;
+/** Desk tables show 20 rows per page. The agency portal keeps its larger
+ * load-more chunk by passing pageSize explicitly. */
+const DEFAULT_PAGE_SIZE = 20;
 
-// MongoDB `skip` is O(skipped docs). Same guardrail as the reports module:
-// past the cap the UI asks for a refined search instead of paging further.
-const MAX_PAGES = 200;
+// MongoDB `skip` is O(skipped docs). Cap the deepest reachable page (20k rows)
+// so an unfiltered jump to page 50,000 can never force a full-collection walk;
+// past the cap the UI asks for a refined search instead.
+const MAX_PAGES = 1000;
 
 /** A row keeps the card's exact prop shape so the shared card is reused as-is. */
 export type PassportListRow = Prisma.PassportGetPayload<{
@@ -42,9 +46,13 @@ export type PassportListRow = Prisma.PassportGetPayload<{
 export type PassportListResult = {
   rows: PassportListRow[];
   total: number;
-  /** True when pagination hit the MAX_PAGES guardrail. */
+  /** True when a page beyond MAX_PAGES was requested. */
   capped: boolean;
+  /** Zero-based page actually served, after clamping to the available range. */
   page: number;
+  pageSize: number;
+  /** Total number of pages available for the applied filters. */
+  pageCount: number;
 };
 
 /** One page of desk rows for the given filters, scoped by `scope`. */
@@ -53,30 +61,36 @@ async function loadList(
     where: Prisma.PassportWhereInput
   ) => Promise<Prisma.PassportWhereInput>,
   input: PassportListQuery,
-  { withContact = false }: { withContact?: boolean } = {}
+  {
+    withContact = false,
+    pageSize = DEFAULT_PAGE_SIZE,
+  }: { withContact?: boolean; pageSize?: number } = {}
 ): Promise<PassportListResult> {
-  const requestedPage = Number.isFinite(input.page)
-    ? Math.max(0, Math.floor(input.page as number))
-    : 0;
-  const page = Math.min(requestedPage, MAX_PAGES - 1);
-  const capped = requestedPage >= MAX_PAGES;
-
   // `scope` re-verifies the acting role server-side and, for agencies, injects
   // the session Gmail as the only shard the query may touch.
   const where = await scope(buildListFilters(input, {}, { withContact }));
 
-  const [records, total] = await Promise.all([
-    prisma.passport.findMany({
-      where,
-      orderBy: { receiptDate: "desc" },
-      skip: page * PAGE_SIZE,
-      take: PAGE_SIZE,
-      include: { payment: true },
-    }),
-    prisma.passport.count({ where }),
-  ]);
+  // Count first so the served page and total page count are always consistent,
+  // even when a filter change lands while an old page number is still active.
+  const total = await prisma.passport.count({ where });
+  const pageCount = Math.max(1, Math.ceil(total / pageSize));
+  const requestedPage = Number.isFinite(input.page)
+    ? Math.max(0, Math.floor(input.page as number))
+    : 0;
+  const capped = requestedPage >= MAX_PAGES;
+  const page = Math.min(requestedPage, MAX_PAGES - 1, pageCount - 1);
 
-  return { rows: records, total, capped, page };
+  const rows = await prisma.passport.findMany({
+    where,
+    // Secondary key makes ordering stable when passports share a receiptDate,
+    // so page N never repeats or skips rows from page N-1.
+    orderBy: [{ receiptDate: "desc" }, { id: "desc" }],
+    skip: page * pageSize,
+    take: pageSize,
+    include: { payment: true },
+  });
+
+  return { rows, total, capped, page, pageSize, pageCount };
 }
 
 /** Staff/admin desk search — one page matching the filters. */
@@ -102,5 +116,5 @@ export async function searchAgencyPassports(
     // Data isolation is enforced here: the agency mailbox comes from the
     // authenticated session, never from action input.
     return { ...where, agencyGmail: session.user.email.toLowerCase() };
-  }, input);
+  }, input, { pageSize: 50 });
 }

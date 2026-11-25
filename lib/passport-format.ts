@@ -15,6 +15,16 @@ export function fmt(value: Date | null | undefined): string {
   }).format(value);
 }
 
+/** Date-only stamp like "30 Oct 2026"; unset dates render as an em dash. */
+export function fmtDate(value: Date | null | undefined): string {
+  if (!value) return "—";
+  return new Intl.DateTimeFormat("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  }).format(value);
+}
+
 /** Tailwind classes for the status badge, keyed by PassportStatus. */
 export const STATUS_BADGE: Record<string, string> = {
   RECEIVED: "bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20",
@@ -75,10 +85,11 @@ export function statusLabel(status: string): string {
 export function lastEditorLine(
   name: string | null,
   role: string | null,
-  editedAt: Date | null
+  editedAt: Date | null,
+  includeTime = true
 ): string {
   if (!name && !role && !editedAt) return "—";
   const roleLabel = role ? role.charAt(0) + role.slice(1).toLowerCase() : "";
   const who = name ? `${name}${roleLabel ? ` (${roleLabel})` : ""}` : roleLabel;
-  return `${who} · ${fmt(editedAt)}`;
+  return `${who} · ${includeTime ? fmt(editedAt) : fmtDate(editedAt)}`;
 }

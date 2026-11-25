@@ -6,6 +6,16 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
 import { PassportCard } from "@/components/passport-card";
+import { PassportTable } from "@/components/passport-table";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 import { cn } from "@/lib/utils";
 import {
   searchInternalPassports,
@@ -15,20 +25,35 @@ import {
 /**
  * Filter + paging island for the staff/admin passport desks. Mirrors the
  * admin-reports client: the server page renders the first snapshot SSR, this
- * component re-queries the (indexed) search action on debounced keystrokes
- * and day picks, merging one page at a time — the browser never loops over
- * the collection.
+ * component re-queries the (indexed) search action on debounced keystrokes,
+ * day picks and page changes. Only the current 20-row page is loaded and
+ * rendered — the browser never loops over the collection.
  */
 
 const SEARCH_DEBOUNCE_MS = 300;
 
-/** Merge load-more rows into the current page list, dropping duplicates. */
-function mergeRows(
-  prev: PassportListResult["rows"],
-  next: PassportListResult["rows"]
-) {
-  const seen = new Set(prev.map((row) => row.id));
-  return [...prev, ...next.filter((row) => !seen.has(row.id))];
+/**
+ * A short, bounded page window: first, last, and neighbours of the current
+ * page, with gaps as ellipses. Keeps the control small even for 1M records.
+ */
+function pageWindow(current: number, count: number): Array<number | "…"> {
+  if (count <= 7) return Array.from({ length: count }, (_, i) => i);
+  const keep = new Set([
+    0,
+    count - 1,
+    current - 1,
+    current,
+    current + 1,
+  ]);
+  const pages = [...keep]
+    .filter((p) => p >= 0 && p < count)
+    .sort((a, b) => a - b);
+  const out: Array<number | "…"> = [];
+  pages.forEach((p, i) => {
+    if (i > 0 && p - pages[i - 1] > 1) out.push("…");
+    out.push(p);
+  });
+  return out;
 }
 
 /** Today in local time as YYYY-MM-DD — caps the date picker at the present. */
@@ -47,6 +72,10 @@ interface PassportListClientProps {
   returnTo: string;
   /** Where a "no passports recorded yet" empty state points for entry. */
   emptyHint: string;
+  /** Staff desk confirms each stage change before submitting it. */
+  confirmStatusChanges?: boolean;
+  /** Staff desk uses the scanable fixed-height table; admin keeps cards. */
+  view?: "cards" | "table";
 }
 
 export function PassportListClient({
@@ -54,6 +83,8 @@ export function PassportListClient({
   collectors,
   returnTo,
   emptyHint,
+  confirmStatusChanges = false,
+  view = "cards",
 }: PassportListClientProps) {
   const [searchText, setSearchText] = React.useState("");
   const [searchQuery, setSearchQuery] = React.useState("");
@@ -61,6 +92,7 @@ export function PassportListClient({
 
   const [result, setResult] = React.useState<PassportListResult>(initial);
   const [busy, setBusy] = React.useState(false);
+  const [page, setPage] = React.useState(0);
 
   // Sequence guard: only the most recent request may commit, so a slow
   // earlier query can never overwrite a newer result set.
@@ -93,7 +125,7 @@ export function PassportListClient({
     searchInternalPassports({
       q: searchQuery,
       date,
-      page: 0,
+      page,
     })
       .then((res) => {
         if (cancelled || seq !== seqRef.current) return;
@@ -109,32 +141,12 @@ export function PassportListClient({
     return () => {
       cancelled = true;
     };
-  }, [searchQuery, date]);
+  }, [searchQuery, date, page]);
 
-  const [page, setPage] = React.useState(0);
-
-  const loadMore = () => {
-    if (busy || result.capped || result.rows.length >= result.total) return;
-    const seq = ++seqRef.current;
-    setBusy(true);
-    searchInternalPassports({
-      q: searchQuery,
-      date,
-      page: page + 1,
-    })
-      .then((res) => {
-        if (seq !== seqRef.current) return;
-        setResult((prev) => ({
-          ...res,
-          rows: mergeRows(prev.rows, res.rows),
-        }));
-        setPage((p) => p + 1);
-        setBusy(false);
-      })
-      .catch(() => {
-        if (seq !== seqRef.current) return;
-        setBusy(false);
-      });
+  /** One page at a time — the effect above owns the single server query. */
+  const goToPage = (next: number) => {
+    if (busy || next < 0 || next >= result.pageCount || next === page) return;
+    setPage(next);
   };
 
   const flushSearch = () => setSearchQuery(searchText.trim());
@@ -145,9 +157,13 @@ export function PassportListClient({
     setSearchText("");
     setSearchQuery("");
     setDate("");
+    setPage(0);
   };
 
-  const pickDate = (value: string) => setDate(value);
+  const pickDate = (value: string) => {
+    setDate(value);
+    setPage(0);
+  };
 
   return (
     <div className="space-y-4" aria-busy={busy}>
@@ -161,7 +177,10 @@ export function PassportListClient({
             <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               value={searchText}
-              onChange={(e) => setSearchText(e.target.value)}
+              onChange={(e) => {
+                  setSearchText(e.target.value);
+                  setPage(0);
+                }}
               onKeyDown={(e) => {
                 if (e.key === "Enter") flushSearch();
               }}
@@ -178,6 +197,7 @@ export function PassportListClient({
                   onClick={() => {
                     setSearchText("");
                     setSearchQuery("");
+                    setPage(0);
                   }}
                   aria-label="Clear search"
                   className="flex size-5 items-center justify-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground cursor-pointer transition-colors"
@@ -247,7 +267,7 @@ export function PassportListClient({
         </p>
       </div>
 
-      {/* One page of cards, merged up by load-more. */}
+      {/* Only the current page of rows is ever rendered. */}
       {result.rows.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-border bg-card p-10 text-center">
           <p className="text-sm font-bold text-foreground">
@@ -259,6 +279,12 @@ export function PassportListClient({
               : emptyHint}
           </p>
         </div>
+      ) : view === "table" ? (
+        <PassportTable
+          rows={result.rows}
+          collectors={collectors}
+          returnTo={returnTo}
+        />
       ) : (
         <ul className="space-y-3">
           {result.rows.map((passport) => (
@@ -267,43 +293,86 @@ export function PassportListClient({
                 passport={passport}
                 collectors={collectors}
                 returnTo={returnTo}
+                confirmStatusChanges={confirmStatusChanges}
               />
             </li>
           ))}
         </ul>
       )}
 
-      {/* Paging footer: load-more, or the deep-paging refine hint at the cap. */}
+      {/* Pagination — shared UI component, bounded page window. */}
       {result.rows.length > 0 && (
-        <div className="flex flex-col items-center gap-2 pt-2">
-          {result.capped ? (
-            <p className="text-xs text-muted-foreground">
-              You have reached the deepest page we serve ({result.page + 1} of
-              the allowed pages). Refine the search or pick a receipt date to
-              reach older records.
-            </p>
-          ) : (
-            result.rows.length < result.total && (
-              <Button
-                onClick={loadMore}
-                variant="outline"
-                size="sm"
-                disabled={busy}
-                className="text-xs"
-              >
-                {busy ? (
-                  <Spinner className="size-3.5" />
-                ) : null}
-                <span>
-                  Load more
-                  {" "}
-                  ({result.rows.length.toLocaleString("en-US")} of{" "}
-                  {result.total.toLocaleString("en-US")})
-                </span>
-              </Button>
-            )
-          )}
+        <div className="space-y-1.5 pt-2">
+          <Pagination>
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious
+                  href={`?page=${result.page}`}
+                  aria-disabled={busy || result.page === 0}
+                  className={cn(
+                    "text-xs",
+                    (busy || result.page === 0) && "pointer-events-none opacity-50"
+                  )}
+                  onClick={(event) => {
+                    event.preventDefault();
+                    goToPage(result.page - 1);
+                  }}
+                />
+              </PaginationItem>
+              {pageWindow(result.page, result.pageCount).map((p, i) =>
+                p === "…" ? (
+                  <PaginationItem key={`gap-${i}`}>
+                    <PaginationEllipsis />
+                  </PaginationItem>
+                ) : (
+                  <PaginationItem key={`page-${p}`}>
+                    <PaginationLink
+                      href={`?page=${p + 1}`}
+                      isActive={p === result.page}
+                      size="sm"
+                      aria-disabled={busy || p === result.page}
+                      className={cn(
+                        "min-w-8 text-xs tabular-nums",
+                        (busy || p === result.page) && "pointer-events-none"
+                      )}
+                      onClick={(event) => {
+                        event.preventDefault();
+                        goToPage(p);
+                      }}
+                    >
+                      {p + 1}
+                    </PaginationLink>
+                  </PaginationItem>
+                )
+              )}
+              <PaginationItem>
+                <PaginationNext
+                  href={`?page=${result.page + 2}`}
+                  aria-disabled={busy || result.page >= result.pageCount - 1}
+                  className={cn(
+                    "text-xs",
+                    (busy || result.page >= result.pageCount - 1) &&
+                      "pointer-events-none opacity-50"
+                  )}
+                  onClick={(event) => {
+                    event.preventDefault();
+                    goToPage(result.page + 1);
+                  }}
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+          <p className="text-center text-xs text-muted-foreground tabular-nums">
+            Page {result.page + 1} of {result.pageCount.toLocaleString("en-US")} ·{" "}
+            {result.total.toLocaleString("en-US")} records
+          </p>
         </div>
+      )}
+      {result.capped && (
+        <p className="text-center text-xs text-muted-foreground">
+          Refine the search or pick a receipt date to reach older records beyond
+          the deepest reachable page.
+        </p>
       )}
     </div>
   );

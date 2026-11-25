@@ -8,12 +8,13 @@ import { searchInternalPassports } from "@/app/actions/passport-search";
 export const metadata = { title: "Passports — Admin" };
 
 /**
- * Admin passport list: every passport across agencies, rendered with the
- * same shared cards the staff list uses — View/Edit buttons and the inline
- * status/comment forms, all stamped with the acting user as last editor.
- * The staff-only entry form is deliberately absent (entry stays a staff
- * workflow). Paged and searchable exactly like the staff desk via the
- * shared island; the staff registry list feeds the cards' Deliver dialog.
+ * Admin passport list: every passport across agencies, shown in the same
+ * fixed-height, horizontally scrollable table as the staff desk — all fields
+ * in columns, icon-only View/Edit actions, and a separate status-change column
+ * (all stamped with the acting user as last editor). The staff-only entry form
+ * is deliberately absent (entry stays a staff workflow). Paged and searchable
+ * exactly like the staff desk via the shared island; the registry list feeds
+ * the table's Deliver dialog.
  */
 export default async function AdminPassportsPage() {
   await requireAdmin();
@@ -34,6 +35,7 @@ export default async function AdminPassportsPage() {
           initial={initial}
           collectors={collectors}
           returnTo="/admin/passports"
+          view="table"
           emptyHint="Passports entered by staff appear here immediately, with their status and payment trail."
         />
       </PageShell>

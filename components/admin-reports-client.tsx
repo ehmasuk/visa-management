@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { NativeSelect } from "@/components/ui/native-select";
 import { Spinner } from "@/components/ui/spinner";
 import { cn } from "@/lib/utils";
-import { STATUS_BADGE, STATUS_DOT, statusLabel } from "@/lib/passport-format";
+import { PassportTable } from "@/components/passport-table";
 import {
   searchReportData,
   type ReportResult,
@@ -30,23 +30,6 @@ const PAGE_SIZE = 50;
 /** Delay before a keystroke becomes a server query (typing-intent throttle). */
 const SEARCH_DEBOUNCE_MS = 300;
 
-function formatDate(iso: string | null | undefined): string {
-  if (!iso) return "—";
-  return new Date(iso).toLocaleDateString("en-GB", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
-}
-
-function formatTime(iso: string | null | undefined): string {
-  if (!iso) return "—";
-  return new Date(iso).toLocaleTimeString("en-GB", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
-
 /** Merge load-more rows into the current page list, dropping duplicates. */
 function mergeRows(prev: ReportResult["rows"], next: ReportResult["rows"]) {
   const seen = new Set(prev.map((row) => row.id));
@@ -61,42 +44,18 @@ function todayIso(): string {
   ).padStart(2, "0")}`;
 }
 
-function SkeletonCell({ wide }: { wide?: boolean }) {
-  return (
-    <td className="px-4 py-3.5">
-      <span
-        className={cn(
-          "block h-3 rounded-full bg-muted animate-pulse",
-          wide ? "w-16" : "w-24"
-        )}
-      />
-    </td>
-  );
-}
-
-function SkeletonRow() {
-  return (
-    <tr className="border-b border-border/40">
-      <SkeletonCell />
-      <SkeletonCell wide />
-      <SkeletonCell wide />
-      <SkeletonCell wide />
-      <SkeletonCell />
-      <SkeletonCell wide />
-      <SkeletonCell />
-      <SkeletonCell wide />
-    </tr>
-  );
-}
-
 interface AdminReportsClientProps {
   agencies: Array<{ name: string; gmail: string }>;
+  collectors: Array<{ name: string }>;
   /** First snapshot rendered on the server so mounting is not empty. */
   initial: ReportResult;
 }
 
+const RETURN_TO = "/admin/reports";
+
 export function AdminReportsClient({
   agencies,
+  collectors,
   initial,
 }: AdminReportsClientProps) {
   const [searchText, setSearchText] = React.useState("");
@@ -229,7 +188,7 @@ export function AdminReportsClient({
   );
 
   return (
-    <div className="space-y-6" aria-busy={busy}>
+    <div className="w-full min-w-0 space-y-6" aria-busy={busy}>
       {/* Header banner */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -468,9 +427,9 @@ export function AdminReportsClient({
         </div>
       </div>
 
-      {/* Filtered Passport Table */}
-      <div className="rounded-2xl border border-border/80 bg-card overflow-hidden shadow-xs">
-        <div className="px-5 py-4 border-b border-border/60 flex items-center justify-between">
+      {/* Filtered Passport Table — the same surface as the staff/admin desks */}
+      <div>
+        <div className="mb-3 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <FileText className="size-4 text-primary" />
             <h2 className="text-sm font-bold text-foreground">Records</h2>
@@ -486,144 +445,47 @@ export function AdminReportsClient({
               </span>
             ) : (
               <>
-                {formatNum(result.rows.length)} shown of{" "}
-                {formatNum(result.total)}
+                {formatNum(result.rows.length)} shown of {formatNum(result.total)}
               </>
             )}
           </span>
         </div>
 
-        <div className="overflow-x-auto">
-          <table
-            aria-busy={busy && page === 0}
-            className="w-full text-left text-xs"
-          >
-            <thead className="border-b border-border/60 bg-muted/40 font-semibold text-muted-foreground">
-              <tr>
-                <th className="px-4 py-3">Passport No.</th>
-                <th className="px-4 py-3">Holder</th>
-                <th className="px-4 py-3">Agency</th>
-                <th className="px-4 py-3">Intake Collector</th>
-                <th className="px-4 py-3">Status</th>
-                <th className="px-4 py-3 text-right">Fee</th>
-                <th className="px-4 py-3 text-center">Settlement</th>
-                <th className="px-4 py-3 text-right">Receipt Date</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border/60">
-              {busy && page === 0 ? (
-                // First query in flight: skeleton rows keep the layout stable
-                // instead of flashing an empty table.
-                Array.from({ length: 6 }, (_, i) => (
-                  <SkeletonRow key={`skeleton-${i}`} />
-                ))
-              ) : result.rows.length === 0 ? (
-                <tr>
-                  <td
-                    className="px-4 py-12 text-center text-xs text-muted-foreground"
-                    colSpan={8}
-                  >
-                    No passports found
-                    {searchQuery
-                      ? ` for “${searchQuery}”`
-                      : ""}{" "}
-                    matching current filter criteria.
-                  </td>
-                </tr>
-              ) : (
-                <>
-                  {result.rows.map((p) => (
-                    <tr
-                      key={p.id}
-                      className="hover:bg-muted/30 transition-colors"
-                    >
-                      <td className="px-4 py-3 font-mono font-bold text-foreground">
-                        {p.passportNumber}
-                      </td>
-                      <td className="px-4 py-3 font-semibold text-foreground">
-                        {p.holderName}
-                      </td>
-                      <td className="px-4 py-3 text-muted-foreground">
-                        {p.agencyName}
-                      </td>
-                      <td className="px-4 py-3 text-muted-foreground">
-                        {p.collectorName}
-                      </td>
-                      <td className="px-4 py-3">
-                        <span
-                          className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold ${STATUS_BADGE[p.status]}`}
-                        >
-                          <span
-                            className={`size-1.5 rounded-full ${STATUS_DOT[p.status]}`}
-                          />
-                          {statusLabel(p.status)}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-right font-mono font-bold text-foreground">
-                        {taka(p.fee)}
-                      </td>
-                      <td className="px-4 py-3 text-center">
-                        {p.paymentStatus === "PAID" ? (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-                            <CheckCircle2 className="size-3" />
-                            <span>Paid</span>
-                          </span>
-                        ) : p.paymentStatus === "REQUESTED" ? (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
-                            <Clock className="size-3" />
-                            <span>Awaiting</span>
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20">
-                            <span>Unpaid</span>
-                          </span>
-                        )}
-                      </td>
-                      <td className="px-4 py-3 text-right font-mono text-muted-foreground">
-                        {formatDate(p.receiptDate)}{" "}
-                        <span className="text-[10px] opacity-75">
-                          {formatTime(p.receiptDate)}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                  {busy && page > 0 && (
-                    // "Load more" in flight: an appended indicator row rather
-                    // than a full-table swap, so visible rows don't flicker.
-                    <tr>
-                      <td colSpan={8} className="px-4 py-5">
-                        <div className="flex items-center justify-center gap-2 text-muted-foreground">
-                          <Spinner className="size-4 text-primary" />
-                          <span className="text-xs font-medium">
-                            Loading more records…
-                          </span>
-                        </div>
-                      </td>
-                    </tr>
-                  )}
-                </>
-              )}
-            </tbody>
+        {result.rows.length === 0 && !busy ? (
+          <div className="rounded-xl border border-dashed border-border bg-card p-10 text-center">
+            <p className="text-sm font-bold text-foreground">
+              No passports found
+              {searchQuery ? ` for “${searchQuery}”` : ""}
+            </p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Try a different search or clear the filters.
+            </p>
+          </div>
+        ) : (
+          <>
+            <PassportTable
+              rows={result.rows}
+              collectors={collectors}
+              returnTo={RETURN_TO}
+            />
             {result.rows.length > 0 && (
-              <tfoot>
-                <tr className="border-t-2 border-border/80 bg-muted/40 font-bold text-foreground">
-                  <td className="px-4 py-3" colSpan={3}>
-                    Total ({formatNum(result.kpis.totalPassports)} items)
-                  </td>
-                  <td className="px-4 py-3 text-center font-mono" colSpan={2}>
-                    —
-                  </td>
-                  <td className="px-4 py-3 text-right font-mono text-foreground text-sm font-extrabold">
-                    {taka(result.kpis.totalFees)}
-                  </td>
-                  <td className="px-4 py-3 text-center font-mono text-xs" colSpan={2}>
-                    Paid: {taka(result.kpis.totalPaid)}
-                  </td>
-                </tr>
-              </tfoot>
+              <div className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-lg bg-muted/40 px-4 py-3 text-xs">
+                <span className="font-semibold text-foreground">
+                  Total ({formatNum(result.kpis.totalPassports)} items)
+                </span>
+                <span className="font-mono text-foreground">
+                  Fees: <span className="font-bold">{taka(result.kpis.totalFees)}</span>
+                </span>
+                <span className="font-mono text-foreground">
+                  Paid:{" "}
+                  <span className="font-bold text-emerald-600 dark:text-emerald-400">
+                    {taka(result.kpis.totalPaid)}
+                  </span>
+                </span>
+              </div>
             )}
-          </table>
-        </div>
+          </>
+        )}
 
         {/* Load-more / end-of-results footer */}
         <div

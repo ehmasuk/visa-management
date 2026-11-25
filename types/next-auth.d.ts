@@ -1,7 +1,7 @@
 import { DefaultSession } from "next-auth";
 
 declare module "next-auth" {
-  type Role = "ADMIN" | "STAFF" | "AGENCY";
+  type Role = "ADMIN" | "STAFF" | "AGENCY" | "REVOKED";
 
   interface Session {
     user: {
@@ -10,6 +10,8 @@ declare module "next-auth" {
       email: string;
       name?: string | null;
       image?: string | null;
+      /** Unix seconds of the last real sign-in; anchors admin re-auth cap. */
+      authAt?: number;
     } & DefaultSession["user"];
   }
 
@@ -19,7 +21,7 @@ declare module "next-auth" {
 }
 
 declare module "next-auth/jwt" {
-  type JwtRole = "ADMIN" | "STAFF" | "AGENCY";
+  type JwtRole = "ADMIN" | "STAFF" | "AGENCY" | "REVOKED";
 
   interface JWT {
     id?: string;
@@ -27,5 +29,6 @@ declare module "next-auth/jwt" {
     email?: string;
     name?: string | null;
     image?: string | null;
+    authAt?: number;
   }
 }

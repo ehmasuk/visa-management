@@ -26,7 +26,6 @@
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/guards";
 import type { Prisma } from "@prisma/client";
-import type { PassportStage } from "@/lib/passport-format";
 
 const PAGE_SIZE = 50;
 
@@ -46,18 +45,9 @@ export type ReportQuery = {
   page?: number;
 };
 
-export type ReportRow = {
-  id: string;
-  passportNumber: string;
-  holderName: string;
-  agencyName: string;
-  collectorName: string;
-  fee: number;
-  status: PassportStage;
-  receiptDate: string;
-  paymentStatus: "PAID" | "UNPAID" | "REQUESTED" | null;
-  paymentAmount: number | null;
-};
+/** Full passport rows (same shape as the desk lists) so reports can render
+ * the identical table — all fields, real Dates, and the payment relation. */
+export type ReportRow = Prisma.PassportGetPayload<{ include: { payment: true } }>;
 
 export type ReportKpis = {
   totalPassports: number;
@@ -209,17 +199,7 @@ async function loadReport(input: ReportQuery): Promise<ReportResult> {
       orderBy: { receiptDate: "desc" },
       skip: page * PAGE_SIZE,
       take: PAGE_SIZE,
-      select: {
-        id: true,
-        passportNumber: true,
-        holderName: true,
-        agencyName: true,
-        collectorName: true,
-        fee: true,
-        status: true,
-        receiptDate: true,
-        payment: { select: { status: true, amount: true } },
-      },
+      include: { payment: true },
     }),
     prisma.passport.count({ where }),
     prisma.passport.aggregate({ where, _sum: { fee: true } }),
@@ -233,18 +213,7 @@ async function loadReport(input: ReportQuery): Promise<ReportResult> {
   ]);
 
   return {
-    rows: records.map((p) => ({
-      id: p.id,
-      passportNumber: p.passportNumber,
-      holderName: p.holderName,
-      agencyName: p.agencyName,
-      collectorName: p.collectorName,
-      fee: p.fee,
-      status: p.status as PassportStage,
-      receiptDate: p.receiptDate.toISOString(),
-      paymentStatus: p.payment?.status ?? null,
-      paymentAmount: p.payment?.amount ?? null,
-    })),
+    rows: records,
     total,
     kpis: {
       totalPassports: total,

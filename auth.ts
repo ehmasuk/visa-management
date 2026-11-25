@@ -1,7 +1,31 @@
-import NextAuth from "next-auth";
+import NextAuth, { type Role } from "next-auth";
 import Google from "next-auth/providers/google";
 import { prisma } from "@/lib/prisma";
 import { normalizeEmail, resolveRegistration } from "@/lib/registry";
+
+/**
+ * The session callback runs in the proxy, in layouts and in every action —
+ * often several times per request. Cache the registry answer briefly so a
+ * single user lookup is shared instead of repeating the same Prisma query.
+ * Sign-in always uses resolveRegistration directly (no cache).
+ */
+const SESSION_REGISTRATION_TTL_MS = 30 * 1000;
+const sessionRegistrations = new Map<
+  string,
+  { at: number; value: Awaited<ReturnType<typeof resolveRegistration>> }
+>();
+
+async function registrationForSession(email: string) {
+  const key = email.trim().toLowerCase();
+  const hit = sessionRegistrations.get(key);
+  if (hit && Date.now() - hit.at < SESSION_REGISTRATION_TTL_MS) {
+    return hit.value;
+  }
+  const value = await resolveRegistration(email);
+  if (sessionRegistrations.size > 500) sessionRegistrations.clear();
+  sessionRegistrations.set(key, { at: Date.now(), value });
+  return value;
+}
 
 export const {
   handlers: { GET, POST },
@@ -14,15 +38,17 @@ export const {
   // and use JWT sessions.
   session: {
     strategy: "jwt",
-    maxAge: 30 * 24 * 60 * 60, // 30 days
-    updateAge: 24 * 60 * 60, // 24 hours
+    // JWT sessions are re-signed on every auth() call, so activity keeps
+    // extending this window indefinitely. 24h bounds the rolling window;
+    // requireAdmin() additionally enforces a hard re-auth cap for admins.
+    maxAge: 24 * 60 * 60,
+    updateAge: 60 * 60,
   },
 
   providers: [
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-      allowDangerousEmailAccountLinking: true,
     }),
   ],
 
@@ -85,6 +111,8 @@ export const {
         token.email = user.email;
         token.name = user.name;
         token.image = user.image;
+        // Anchors the hard re-auth cap enforced by requireAdmin().
+        token.authAt = Math.floor(Date.now() / 1000);
       }
 
       // Handle session updates (e.g. updateUser)
@@ -97,20 +125,52 @@ export const {
     },
 
     async session({ session, token }) {
-      // Send token data to session
-      if (token) {
-        session.user.id = token.id as string;
-        session.user.role = token.role as "ADMIN" | "STAFF" | "AGENCY";
-        session.user.email = token.email as string;
-        session.user.name = token.name as string;
-        session.user.image = token.image as string | null;
+      if (!token) return session;
+
+      // The registry / admin recovery can change a role (or remove access)
+      // while a JWT is still alive. Re-check on every session read so a
+      // demoted admin or an offboarded user loses access immediately.
+      if (token.email) {
+        let registration: Awaited<ReturnType<typeof resolveRegistration>> = null;
+        let checked = false;
+        try {
+          registration = await registrationForSession(token.email);
+          checked = true;
+        } catch (error) {
+          // A transient DB outage must not permanently revoke sessions;
+          // every guarded action hits the DB again before returning data.
+          console.error("Registration re-check failed:", error);
+        }
+
+        if (checked) {
+          if (!registration || token.role === "REVOKED") {
+            // REVOKED is sticky: a previously removed account must sign in
+            // again rather than being silently restored by a registry edit.
+            token.role = "REVOKED";
+          } else if (registration.role !== token.role) {
+            token.role = registration.role;
+          }
+        }
       }
+
+      session.user.id = token.id as string;
+      session.user.role = (token.role as Role | undefined) ?? "REVOKED";
+      session.user.email = token.email as string;
+      session.user.name = token.name as string;
+      session.user.image = token.image as string | null;
+      session.user.authAt = token.authAt as number | undefined;
       return session;
     },
 
     async redirect({ url, baseUrl }) {
-      if (url.startsWith("/")) return `${baseUrl}${url}`;
-      else if (new URL(url).origin === baseUrl) return url;
+      if (url.startsWith("/") && !url.startsWith("//")) {
+        return `${baseUrl}${url}`;
+      }
+      try {
+        if (new URL(url).origin === baseUrl) return url;
+      } catch {
+        // Malformed callbackUrl — fall back to the site root.
+      }
       return baseUrl;
     },
   },

@@ -12,7 +12,10 @@ const apiAuthPrefix = "/api/auth";
 
 export default auth((req) => {
   const { nextUrl } = req;
-  const isLoggedIn = !!req.auth;
+  // A revoked/offboarded account still has a JWT until expiry. Treat it as
+  // logged out so /login stays reachable (no redirect loop) and every
+  // protected route sends them back to sign in.
+  const isLoggedIn = !!req.auth && req.auth.user.role !== "REVOKED";
   const pathname = nextUrl.pathname;
   const role = req.auth?.user?.role;
 
@@ -35,20 +38,22 @@ export default auth((req) => {
   );
   const isAuthRoute = authRoutes.includes(pathname);
   const isLegacyDashboard = pathname === "/dashboard";
+  // No public homepage: `/` is just an entry redirect.
+  const isRoot = pathname === "/";
 
-  // Redirect logged-in users away from the login page, landing on their
+  // An admin whose re-auth cap expired must be allowed to reach /login to
+  // renew the session; bouncing them to /admin would loop forever.
+  const isReauth = nextUrl.searchParams.get("reauth") === "1";
+
+  // Signed-in users never see the entry/login pages — go straight to their
   // role home: ADMIN → /admin, STAFF → /staff, AGENCY → /agency.
-  if (isLoggedIn && isAuthRoute) {
-    return NextResponse.redirect(new URL(roleHomePath(role), nextUrl));
-  }
-
-  // Legacy /dashboard → forward to the user's role home (page kept as shim).
-  if (isLoggedIn && isLegacyDashboard) {
+  if (isLoggedIn && (isAuthRoute || isLegacyDashboard || isRoot) && !isReauth) {
     return NextResponse.redirect(new URL(roleHomePath(role), nextUrl));
   }
 
   // Redirect unauthenticated users to login
-  if (!isLoggedIn && (isProtectedRoute || isLegacyDashboard)) {
+  if (!isLoggedIn && (isProtectedRoute || isLegacyDashboard || isRoot)) {
+    if (isRoot) return NextResponse.redirect(new URL("/login", nextUrl));
     const callbackUrl = encodeURIComponent(pathname);
     return NextResponse.redirect(
       new URL(`/login?callbackUrl=${callbackUrl}`, nextUrl)

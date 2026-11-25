@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Stamp, LogOut } from "lucide-react";
+import type { Role } from "next-auth";
 
 export type NavItem = { href: string; label: string };
 
@@ -44,7 +45,7 @@ export function RoleNav({
   userLabel,
 }: {
   pathname: string;
-  role: "ADMIN" | "STAFF" | "AGENCY";
+  role: Role;
   userLabel?: string | null;
 }) {
   // Admin routes now use shadcn Sidebar layout

@@ -5,7 +5,10 @@ import { Toaster } from "@/components/ui/toast"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { cn } from "@/lib/utils"
 import { Geist_Mono, Inter } from "next/font/google"
+import NextTopLoader from 'nextjs-toploader';
+
 import "./globals.css"
+
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" })
 
@@ -19,6 +22,11 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  // The fresh per-request key is intentional: it remounts FlashToaster after
+  // server-action redirects, including a redirect back to the SAME path.
+  // eslint-disable-next-line react-hooks/purity
+  const flashKey = Date.now();
+
   return (
     <html
       lang="en"
@@ -36,8 +44,9 @@ export default function RootLayout({
             <SessionProvider>
               {/* Fresh key per server render → remounts after every action redirect
                   (even same-path), so <FlashToaster> re-reads the flash cookie. */}
-              <FlashToaster key={Date.now()} />
+              <FlashToaster key={flashKey} />
               <Toaster />
+              <NextTopLoader />
               {children}
             </SessionProvider>
           </TooltipProvider>

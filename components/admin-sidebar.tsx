@@ -6,7 +6,6 @@ import { usePathname } from "next/navigation";
 import {
   Sidebar,
   SidebarContent,
-  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
@@ -16,10 +15,7 @@ import {
   SidebarMenuItem,
   SidebarSeparator,
 } from "@/components/ui/sidebar";
-import { ThemeToggle } from "@/components/theme-toggle";
-import { Badge } from "@/components/ui/badge";
 import {
-  Stamp,
   LayoutDashboard,
   FileText,
   Building2,
@@ -29,18 +25,9 @@ import {
   Layers,
   Sparkles,
   BarChart3,
-  ShieldCheck,
 } from "lucide-react";
 
-interface AdminSidebarProps {
-  userEmail?: string | null;
-  userName?: string | null;
-}
-
-export function AdminSidebar({
-  userEmail,
-  userName,
-}: AdminSidebarProps) {
+export function AdminSidebar() {
   const pathname = usePathname();
 
   const mainNav = [
@@ -70,14 +57,12 @@ export function AdminSidebar({
       href: "/admin/agencies",
       icon: Building2,
       iconColor: "text-blue-600 dark:text-blue-400",
-      hint: "Gate",
     },
     {
       title: "Staff",
       href: "/admin/staff",
       icon: Users,
       iconColor: "text-emerald-600 dark:text-emerald-400",
-      hint: "Gate",
     },
   ];
 
@@ -116,9 +101,6 @@ export function AdminSidebar({
           href="/"
           className="flex items-center gap-2.5 group transition-opacity hover:opacity-90"
         >
-          <div className="size-8 rounded-xl bg-gradient-to-br from-primary to-blue-600 text-primary-foreground flex items-center justify-center font-bold shadow-xs transition-transform group-hover:scale-105">
-            <Stamp className="size-4" />
-          </div>
           <div className="flex flex-col min-w-0">
             <span className="font-bold text-sm tracking-tight text-sidebar-foreground truncate">
               Visa Management
@@ -168,9 +150,8 @@ export function AdminSidebar({
 
         {/* Gmail Allow-Lists */}
         <SidebarGroup>
-          <SidebarGroupLabel className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground/80 px-2 flex items-center justify-between">
-            <span>Identity & Access</span>
-            <ShieldCheck className="size-3 text-primary opacity-60" />
+          <SidebarGroupLabel className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground/80 px-2">
+            Identity & Access
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
@@ -192,11 +173,6 @@ export function AdminSidebar({
                     >
                       <Icon className={`size-4 shrink-0 ${item.iconColor}`} />
                       <span className="text-sm">{item.title}</span>
-                      {item.hint ? (
-                        <span className="ml-auto text-[9px] uppercase font-bold px-1.5 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20 group-data-[collapsible=icon]:hidden">
-                          {item.hint}
-                        </span>
-                      ) : null}
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 );
@@ -241,29 +217,6 @@ export function AdminSidebar({
         </SidebarGroup>
       </SidebarContent>
 
-      {/* Sidebar Footer */}
-      <SidebarFooter className="border-t border-sidebar-border p-3">
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2.5 min-w-0">
-            <div className="size-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
-            <div className="flex flex-col min-w-0">
-              <span className="text-xs font-bold text-sidebar-foreground truncate">
-                {userName ?? "Administrator"}
-              </span>
-              <span className="text-[10px] font-mono text-muted-foreground truncate">
-                {userEmail}
-              </span>
-            </div>
-          </div>
-          <Badge
-            className="text-[10px] font-bold uppercase px-2 py-0.5 bg-primary/10 text-primary border-primary/20 shrink-0"
-          >
-            Admin
-          </Badge>
-        </div>
-
-
-      </SidebarFooter>
     </Sidebar>
   );
 }

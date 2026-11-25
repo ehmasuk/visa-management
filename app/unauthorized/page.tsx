@@ -9,7 +9,7 @@ export default function UnauthorizedPage() {
         <div className="space-y-2">
           <h1 className="text-2xl font-bold tracking-tight">Access denied</h1>
           <p className="text-muted-foreground">
-            Your account's role does not have access to that area of the visa
+            Your account&apos;s role does not have access to that area of the visa
             management system.
           </p>
         </div>

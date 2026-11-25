@@ -21,10 +21,7 @@ export default async function StaffLayout({
 
   return (
     <SidebarProvider>
-      <StaffSidebar
-        userEmail={session.user.email}
-        userName={session.user.name}
-      />
+      <StaffSidebar />
       <SidebarInset className="min-h-svh flex flex-col bg-background">
         <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center justify-between border-b border-border/70 bg-background/90 px-4 sm:px-6 backdrop-blur-md">
           <div className="flex items-center gap-3">

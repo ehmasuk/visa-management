@@ -6,7 +6,6 @@ import { usePathname } from "next/navigation";
 import {
   Sidebar,
   SidebarContent,
-  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
@@ -15,25 +14,14 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { ThemeToggle } from "@/components/theme-toggle";
-import { Badge } from "@/components/ui/badge";
 import {
-  Stamp,
   LayoutDashboard,
   FileText,
   ReceiptText,
   PlusCircle,
 } from "lucide-react";
 
-interface StaffSidebarProps {
-  userEmail?: string | null;
-  userName?: string | null;
-}
-
-export function StaffSidebar({
-  userEmail,
-  userName,
-}: StaffSidebarProps) {
+export function StaffSidebar() {
   const pathname = usePathname();
 
   const mainNav = [
@@ -72,9 +60,6 @@ export function StaffSidebar({
           href="/"
           className="flex items-center gap-2.5 group transition-opacity hover:opacity-90"
         >
-          <div className="size-8 rounded-xl bg-gradient-to-br from-emerald-600 to-teal-700 text-white flex items-center justify-center font-bold shadow-xs transition-transform group-hover:scale-105">
-            <Stamp className="size-4" />
-          </div>
           <div className="flex flex-col min-w-0">
             <span className="font-bold text-sm tracking-tight text-sidebar-foreground truncate">
               Visa Management
@@ -124,32 +109,6 @@ export function StaffSidebar({
         </SidebarGroup>
       </SidebarContent>
 
-      {/* Sidebar Footer */}
-      <SidebarFooter className="border-t border-sidebar-border p-3">
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2.5 min-w-0">
-            <div className="size-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
-            <div className="flex flex-col min-w-0">
-              <span className="text-xs font-bold text-sidebar-foreground truncate">
-                {userName ?? "Staff Member"}
-              </span>
-              <span className="text-[10px] font-mono text-muted-foreground truncate">
-                {userEmail}
-              </span>
-            </div>
-          </div>
-          <Badge
-            className="text-[10px] font-bold uppercase px-2 py-0.5 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 shrink-0"
-          >
-            Staff
-          </Badge>
-        </div>
-
-        <div className="mt-2 pt-2 border-t border-sidebar-border/60 flex items-center justify-between">
-          <ThemeToggle className="size-7 text-muted-foreground hover:text-foreground" />
-          <span className="text-[10px] text-muted-foreground font-mono">Operations</span>
-        </div>
-      </SidebarFooter>
     </Sidebar>
   );
 }

@@ -1,7 +1,7 @@
 "use client";
 
+import { use, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
 import { toast } from "@/components/ui/toast";
 
 /**
@@ -10,29 +10,40 @@ import { toast } from "@/components/ui/toast";
  * surfaced only as toast + page text, and the parameter is stripped so no
  * message stays in the address bar.
  */
-export default function ErrorPage() {
-  const [denied, setDenied] = useState(false);
+export default function ErrorPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
+  const code = use(searchParams).error;
+  const errorCode = Array.isArray(code) ? code[0] : code;
+
+  // Lock the outcome on the first render: stripping the query string below
+  // would otherwise flip the page back to the generic message on a re-render.
+  const [denied] = useState(() => errorCode === "AccessDenied");
+  const notified = useRef(false);
 
   useEffect(() => {
-    const code = new URLSearchParams(window.location.search).get("error");
-    if (!code) return;
-    if (window.location.search !== "") {
+    if (notified.current) return;
+    notified.current = true;
+
+    if (window.location.search) {
       window.history.replaceState(null, "", window.location.pathname);
     }
-    if (code === "AccessDenied") {
-      setDenied(true);
-      toast.add({
-        title:
-          "This Google account is not registered for the visa management system. Only addresses allow-listed by the administrator can sign in.",
-        type: "warning",
-      });
-    } else {
-      toast.add({
-        title: "Something went wrong during sign-in. Please try again.",
-        type: "error",
-      });
-    }
-  }, []);
+
+    toast.add(
+      denied
+        ? {
+            title:
+              "This Google account is not registered for the visa management system. Only addresses allow-listed by the administrator can sign in.",
+            type: "warning",
+          }
+        : {
+            title: "Something went wrong during sign-in. Please try again.",
+            type: "error",
+          }
+    );
+  }, [denied]);
 
   return (
     <div className="flex min-h-svh flex-col items-center justify-center p-6">
