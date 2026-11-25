@@ -1,7 +1,7 @@
 import { requireAdmin } from "@/lib/guards";
 import { prisma } from "@/lib/prisma";
 import { RoleNav } from "@/components/role-nav";
-import { PageShell, Field, Select, SubmitButton } from "@/components/admin-ui";
+import { PageShell, Field, SubmitButton } from "@/components/admin-ui";
 import { createStaff, updateStaff, deleteStaff } from "@/app/actions/registry";
 import { Card, CardContent } from "@/components/ui/card";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
@@ -27,14 +27,6 @@ export default async function StaffPage() {
           </div>
           <div className="grow">
             <Field label="Gmail address" name="gmail" type="email" placeholder="staff.name@gmail.com" />
-          </div>
-          <div className="w-36">
-            <Select
-              label="Role"
-              name="role"
-              defaultValue="STAFF"
-              options={[{ value: "STAFF", label: "STAFF" }]}
-            />
           </div>
           <SubmitButton>Allow-list staff</SubmitButton>
           </form>
@@ -64,14 +56,6 @@ export default async function StaffPage() {
                   <div className="grow">
                     <Field label="Gmail address" name="gmail" type="email" defaultValue={member.gmail} />
                   </div>
-                  <div className="w-36">
-                    <Select
-                      label="Role"
-                      name="role"
-                      defaultValue={member.role}
-                      options={[{ value: "STAFF", label: "STAFF" }]}
-                    />
-                  </div>
                   <SubmitButton variant="ghost">Save</SubmitButton>
                 </form>
                 <form action={deleteStaff}>
@@ -85,8 +69,8 @@ export default async function StaffPage() {
           </ul>
         )}
         <p className="mt-4 text-xs text-muted-foreground">
-          Note: role is fixed to STAFF here — admin accounts are managed through the
-          controlled bootstrap/recovery process (single-admin invariant).
+          Admin accounts are managed separately through the controlled
+          bootstrap/recovery process.
         </p>
       </PageShell>
     </div>

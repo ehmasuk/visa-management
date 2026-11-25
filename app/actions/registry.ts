@@ -354,17 +354,11 @@ export async function createStaff(formData: FormData) {
   await requireAdmin();
   const name = parseName(formData);
   const gmail = normalizeEmail(String(formData.get("gmail") ?? ""));
-  const role = String(formData.get("role") ?? "STAFF");
   if (!name) await fail("/admin/staff", "Staff name is required.");
   if (!gmail || !EMAIL_RE.test(gmail)) {
     await fail("/admin/staff", "A valid Gmail address is required.");
   }
-  if (role !== "STAFF") {
-    await fail(
-      "/admin/staff",
-      "Staff registry entries use the STAFF role — admin accounts are bootstrapped separately (single-admin invariant)."
-    );
-  }
+  // This registry is staff-only; the role is assigned server-side.
   try {
     await prisma.staff.create({ data: { name, gmail, role: "STAFF" } });
   } catch (error) {
@@ -383,7 +377,6 @@ export async function updateStaff(formData: FormData) {
   const id = parseId(formData);
   const name = parseName(formData);
   const gmail = normalizeEmail(String(formData.get("gmail") ?? ""));
-  const role = String(formData.get("role") ?? "STAFF");
   if (!id) {
     await fail("/admin/staff", "Missing staff id.");
     return;
@@ -391,12 +384,6 @@ export async function updateStaff(formData: FormData) {
   if (!name) await fail("/admin/staff", "Staff name is required.");
   if (!gmail || !EMAIL_RE.test(gmail)) {
     await fail("/admin/staff", "A valid Gmail address is required.");
-  }
-  if (role !== "STAFF") {
-    await fail(
-      "/admin/staff",
-      "Staff registry entries use the STAFF role — admin accounts are bootstrapped separately (single-admin invariant)."
-    );
   }
   try {
     await prisma.staff.update({ where: { id }, data: { name, gmail, role: "STAFF" } });
