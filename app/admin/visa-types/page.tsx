@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { RoleNav } from "@/components/role-nav";
 import { PageShell, Field, SubmitButton } from "@/components/admin-ui";
 import { createVisaType, updateVisaType, deleteVisaType } from "@/app/actions/registry";
+import { RegistryEditDialog } from "@/components/registry-edit-dialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 import { StampIcon } from "lucide-react";
@@ -44,18 +45,21 @@ export default async function VisaTypesPage() {
             {visaTypes.map((visaType) => (
               <li key={visaType.id}>
                 <Card size="sm" className="gap-0">
-                  <CardContent className="flex flex-wrap items-end gap-3">
-                <form action={updateVisaType} className="flex flex-grow items-end gap-3">
-                  <input type="hidden" name="id" value={visaType.id} />
-                  <div className="grow">
-                    <Field label="Visa type name" name="name" defaultValue={visaType.name} />
-                  </div>
-                  <SubmitButton variant="ghost">Save</SubmitButton>
-                </form>
-                <form action={deleteVisaType}>
-                  <input type="hidden" name="id" value={visaType.id} />
-                  <SubmitButton variant="danger">Delete</SubmitButton>
-                </form>
+                  <CardContent className="flex flex-wrap items-center justify-between gap-3">
+                    <span className="text-sm font-medium text-foreground">{visaType.name}</span>
+                    <div className="flex items-center gap-2">
+                      <RegistryEditDialog
+                        item={visaType}
+                        label="Visa type name"
+                        title="Edit visa type"
+                        description="Rename this visa type. Passports already recorded keep the type selected at entry."
+                        updateAction={updateVisaType}
+                      />
+                      <form action={deleteVisaType}>
+                        <input type="hidden" name="id" value={visaType.id} />
+                        <SubmitButton variant="danger">Delete</SubmitButton>
+                      </form>
+                    </div>
                   </CardContent>
                 </Card>
               </li>

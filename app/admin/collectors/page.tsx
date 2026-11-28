@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { RoleNav } from "@/components/role-nav";
 import { PageShell, Field, SubmitButton } from "@/components/admin-ui";
 import { createCollector, updateCollector, deleteCollector } from "@/app/actions/registry";
+import { RegistryEditDialog } from "@/components/registry-edit-dialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 import { UsersIcon } from "lucide-react";
@@ -44,18 +45,21 @@ export default async function CollectorsPage() {
             {collectors.map((collector) => (
               <li key={collector.id}>
                 <Card size="sm" className="gap-0">
-                  <CardContent className="flex flex-wrap items-end gap-3">
-                <form action={updateCollector} className="flex flex-grow items-end gap-3">
-                  <input type="hidden" name="id" value={collector.id} />
-                  <div className="grow">
-                    <Field label="Collector name" name="name" defaultValue={collector.name} />
-                  </div>
-                  <SubmitButton variant="ghost">Save</SubmitButton>
-                </form>
-                <form action={deleteCollector}>
-                  <input type="hidden" name="id" value={collector.id} />
-                  <SubmitButton variant="danger">Delete</SubmitButton>
-                </form>
+                  <CardContent className="flex flex-wrap items-center justify-between gap-3">
+                    <span className="text-sm font-medium text-foreground">{collector.name}</span>
+                    <div className="flex items-center gap-2">
+                      <RegistryEditDialog
+                        item={collector}
+                        label="Collector name"
+                        title="Edit collector"
+                        description="Rename this collector. Passports already recorded keep the collector name recorded at entry."
+                        updateAction={updateCollector}
+                      />
+                      <form action={deleteCollector}>
+                        <input type="hidden" name="id" value={collector.id} />
+                        <SubmitButton variant="danger">Delete</SubmitButton>
+                      </form>
+                    </div>
                   </CardContent>
                 </Card>
               </li>

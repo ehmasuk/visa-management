@@ -2,7 +2,8 @@ import { requireAdmin } from "@/lib/guards";
 import { prisma } from "@/lib/prisma";
 import { RoleNav } from "@/components/role-nav";
 import { PageShell, Field, SubmitButton } from "@/components/admin-ui";
-import { createStaff, updateStaff, deleteStaff } from "@/app/actions/registry";
+import { createStaff, deleteStaff } from "@/app/actions/registry";
+import { StaffEditDialog } from "@/components/staff-edit-dialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 import { UserRoundIcon } from "lucide-react";
@@ -47,31 +48,25 @@ export default async function StaffPage() {
             {staff.map((member) => (
               <li key={member.id}>
                 <Card size="sm" className="gap-0">
-                  <CardContent className="flex flex-wrap items-end gap-3">
-                <form action={updateStaff} className="flex flex-grow items-end gap-3">
-                  <input type="hidden" name="id" value={member.id} />
-                  <div className="grow md:grow-0 md:w-56">
-                    <Field label="Staff name" name="name" defaultValue={member.name} />
-                  </div>
-                  <div className="grow">
-                    <Field label="Gmail address" name="gmail" type="email" defaultValue={member.gmail} />
-                  </div>
-                  <SubmitButton variant="ghost">Save</SubmitButton>
-                </form>
-                <form action={deleteStaff}>
-                  <input type="hidden" name="id" value={member.id} />
-                  <SubmitButton variant="danger">Delete</SubmitButton>
-                </form>
+                  <CardContent className="flex flex-wrap items-center justify-between gap-3">
+                    <div className="min-w-0">
+                      <span className="text-sm font-medium text-foreground">{member.name}</span>
+                      <span className="block text-xs text-muted-foreground">{member.gmail}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <StaffEditDialog member={member} />
+                      <form action={deleteStaff}>
+                        <input type="hidden" name="id" value={member.id} />
+                        <SubmitButton variant="danger">Delete</SubmitButton>
+                      </form>
+                    </div>
                   </CardContent>
                 </Card>
               </li>
             ))}
           </ul>
         )}
-        <p className="mt-4 text-xs text-muted-foreground">
-          Admin accounts are managed separately through the controlled
-          bootstrap/recovery process.
-        </p>
+
       </PageShell>
     </div>
   );

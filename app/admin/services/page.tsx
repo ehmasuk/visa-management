@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { RoleNav } from "@/components/role-nav";
 import { PageShell, Field, SubmitButton } from "@/components/admin-ui";
 import { createService, updateService, deleteService } from "@/app/actions/registry";
+import { RegistryEditDialog } from "@/components/registry-edit-dialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 import { BriefcaseIcon } from "lucide-react";
@@ -44,18 +45,21 @@ export default async function ServicesPage() {
             {services.map((service) => (
               <li key={service.id}>
                 <Card size="sm" className="gap-0">
-                  <CardContent className="flex flex-wrap items-end gap-3">
-                <form action={updateService} className="flex flex-grow items-end gap-3">
-                  <input type="hidden" name="id" value={service.id} />
-                  <div className="grow">
-                    <Field label="Service name" name="name" defaultValue={service.name} />
-                  </div>
-                  <SubmitButton variant="ghost">Save</SubmitButton>
-                </form>
-                <form action={deleteService}>
-                  <input type="hidden" name="id" value={service.id} />
-                  <SubmitButton variant="danger">Delete</SubmitButton>
-                </form>
+                  <CardContent className="flex flex-wrap items-center justify-between gap-3">
+                    <span className="text-sm font-medium text-foreground">{service.name}</span>
+                    <div className="flex items-center gap-2">
+                      <RegistryEditDialog
+                        item={service}
+                        label="Service name"
+                        title="Edit service"
+                        description="Rename this service. Passports already recorded keep the service selected at entry."
+                        updateAction={updateService}
+                      />
+                      <form action={deleteService}>
+                        <input type="hidden" name="id" value={service.id} />
+                        <SubmitButton variant="danger">Delete</SubmitButton>
+                      </form>
+                    </div>
                   </CardContent>
                 </Card>
               </li>

@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { RoleNav } from "@/components/role-nav";
 import { PageShell, Field, SubmitButton } from "@/components/admin-ui";
 import { createBranch, updateBranch, deleteBranch } from "@/app/actions/registry";
+import { RegistryEditDialog } from "@/components/registry-edit-dialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 import { Building2Icon } from "lucide-react";
@@ -44,18 +45,21 @@ export default async function BranchesPage() {
             {branches.map((branch) => (
               <li key={branch.id}>
                 <Card size="sm" className="gap-0">
-                  <CardContent className="flex flex-wrap items-end gap-3">
-                <form action={updateBranch} className="flex flex-grow items-end gap-3">
-                  <input type="hidden" name="id" value={branch.id} />
-                  <div className="grow">
-                    <Field label="Branch name" name="name" defaultValue={branch.name} />
-                  </div>
-                  <SubmitButton variant="ghost">Save</SubmitButton>
-                </form>
-                <form action={deleteBranch}>
-                  <input type="hidden" name="id" value={branch.id} />
-                  <SubmitButton variant="danger">Delete</SubmitButton>
-                </form>
+                  <CardContent className="flex flex-wrap items-center justify-between gap-3">
+                    <span className="text-sm font-medium text-foreground">{branch.name}</span>
+                    <div className="flex items-center gap-2">
+                      <RegistryEditDialog
+                        item={branch}
+                        label="Branch name"
+                        title="Edit branch"
+                        description="Rename this branch office. Passports already recorded keep the branch name recorded at entry."
+                        updateAction={updateBranch}
+                      />
+                      <form action={deleteBranch}>
+                        <input type="hidden" name="id" value={branch.id} />
+                        <SubmitButton variant="danger">Delete</SubmitButton>
+                      </form>
+                    </div>
                   </CardContent>
                 </Card>
               </li>
