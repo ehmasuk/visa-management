@@ -19,7 +19,6 @@ import {
   FileText,
   PlusCircle,
   ClipboardList,
-  ReceiptText,
 } from "lucide-react";
 
 export function StaffSidebar() {
@@ -50,12 +49,6 @@ export function StaffSidebar() {
       href: "/staff/registries",
       icon: ClipboardList,
       iconColor: "text-amber-500",
-    },
-    {
-      title: "Payments",
-      href: "/staff/payments",
-      icon: ReceiptText,
-      iconColor: "text-emerald-500",
     },
   ];
 

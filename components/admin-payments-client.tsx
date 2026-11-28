@@ -2,10 +2,13 @@
 
 import * as React from "react";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
 import { cn } from "@/lib/utils";
 import { fmt } from "@/lib/passport-format";
+import { Field, Select, SubmitButton } from "@/components/admin-ui";
+import { createPayment } from "@/app/actions/payment";
 import {
   searchAgencyPayments,
   type AgencyPaymentResult,
@@ -33,7 +36,15 @@ function todayIso(): string {
 const KPI_VALUE = "mt-2 font-mono text-2xl font-extrabold tracking-tight";
 const KPI_NOTE = "mt-1 text-xs text-muted-foreground";
 
-export function AdminPaymentsClient({ initial }: { initial: AgencyPaymentResult }) {
+export function AdminPaymentsClient({
+  initial,
+  agencies,
+  collectors,
+}: {
+  initial: AgencyPaymentResult;
+  agencies: Array<{ name: string }>;
+  collectors: Array<{ name: string }>;
+}) {
   const [searchText, setSearchText] = React.useState("");
   const [searchQuery, setSearchQuery] = React.useState("");
   const [timeWindow, setTimeWindow] = React.useState("all");
@@ -98,6 +109,11 @@ export function AdminPaymentsClient({ initial }: { initial: AgencyPaymentResult 
     setDate(value);
     setPage(0);
   };
+
+  const registryOptions = (rows: Array<{ name: string }>, emptyLabel: string) => [
+    { value: "", label: rows.length === 0 ? emptyLabel : "Select" },
+    ...rows.map((row) => ({ value: row.name, label: row.name })),
+  ];
 
   return (
     <div className="w-full min-w-0 space-y-6" aria-busy={busy}>
@@ -200,6 +216,46 @@ export function AdminPaymentsClient({ initial }: { initial: AgencyPaymentResult 
           </div>
         </div>
       </div>
+
+      {/* Record a payment */}
+      <Card className="gap-0 px-5 py-5">
+        <h2 className="mb-4 text-sm font-bold text-foreground">Record a payment</h2>
+        <form action={createPayment} className="grid gap-4 md:grid-cols-5 md:items-end">
+          <div>
+            <Select
+              label="Agency"
+              name="agencyName"
+              defaultValue=""
+              options={registryOptions(agencies, "No agencies registered yet")}
+            />
+          </div>
+          <div>
+            <Select
+              label="Collector (brought the payment)"
+              name="collectorName"
+              defaultValue=""
+              options={registryOptions(collectors, "No collectors registered yet")}
+            />
+          </div>
+          <div>
+            <Field label="Amount (৳)" name="amount" type="number" placeholder="40000" />
+          </div>
+          <div>
+            <Field
+              label="Number of passports"
+              name="passportCount"
+              type="number"
+              placeholder="3"
+            />
+          </div>
+          <div>
+            <SubmitButton>Record payment</SubmitButton>
+          </div>
+        </form>
+        <p className="mt-3 text-xs text-muted-foreground">
+          The payment date and the admin receiving it are recorded automatically.
+        </p>
+      </Card>
 
       {/* KPIs */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

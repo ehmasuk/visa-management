@@ -33,7 +33,7 @@ Confirmed functionality:
 - Staff passport entry: agency name, branch office, intake collector, passport number (may be reused when the same passport returns), holder name, contact number, comment, fee, plus registry-backed visa type and service selections. Branches are admin-created; staff choose from them.
 - Staff status/delivery flow: status transitions, delivery collector assigned at delivery, comment editable at any time; last editor (name/role/email/time) stamped on every passport mutation.
 - Admin registries: branches, agencies (name-only client records), collectors, visa types, services (selectable at entry), and staff (Gmail allow-list with role). Staff may add agencies and collectors from their own registries page; renaming and removal stay admin-only.
-- Staff payments: staff record agency-level payments with amount, passport count, collector, automatic date, and receiving staff; agency due is total passport fees minus payments received.
+- Admin payments: admin records agency-level payments with amount, passport count, collector, automatic date, and receiving admin; agency due is total passport fees minus payments received. Staff handle passports only.
 - Admin reports: passport counts and recorded fee totals by day, month, agency, or branch; plus audit trail (AdminAudit) for admin recovery and authorized role changes.
 - Admin payments view: agency-wise fees, payments received, dues or credits, and individual payment records, filterable by date and agency name.
 
@@ -53,6 +53,6 @@ Open decisions:
 
 ## Evidence on Hand
 
-- Durable specs: `openspec/specs/**` (identity/roles, visa/passport-entry, visa/status-delivery, visa/passport-details, staff/payments, admin/registry, admin/reports, admin/payments) and archived change proposals under `openspec/changes/archive/` — treat these as the source of product truth.
+- Durable specs: `openspec/specs/**` (identity/roles, visa/passport-entry, visa/status-delivery, visa/passport-details, admin/registry, admin/reports, admin/payments) and archived change proposals under `openspec/changes/archive/` — treat these as the source of product truth.
 - Data model: `prisma/schema.prisma` (registry models and Passport custody fields).
 - No real imagery, testimonials, case studies, or marketing assets exist. Do not fabricate them. Sample/live data exists only in the connected MongoDB database, never in the repo.

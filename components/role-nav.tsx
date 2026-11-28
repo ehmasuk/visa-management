@@ -26,7 +26,6 @@ const STAFF_ITEMS: NavItem[] = [
   { href: "/staff", label: "Overview" },
   { href: "/staff/passports", label: "Passports" },
   { href: "/staff/registries", label: "Registries" },
-  { href: "/staff/payments", label: "Payments" },
 ];
 
 export function itemsForRole(role: string): NavItem[] {

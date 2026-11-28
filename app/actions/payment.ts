@@ -3,16 +3,16 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
-import { requireStaff } from "@/lib/guards";
+import { requireAdmin } from "@/lib/guards";
 import { setFlash } from "@/lib/flash";
 
 /**
- * Agency-level payments. Staff record money received from an agency via a
+ * Agency-level payments. Admin records money received from an agency via a
  * collector. There is no per-passport payment state; an agency's due is
- * derived later from its total passport fees minus these payments.
+ * derived from its total passport fees minus these payments.
  */
 
-const BASE = "/staff/payments";
+const BASE = "/admin/payments";
 
 async function fail(message: string): Promise<never> {
   await setFlash("error", message);
@@ -24,7 +24,7 @@ function str(formData: FormData, key: string): string {
 }
 
 export async function createPayment(formData: FormData) {
-  const session = await requireStaff();
+  const session = await requireAdmin();
 
   const agencyName = str(formData, "agencyName");
   const collectorName = str(formData, "collectorName");
@@ -64,7 +64,7 @@ export async function createPayment(formData: FormData) {
       amount,
       passportCount,
       collectorName,
-      // The receiving staff member comes from the session, never the form.
+      // The receiving admin comes from the session, never the form.
       receivedByName: session.user.name ?? session.user.email ?? "",
       receivedByRole: session.user.role,
       receivedByEmail: session.user.email ?? "",
