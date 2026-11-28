@@ -13,8 +13,8 @@
  *  - passport-number prefix search: anchored `startsWith` on the indexed
  *    passportNumber field (not unique — passports can return) → O(log n).
  *  - agency / status / payment / receipt-window filters: equality or range
- *    predicates over existing indexes (status, agencyName) and the added
- *    receiptDate index → index scan. A picked day is a two-point range
+ *    predicates over the compound (status|agencyName|branchName, receiptDate)
+ *    indexes → index scan. A picked day is a two-point range
  *    (day start → next-day start) on the same receiptDate index.
  *  - holder-name substring: the one unanchored predicate — scanned inside
  *    MongoDB (C++) and throttled by the 300ms client debounce; results are
@@ -196,7 +196,8 @@ async function loadReport(input: ReportQuery): Promise<ReportResult> {
   ] = await Promise.all([
     prisma.passport.findMany({
       where,
-      orderBy: { receiptDate: "desc" },
+      // Secondary key keeps paging stable when rows share a receipt date.
+      orderBy: [{ receiptDate: "desc" }, { id: "desc" }],
       skip: page * PAGE_SIZE,
       take: PAGE_SIZE,
       include: { payment: true },

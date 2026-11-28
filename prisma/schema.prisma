@@ -157,10 +157,17 @@ model Passport {
   // Non-unique: the same passport may return for another visa, so its number
   // can be entered many times. Keeps prefix search indexed.
   @@index([passportNumber])
+  // Digits-only searches use a prefix match on contact number.
+  @@index([contactNumber])
   @@index([agencyName])
   @@index([branchName])
   // Powers the report time-window range filters and the receipt-date desc sort.
   @@index([receiptDate])
+  // Reports filter by these fields AND a receipt-date range, then sort by date.
+  // Equality prefix + range suffix serves filter and sort in one index walk.
+  @@index([status, receiptDate])
+  @@index([agencyName, receiptDate])
+  @@index([branchName, receiptDate])
   @@map("passports")
 }
 

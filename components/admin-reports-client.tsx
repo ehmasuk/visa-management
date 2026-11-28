@@ -78,7 +78,7 @@ export function AdminReportsClient({
   const seqRef = React.useRef(0);
   // The server already delivered `initial` for the default view — skip the
   // very first effect run rather than re-querying identical state on mount.
-  const didMountRef = React.useRef(false);
+  const didMountRef = React.useRef(true);
 
   // Debounce keystrokes into committed search text; the timeout is cleared
   // on every change, so fast typing only ever sends the final value.

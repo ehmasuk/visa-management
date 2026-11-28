@@ -7,8 +7,10 @@
  *
  * Same scale contract as the admin reports module (app/actions/reports.ts)
  * but with only the two filter axes those desks need: free-text search and a
- * picked receipt day. Everything heavy executes in MongoDB over indexed
- * predicates; each request returns ONE page of rows plus database counts.
+ * picked receipt day. Filtering, counting and paging execute in MongoDB;
+ * each request returns ONE page of rows plus database counts. Prefix and day
+ * predicates are index-backed; holder-name substring is the one unindexed
+ * scan, throttled by the client debounce.
  *
  * Query cost profile at 1M records:
  *  - passport-number prefix: anchored `startsWith` on the indexed
