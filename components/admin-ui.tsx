@@ -18,16 +18,14 @@ export function PageShell({
   subtitle,
   children,
 }: {
-  title: string;
+  title?: string;
   subtitle?: string;
   children: ReactNode;
 }) {
   return (
-    <main className="mx-auto w-full max-w-6xl flex-1 px-4 sm:px-6 py-8">
+    <main className="mx-auto w-full flex-1">
       <div className="mb-8">
-        <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground">
-          {title}
-        </h1>
+        {title ? <h1 className="text-lg sm:text-xl font-semibold">{title}</h1> : null}
         {subtitle ? (
           <p className="mt-1.5 text-xs sm:text-sm text-muted-foreground leading-relaxed">
             {subtitle}

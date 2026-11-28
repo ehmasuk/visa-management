@@ -2,41 +2,37 @@
 
 ## Purpose
 
-Defines how internal operators (STAFF and ADMIN) access a passport's full record: a read-only full-detail view, editing of every user-maintained field under the same validation rules as entry, and last-editor attribution recorded in the database for every update.
+Defines how internal operators (STAFF and ADMIN) see a passport's full record directly in their list, edit every user-maintained field under the same validation rules as entry, and record last-editor attribution on every update. There is no separate per-passport view page.
 
 ## Requirements
 
-### Requirement: Internal passport detail view shows every passport field
-The system SHALL provide an internal read-only passport detail view, opened via a View button on the staff or admin passport lists, that displays every stored field of the passport: agency name, branch, intake collector, visa type, service, passport number, passport holder name, contact number, comment, fee, status, receipt date, delivery date, delivery collector, payment status and amount, and the last-editor record.
+### Requirement: Staff and admin lists show every passport field
+The system SHALL display every stored field of a passport directly in the staff and admin passport lists (one shared table): agency name, branch, intake collector, visa type, service, passport number, passport holder name, contact number, comment, fee, status, receipt/under-review/submitted/delivery dates, delivery collector, payment status, amount and paid-at timestamp, and the complete last-editor record. No separate per-passport view page SHALL be required.
 
-#### Scenario: View button opens full details
-- **WHEN** staff or an admin clicks View on a passport in their list
-- **THEN** the system shows that passport's full details, including every field captured at entry, the system-managed dates, and the payment status and amount
+#### Scenario: Full record visible in the list
+- **WHEN** staff or an admin opens their passport list
+- **THEN** each row shows all fields captured at entry, the system-managed dates, and the payment and last-editor details
 
 #### Scenario: Fields never captured are shown as empty
-- **WHEN** the detail view shows a passport that has no delivery recording or payment and was created before visa-type/service registries existed
-- **THEN** the unset fields are rendered as empty rather than hiding those details from the view
+- **WHEN** the list shows a passport that has no delivery recording or payment and was created before visa-type/service/branch registries existed
+- **THEN** the unset fields are rendered as empty rather than hiding those columns from the view
 
-### Requirement: Internal detail and list views can change payment status
-The system SHALL offer staff and admins a direct paid/unpaid control on the passport detail view and on the passport cards and rows of staff/admin lists, with no separate approval step.
+### Requirement: The list can change payment status
+The system SHALL offer staff and admins a direct paid/unpaid control on each passport row of their list, with no separate approval step.
 
-#### Scenario: Payment status changed from detail view
-- **WHEN** staff or an admin marks a passport paid or unpaid from its detail view
-- **THEN** the payment status is updated in place and the view shows the new status
-
-#### Scenario: Payment status changed from a list surface
-- **WHEN** staff or an admin uses the payment control on a passport card or table row
+#### Scenario: Payment status changed from the list
+- **WHEN** staff or an admin uses the payment control on a passport row
 - **THEN** the payment status is updated and the user returns to that same list
 
-### Requirement: Passport detail and edit views are restricted to staff and admin
-The system SHALL restrict the internal passport detail view and the passport edit view to authenticated STAFF and ADMIN users, re-verifying the acting user's role server-side on the pages and on every passport-update action.
+### Requirement: The edit view is restricted to staff and admin
+The system SHALL restrict the passport edit view to authenticated STAFF and ADMIN users, re-verifying the acting user's role server-side on the page and on every passport-update action.
 
-#### Scenario: Staff and admin can open the views
-- **WHEN** an authenticated staff member or admin opens a passport's detail view or edit view
-- **THEN** the system renders the passport's content for them
+#### Scenario: Staff and admin can open the edit view
+- **WHEN** an authenticated staff member or admin opens a passport's edit view
+- **THEN** the system renders the passport's editable fields for them
 
-#### Scenario: Non-internal users cannot open the internal views
-- **WHEN** a signed-in user who is not STAFF or ADMIN attempts to open a passport's internal detail view or edit view
+#### Scenario: Non-internal users cannot open the edit view
+- **WHEN** a signed-in user who is not STAFF or ADMIN attempts to open a passport's edit view
 - **THEN** the system denies access
 
 #### Scenario: Action rejects non-internal callers directly
@@ -55,19 +51,15 @@ The system SHALL allow an authenticated staff member or admin to edit, via an Ed
 - **THEN** the form shows the passport's current values for every editable field
 
 ### Requirement: Passport edits re-validate against entry rules
-The system SHALL validate edited passport fields under the same rules that govern passport entry: the agency, branch, intake collector, visa type, and service must exist in their admin registries, the passport number must remain unique across all passports excluding the passport being edited, and the fee must be a non-negative whole amount of taka.
+The system SHALL validate edited passport fields under the same rules that govern passport entry: the agency, branch, intake collector, visa type, and service must exist in their admin registries, and the fee must be a non-negative whole amount of taka. Passport numbers are not unique, so no uniqueness check SHALL be applied on edit.
 
 #### Scenario: Unregistered selection is rejected on edit
 - **WHEN** staff or an admin submits an edit naming an agency, branch, collector, visa type, or service that is not registered
 - **THEN** the system rejects the edit and directs the user to have the admin register it first
 
-#### Scenario: Duplicate passport number is rejected on edit
-- **WHEN** staff or an admin submits an edit changing a passport's number to one already recorded on a different passport
-- **THEN** the system rejects the edit and identifies the number as already recorded, naming the holder of the conflicting passport
-
-#### Scenario: A passport may keep or restate its own number
-- **WHEN** staff or an admin submits an edit whose passport number equals the passport's current number
-- **THEN** the system accepts the edit even though the number is already recorded on that same passport
+#### Scenario: A passport number may be shared by several entries
+- **WHEN** staff or an admin submits an edit whose passport number is also recorded on another passport
+- **THEN** the system accepts the edit without a uniqueness conflict
 
 #### Scenario: Invalid fee is rejected on edit
 - **WHEN** staff or an admin submits an edit with a negative, fractional, or missing fee
@@ -99,13 +91,9 @@ The system SHALL record on each passport the editor of its most recent change �
 - **WHEN** a passport records its last editor
 - **THEN** the record is stored on the passport itself and does not depend on any registry entry to remain resolvable
 
-### Requirement: Passport displays its last editor
-The system SHALL display each passport's last-editor record — the editor's name and role with the change timestamp — on the internal passport detail view and on the passport cards of the staff and admin lists.
+### Requirement: Passport list displays its last editor
+The system SHALL display each passport's last-editor record — the editor's name, role, email, and change timestamp — in the staff and admin list table.
 
-#### Scenario: Detail view shows the last editor
-- **WHEN** staff or an admin opens a passport's detail view
-- **THEN** the view shows who last edited the passport, with their role and the timestamp of that change
-
-#### Scenario: List card shows the last editor
+#### Scenario: List row shows the last editor
 - **WHEN** staff or an admin views their passport list
-- **THEN** each passport card shows its last editor's name, role, and timestamp
+- **THEN** each row shows who last edited the passport, with their role, email, and the timestamp of that change

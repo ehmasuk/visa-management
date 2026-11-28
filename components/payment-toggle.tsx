@@ -15,7 +15,7 @@ function ToggleButton({ paid, compact }: { paid: boolean; compact: boolean }) {
       disabled={pending}
       title={paid ? "Mark this passport's payment as unpaid" : "Mark this passport's payment as paid"}
       className={cn(
-        "inline-flex items-center justify-center gap-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer disabled:opacity-60 disabled:pointer-events-none",
+        "inline-flex items-center justify-center gap-1.5 rounded-xl text-xs transition-all cursor-pointer disabled:opacity-60 disabled:pointer-events-none",
         compact ? "px-2 py-1" : "px-3 py-1.5",
         paid
           ? "border border-rose-500/30 bg-rose-500/10 text-rose-600 hover:bg-rose-500/20 dark:text-rose-400"

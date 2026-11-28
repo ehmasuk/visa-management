@@ -58,12 +58,16 @@ The system SHALL record the agency, the branch office, the intake collector, the
 - **WHEN** a staff member submits a passport entry with a visa type or service that is not registered
 - **THEN** the system rejects the entry and directs the user to ask the admin to register it
 
-### Requirement: Passport number is unique
-The system SHALL enforce uniqueness of the passport number across passport records and reject an entry whose number is already recorded.
+### Requirement: Passport number may be reused
+The system SHALL NOT enforce uniqueness of the passport number. The same passport can return for another visa, so repeated numbers are valid separate entries.
 
-#### Scenario: Duplicate passport number is rejected
-- **WHEN** a staff member submits a passport entry whose passport number is already recorded
-- **THEN** the system rejects the entry and identifies the number as already recorded, with the holder of the existing record
+#### Scenario: Same passport number entered again
+- **WHEN** a staff member submits a new passport entry whose number is already recorded on another entry
+- **THEN** the system creates the new entry without rejecting it
+
+#### Scenario: Number remains indexed for search
+- **WHEN** staff search by a passport-number prefix that matches several entries
+- **THEN** the search returns all matching entries, not just one
 
 ### Requirement: Entry validates the fee amount
 The system SHALL accept the fee only as a non-negative whole amount of taka and reject entry submissions that violate this.

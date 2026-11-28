@@ -115,7 +115,7 @@ model Passport {
   // before branches were attached still read cleanly; required at entry/edit.
   branchName     String? @map("branch_name")
   collectorName  String
-  passportNumber String         @unique
+  passportNumber String
   holderName     String
   contactNumber  String
   comment        String
@@ -154,6 +154,9 @@ model Passport {
   payment        Payment?
 
   @@index([status])
+  // Non-unique: the same passport may return for another visa, so its number
+  // can be entered many times. Keeps prefix search indexed.
+  @@index([passportNumber])
   @@index([agencyName])
   @@index([branchName])
   // Powers the report time-window range filters and the receipt-date desc sort.

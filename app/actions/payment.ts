@@ -10,7 +10,7 @@ import { lastEditorStamp } from "@/lib/last-editor";
 /**
  * Payment settlement is handled internally. There is no agency request and
  * no approval queue: staff and admins flip a passport's payment directly
- * between PAID and UNPAID from the detail view or the desk lists. Agencies
+ * between PAID and UNPAID from the desk lists. Agencies
  * are client records only and never interact with payment.
  */
 
@@ -30,13 +30,12 @@ function str(formData: FormData, key: string): string {
 }
 
 /** Only known internal surfaces may be used as a post-action redirect. */
-function safeReturnTo(formData: FormData, passportId: string): string {
-  const detail = `/passports/${passportId}`;
+function safeReturnTo(formData: FormData): string {
   const candidate = str(formData, "returnTo");
-  if (candidate === detail || (LIST_HOMES as readonly string[]).includes(candidate)) {
+  if ((LIST_HOMES as readonly string[]).includes(candidate)) {
     return candidate;
   }
-  return detail;
+  return LIST_HOMES[0];
 }
 
 /**
@@ -51,7 +50,7 @@ export async function togglePaymentStatus(formData: FormData) {
   const passportId = str(formData, "passportId");
   if (!passportId) await fail("/staff/passports", "Missing passport id.");
 
-  const returnTo = safeReturnTo(formData, passportId);
+  const returnTo = safeReturnTo(formData);
   const passport = await prisma.passport.findUnique({
     where: { id: passportId },
     include: { payment: true },
@@ -80,12 +79,7 @@ export async function togglePaymentStatus(formData: FormData) {
     },
   });
 
-  for (const path of [
-    ...LIST_HOMES,
-    "/staff",
-    "/admin",
-    `/passports/${passportId}`,
-  ]) {
+  for (const path of [...LIST_HOMES, "/staff", "/admin"]) {
     revalidatePath(path);
   }
 

@@ -129,13 +129,6 @@ export async function createPassport(formData: FormData) {
     await fail(`Service "${serviceName}" is not registered. Ask the admin to add it first.`);
   }
 
-  const existingNumber = await prisma.passport.findUnique({
-    where: { passportNumber },
-  });
-  if (existingNumber) {
-    await fail(`Passport number "${passportNumber}" is already recorded (entered for ${existingNumber.holderName}).`);
-  }
-
   await prisma.passport.create({
     data: {
       agencyName,
@@ -170,14 +163,14 @@ export async function createPassport(formData: FormData) {
 /**
  * Full-details edit: allows staff and admin to correct any user-maintained
  * field of an existing passport, including its branch. Validation mirrors
- * entry exactly: registry-backed selections (selector's record must exist), a non-negative
- * whole taka fee, and a passport number unique across passports excluding
- * this one (re-stating one's own number is fine). The settlement amount
- * follows the fee so reports never show a stale amount.
+ * entry exactly: registry-backed selections (selector's record must exist) and
+ * a non-negative whole taka fee. Passport numbers are NOT unique — the same
+ * passport can return for another visa. The settlement amount follows the fee
+ * so reports never show a stale amount.
  * System-managed fields (status, receiptDate, deliveryDate,
  * deliveryCollectorName) are deliberately never read from the form — the
  * status/delivery flow governs them, so posted values for them are ignored
- * by construction. On success the user returns to the detail view.
+ * by construction. On success the user returns to their passport list.
  */
 export async function updatePassportDetails(formData: FormData) {
   const session = await requireStaffOrAdmin();
@@ -250,16 +243,6 @@ export async function updatePassportDetails(formData: FormData) {
     await fail(`Service "${serviceName}" is not registered. Ask the admin to add it first.`, `/passports/${id}/edit`);
   }
 
-  // Unique across passports EXCLUDING this one: hitting another passport's
-  // number is a conflict, but the passport may keep or restate its own.
-  const conflicting = await prisma.passport.findUnique({ where: { passportNumber } });
-  if (conflicting && conflicting.id !== id) {
-    await fail(
-      `Passport number "${passportNumber}" is already recorded (entered for ${conflicting.holderName}).`,
-      `/passports/${id}/edit`
-    );
-  }
-
   await prisma.passport.update({
     where: { id },
     data: {
@@ -286,9 +269,8 @@ export async function updatePassportDetails(formData: FormData) {
   });
 
   revalidateListPages();
-  revalidatePath(`/passports/${id}`);
   await setFlash("success", "Passport updated.");
-  redirect(`/passports/${id}`);
+  redirect(session.user.role === "ADMIN" ? "/admin/passports" : "/staff/passports");
 }
 
 /**
@@ -308,7 +290,6 @@ export async function updatePassportComment(formData: FormData) {
     data: { comment, ...lastEditorStamp(session) },
   });
   revalidateListPages();
-  revalidatePath(`/passports/${id}`);
   await setFlash("success", "Comment saved.");
   redirect(returnTo);
 }
@@ -403,7 +384,6 @@ export async function updatePassportStatus(formData: FormData) {
   }
 
   revalidateListPages();
-  revalidatePath(`/passports/${id}`);
   await setFlash(
     "success",
     status === "DELIVERED"

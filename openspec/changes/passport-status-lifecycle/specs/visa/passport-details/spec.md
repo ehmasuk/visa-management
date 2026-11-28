@@ -2,15 +2,15 @@
 
 ## MODIFIED Requirements
 
-### Requirement: Internal passport detail view shows every passport field
-The system SHALL provide an internal read-only passport detail view, opened via a View button on the staff or admin passport lists, that displays every stored field of the passport: agency name, intake collector, visa type, service, passport number, passport holder name, contact number, comment, fee, status, receipt date, under-review date, submitted date, delivery date, delivery collector, payment status and amount, and the last-editor record.
+### Requirement: Staff and admin lists show every passport field
+The system SHALL display every stored field directly in the staff and admin list table: agency name, branch, intake collector, visa type, service, passport number, passport holder name, contact number, comment, fee, status, receipt date, under-review date, submitted date, delivery date, delivery collector, payment status and amount, and the last-editor record.
 
-#### Scenario: View button opens full details
-- **WHEN** staff or an admin clicks View on a passport in their list
-- **THEN** the system shows that passport's full details, including every field captured at entry, the system-managed dates, and the payment trail
+#### Scenario: Full record visible in the list
+- **WHEN** staff or an admin opens their passport list
+- **THEN** each row shows every field captured at entry, the system-managed dates, and the payment and last-editor details
 
 #### Scenario: Fields never captured are shown as empty
-- **WHEN** the detail view shows a passport that has no under-review, submitted, delivery, or payment recording
+- **WHEN** the list shows a passport that has no under-review, submitted, delivery, or payment recording
 - **THEN** the unset fields are rendered as empty rather than hiding those details from the view
 
 ### Requirement: Passport editing does not modify system-managed fields
@@ -22,13 +22,13 @@ The system SHALL NOT accept changes to status, receipt date, under-review date, 
 
 ## ADDED Requirements
 
-### Requirement: Passport detail view shows a lifecycle timeline
-The system SHALL display on the internal passport detail view the passport's custody timeline: the recorded receipt, under-review, submitted, and delivery milestones in stage order, each with its recorded timestamp, rendering yet-to-be-reached milestones as unset.
+### Requirement: Passport list shows a lifecycle timeline
+The system SHALL display on the staff and admin list table the passport's custody milestones: receipt, under-review, submitted, and delivery, each with its recorded timestamp in stage order, rendering yet-to-be-reached milestones as unset.
 
-#### Scenario: Timeline shows every reached milestone
-- **WHEN** the detail view shows a passport whose first three milestones are recorded
-- **THEN** the timeline lists the receipt, under-review, and submitted milestones with their timestamps in stage order, and shows the delivery milestone as unset because the passport has not been delivered
+#### Scenario: List shows every reached milestone
+- **WHEN** the list shows a passport whose first three milestones are recorded
+- **THEN** the row lists the receipt, under-review, and submitted timestamps in stage order, and shows the delivery timestamp as unset because the passport has not been delivered
 
 #### Scenario: Delivered passport shows the complete timeline
-- **WHEN** the detail view shows a delivered passport
-- **THEN** the timeline lists all four milestones with their recorded timestamps in stage order
+- **WHEN** the list shows a delivered passport
+- **THEN** the row lists all four milestone timestamps in stage order

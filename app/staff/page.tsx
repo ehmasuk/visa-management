@@ -1,5 +1,6 @@
 import { requireStaff } from "@/lib/guards";
 import { PageShell } from "@/components/admin-ui";
+import { Badge } from "@/components/ui/badge";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import {
@@ -9,10 +10,10 @@ import {
   CheckCircle2,
   ArrowRight,
   PlusCircle,
-  Eye,
+  Edit,
   CreditCardIcon,
 } from "lucide-react";
-import { STATUS_BADGE, STATUS_DOT, statusLabel } from "@/lib/passport-format";
+import { PAYMENT_BADGE, STATUS_BADGE, STATUS_DOT, statusLabel } from "@/lib/passport-format";
 
 export const metadata = { title: "Staff Workspace — Visa Management" };
 
@@ -227,14 +228,12 @@ export default async function StaffPage() {
                         <span className="font-mono text-xs font-bold text-foreground">
                           {p.passportNumber}
                         </span>
-                        <span
-                          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${STATUS_BADGE[p.status]}`}
-                        >
+                        <Badge className={`text-[10px] font-bold ${STATUS_BADGE[p.status]}`}>
                           <span
                             className={`size-1.5 rounded-full ${STATUS_DOT[p.status]}`}
                           />
                           {statusLabel(p.status)}
-                        </span>
+                        </Badge>
                       </div>
 
                       <h4 className="mt-2 text-sm font-bold text-foreground">
@@ -244,16 +243,14 @@ export default async function StaffPage() {
                         Agency: <span className="font-medium text-foreground">{p.agencyName}</span>
                       </p>
                       <p className="text-[11px] text-muted-foreground mt-1 font-mono">
-                        Fee: {taka(p.fee)}
-                        <span
-                          className={`ml-2 font-semibold font-sans ${
-                            isPaid
-                              ? "text-emerald-600 dark:text-emerald-400"
-                              : "text-rose-600 dark:text-rose-400"
+                        Fee: {taka(p.fee)}{" "}
+                        <Badge
+                          className={`font-sans ${
+                            PAYMENT_BADGE[isPaid ? "PAID" : "UNPAID"]
                           }`}
                         >
-                          • {isPaid ? "Paid" : "Unpaid"}
-                        </span>
+                          {isPaid ? "Paid" : "Unpaid"}
+                        </Badge>
                       </p>
                     </div>
 
@@ -262,11 +259,11 @@ export default async function StaffPage() {
                         {formatDate(p.receiptDate)}
                       </span>
                       <Link
-                        href={`/passports/${p.id}`}
+                        href={`/passports/${p.id}/edit`}
                         className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-border bg-card hover:bg-muted text-xs font-medium text-foreground transition-colors"
                       >
-                        <Eye className="size-3 text-muted-foreground" />
-                        <span>Manage</span>
+                        <Edit className="size-3 text-muted-foreground" />
+                        <span>Edit</span>
                       </Link>
                     </div>
                   </div>

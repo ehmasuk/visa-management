@@ -10,8 +10,8 @@
  * page of rows per request.
  *
  * Query cost profile at 1M records:
- *  - passport-number prefix search: anchored `startsWith` on the UNIQUE
- *    passportNumber index → O(log n).
+ *  - passport-number prefix search: anchored `startsWith` on the indexed
+ *    passportNumber field (not unique — passports can return) → O(log n).
  *  - agency / status / payment / receipt-window filters: equality or range
  *    predicates over existing indexes (status, agencyName) and the added
  *    receiptDate index → index scan. A picked day is a two-point range

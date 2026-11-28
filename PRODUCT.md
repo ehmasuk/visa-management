@@ -30,7 +30,7 @@ Internal operations system, not a storefront. Its distinctive mechanism is regis
 
 Confirmed functionality:
 
-- Staff passport entry: agency name, branch office, intake collector, passport number (unique), holder name, contact number, comment, fee, plus registry-backed visa type and service selections. Branches are admin-created; staff choose from them.
+- Staff passport entry: agency name, branch office, intake collector, passport number (may be reused when the same passport returns), holder name, contact number, comment, fee, plus registry-backed visa type and service selections. Branches are admin-created; staff choose from them.
 - Staff status/delivery flow: status transitions, delivery collector assigned at delivery, comment editable at any time; last editor (name/role/email/time) stamped on every passport mutation.
 - Payment: one record per passport, default unpaid; staff or admin flip it to paid or back to unpaid at any time; the amount always follows the current fee.
 - Admin registries: branches, agencies (name-only client records), collectors, visa types, services (selectable at entry), and staff (Gmail allow-list with role). Staff may add agencies and collectors from their own registries page; renaming and removal stay admin-only.

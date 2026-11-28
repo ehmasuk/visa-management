@@ -1,6 +1,6 @@
 /**
- * Passport display formatting shared by the staff/admin card component and
- * the internal passport detail view. Pure formatting only — no data access.
+ * Passport display formatting shared by the staff/admin list table.
+ * Pure formatting only — no data access.
  */
 
 /** Human-readable stamp like "30 Oct 2026, 12:34"; unset dates render as an em dash. */
@@ -31,6 +31,12 @@ export const STATUS_BADGE: Record<string, string> = {
   UNDER_REVIEW: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20",
   SUBMITTED: "bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20",
   DELIVERED: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20",
+};
+
+/** Tailwind classes for the payment badge, keyed by PaymentStatus. */
+export const PAYMENT_BADGE: Record<"PAID" | "UNPAID", string> = {
+  PAID: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20",
+  UNPAID: "bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20",
 };
 
 /** Tailwind classes for the badge/status timeline dot, keyed by PassportStatus. */
@@ -78,7 +84,7 @@ export function statusLabel(status: string): string {
 }
 
 /**
- * Last-editor line for detail views and cards, e.g.
+ * Last-editor line for the list table, e.g.
  * "Md. Rahim (Staff) · 30 Oct 2026, 12:34". Renders as an em dash when the
  * passport predates editor stamping.
  */

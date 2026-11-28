@@ -26,6 +26,7 @@ export default async function PassportEditPage({
 }) {
   const session = await requireStaffOrAdmin();
   const { id } = await params;
+  const backTo = session.user.role === "ADMIN" ? "/admin/passports" : "/staff/passports";
 
   const [passport, agencies, branches, collectors, visaTypes, services] = await Promise.all([
     prisma.passport.findUnique({ where: { id } }),
@@ -127,7 +128,7 @@ export default async function PassportEditPage({
             </div>
             <div className="mt-4 flex items-center gap-4">
               <SubmitButton>Save changes</SubmitButton>
-              <Link href={`/passports/${id}`} className={cn(buttonVariants({ variant: "ghost" }))}>
+              <Link href={backTo} className={cn(buttonVariants({ variant: "ghost" }))}>
                 Cancel
               </Link>
               <p className="text-xs text-muted-foreground">

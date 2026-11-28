@@ -11,8 +11,8 @@
  * predicates; each request returns ONE page of rows plus database counts.
  *
  * Query cost profile at 1M records:
- *  - passport-number prefix: anchored `startsWith` on the UNIQUE
- *    passportNumber index → O(log n).
+ *  - passport-number prefix: anchored `startsWith` on the indexed
+ *    passportNumber field (not unique — passports can return) → O(log n).
  *  - receipt-day: two-point range on the receiptDate index.
  *  - holder-name substring: the unanchored predicate — scanned inside
  *    MongoDB (C++), throttled by the client's 300 ms debounce, page ≤ 20.

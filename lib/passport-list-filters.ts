@@ -44,7 +44,7 @@ export function parseDay(date: string): [Date, Date] | null {
 
 /**
  * Build the desk filter. Search text matches passport number (both the typed
- * and the upper-cased prefix, ahead of the unique index), holder-name
+ * and the upper-cased prefix, ahead of its non-unique index), holder-name
  * substring and — when `withContact` (internal audiences) — a digits-only
  * contact-number prefix.
  */

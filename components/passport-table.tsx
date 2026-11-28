@@ -8,6 +8,7 @@ import { updatePassportStatus } from "@/app/actions/passport";
 import { PaymentToggle } from "@/components/payment-toggle";
 import { Select, SubmitButton } from "@/components/admin-ui";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogClose,
@@ -23,12 +24,13 @@ import {
   fmtDate,
   lastEditorLine,
   NEXT_STAGE,
+  PAYMENT_BADGE,
   statusLabel,
   STATUS_BADGE,
   STATUS_DOT,
   type PassportStage,
 } from "@/lib/passport-format";
-import { Edit, Eye, FileSearch, Send, Truck } from "lucide-react";
+import { Edit, FileSearch, Send, Truck } from "lucide-react";
 
 type PassportRow = Prisma.PassportGetPayload<{ include: { payment: true } }>;
 
@@ -92,7 +94,7 @@ export function PassportTable({
 
   return (
     <>
-      <div className="h-[65vh] min-h-105 w-full max-w-full min-w-0 overflow-auto bg-card">
+      <div className="h-[60vh] min-h-105 w-full max-w-full min-w-0 overflow-auto bg-card">
         <table className="w-max min-w-full border-collapse text-xs text-foreground">
           <thead className="sticky top-0 z-10 bg-muted/90 backdrop-blur-sm">
             <tr className="border-b border-border">
@@ -117,6 +119,7 @@ export function PassportTable({
               <th className={HEAD}>Amount</th>
               <th className={HEAD}>Paid At</th>
               <th className={HEAD}>Last Edited By</th>
+              <th className={HEAD}>Editor Gmail</th>
               <th className={HEAD}>Actions</th>
             </tr>
           </thead>
@@ -149,15 +152,10 @@ export function PassportTable({
                   <td className={CELL}>{p.agencyName}</td>
                   <td className={CELL}>{p.branchName ?? "—"}</td>
                   <td className={CELL}>
-                    <span
-                      className={cn(
-                        "inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-bold",
-                        STATUS_BADGE[p.status]
-                      )}
-                    >
+                    <Badge className={cn("font-bold", STATUS_BADGE[p.status])}>
                       <span className={cn("size-1.5 rounded-full", STATUS_DOT[p.status])} />
                       {statusLabel(p.status)}
-                    </span>
+                    </Badge>
                   </td>
                   <td className={cn(CELL, "tabular-nums font-semibold")}>
                     {p.fee.toLocaleString()}
@@ -201,17 +199,14 @@ export function PassportTable({
                   <td className={cn(CELL, "tabular-nums text-muted-foreground")}>{fmtDate(p.deliveryDate)}</td>
                   <td className={cn(CELL, "max-w-72 text-muted-foreground")}>{p.comment || "—"}</td>
                   <td className={CELL}>
-                    <div className="flex flex-col items-start gap-1.5">
-                      <span
+                    <div className="flex flex-wrap gap-1.5 items-center">
+                      <Badge
                         className={cn(
-                          "inline-flex rounded-full px-2 py-0.5 text-xs font-bold",
-                          payment?.status === "PAID"
-                            ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
-                            : "bg-rose-500/10 text-rose-600 dark:text-rose-400"
+                          PAYMENT_BADGE[payment?.status === "PAID" ? "PAID" : "UNPAID"]
                         )}
                       >
                         {payment?.status ?? "UNPAID"}
-                      </span>
+                      </Badge>
                       <PaymentToggle
                         passportId={p.id}
                         paid={payment?.status === "PAID"}
@@ -227,16 +222,11 @@ export function PassportTable({
                   <td className={cn(CELL, "text-muted-foreground")}>
                     {lastEditorLine(p.lastEditedByName, p.lastEditedByRole, p.lastEditedAt, false)}
                   </td>
+                  <td className={cn(CELL, "text-muted-foreground")}>
+                    {p.lastEditedByEmail ?? "—"}
+                  </td>
                   <td className={CELL}>
                     <div className="flex items-center gap-1.5">
-                      <Link
-                        href={`/passports/${p.id}`}
-                        aria-label={`View passport ${p.passportNumber}`}
-                        title="View passport details"
-                        className="inline-flex size-7 items-center justify-center rounded-lg border border-border bg-card hover:bg-muted transition-colors"
-                      >
-                        <Eye className="size-3.5 text-muted-foreground" />
-                      </Link>
                       <Link
                         href={`/passports/${p.id}/edit`}
                         aria-label={`Edit passport ${p.passportNumber}`}

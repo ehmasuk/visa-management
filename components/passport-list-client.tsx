@@ -5,7 +5,6 @@ import { CalendarDays, FileText, RotateCcw, Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
-import { PassportCard } from "@/components/passport-card";
 import { PassportTable } from "@/components/passport-table";
 import {
   Pagination,
@@ -72,10 +71,6 @@ interface PassportListClientProps {
   returnTo: string;
   /** Where a "no passports recorded yet" empty state points for entry. */
   emptyHint: string;
-  /** Staff desk confirms each stage change before submitting it. */
-  confirmStatusChanges?: boolean;
-  /** Staff desk uses the scanable fixed-height table; admin keeps cards. */
-  view?: "cards" | "table";
 }
 
 export function PassportListClient({
@@ -83,8 +78,6 @@ export function PassportListClient({
   collectors,
   returnTo,
   emptyHint,
-  confirmStatusChanges = false,
-  view = "cards",
 }: PassportListClientProps) {
   const [searchText, setSearchText] = React.useState("");
   const [searchQuery, setSearchQuery] = React.useState("");
@@ -279,25 +272,12 @@ export function PassportListClient({
               : emptyHint}
           </p>
         </div>
-      ) : view === "table" ? (
+      ) : (
         <PassportTable
           rows={result.rows}
           collectors={collectors}
           returnTo={returnTo}
         />
-      ) : (
-        <ul className="space-y-3">
-          {result.rows.map((passport) => (
-            <li key={passport.id}>
-              <PassportCard
-                passport={passport}
-                collectors={collectors}
-                returnTo={returnTo}
-                confirmStatusChanges={confirmStatusChanges}
-              />
-            </li>
-          ))}
-        </ul>
       )}
 
       {/* Pagination — shared UI component, bounded page window. */}

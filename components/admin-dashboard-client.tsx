@@ -17,7 +17,7 @@ import {
   Layers,
   ArrowUpRight,
   Receipt,
-  Eye,
+  Edit,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -253,9 +253,9 @@ export function AdminDashboardClient({ data }: { data: AdminDashboardData }) {
                 </div>
               </div>
               <div className="flex items-center gap-2.5">
-                <span className="px-2.5 py-1 rounded-full text-xs font-bold font-mono bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
+                <Badge className="font-mono bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20">
                   {counts.agencies}
-                </span>
+                </Badge>
                 <ArrowRight className="size-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-0.5 transition-all" />
               </div>
             </Link>
@@ -279,9 +279,9 @@ export function AdminDashboardClient({ data }: { data: AdminDashboardData }) {
                 </div>
               </div>
               <div className="flex items-center gap-2.5">
-                <span className="px-2.5 py-1 rounded-full text-xs font-bold font-mono bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                <Badge className="font-mono bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20">
                   {counts.staff}
-                </span>
+                </Badge>
                 <ArrowRight className="size-4 text-muted-foreground group-hover:text-emerald-600 group-hover:translate-x-0.5 transition-all" />
               </div>
             </Link>
@@ -426,7 +426,7 @@ export function AdminDashboardClient({ data }: { data: AdminDashboardData }) {
                     <th className="px-4 py-3">Status</th>
                     <th className="px-4 py-3">Fee</th>
                     <th className="px-4 py-3">Audited By</th>
-                    <th className="px-4 py-3 text-right">Action</th>
+                    <th className="px-4 py-3 text-right">Edit</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border/60">
@@ -445,14 +445,12 @@ export function AdminDashboardClient({ data }: { data: AdminDashboardData }) {
                         {p.agencyName}
                       </td>
                       <td className="px-4 py-3">
-                        <span
-                          className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${STATUS_BADGE[p.status]}`}
-                        >
+                        <Badge className={`text-[11px] ${STATUS_BADGE[p.status]}`}>
                           <span
                             className={`size-1.5 rounded-full ${STATUS_DOT[p.status]}`}
                           />
                           {statusLabel(p.status)}
-                        </span>
+                        </Badge>
                       </td>
                       <td className="px-4 py-3 font-mono font-semibold text-foreground">
                         {taka(p.fee)}
@@ -465,11 +463,11 @@ export function AdminDashboardClient({ data }: { data: AdminDashboardData }) {
                       </td>
                       <td className="px-4 py-3 text-right">
                         <Link
-                          href={`/passports/${p.id}`}
+                          href={`/passports/${p.id}/edit`}
                           className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-border bg-card hover:bg-muted font-medium text-foreground transition-colors"
                         >
-                          <Eye className="size-3 text-muted-foreground" />
-                          <span>View</span>
+                          <Edit className="size-3 text-muted-foreground" />
+                          <span>Edit</span>
                         </Link>
                       </td>
                     </tr>

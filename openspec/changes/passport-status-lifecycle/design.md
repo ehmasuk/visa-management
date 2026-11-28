@@ -8,8 +8,8 @@ Today `PassportStatus` has two values (RECEIVED, DELIVERED). `updatePassportStat
 
 **Goals:**
 
-- A single, ordered, forward-only pipeline (received → under review → submitted → delivered) enforced in one server action, with one confirm button per stage in the shared card.
-- Four milestone timestamps persisted on the passport and rendered as a timeline on the detail view (submitted date likewise shown in passport information).
+- A single, ordered, forward-only pipeline (received → under review → submitted → delivered) enforced in one server action, with one confirm button per stage in the shared list table.
+- Four milestone timestamps persisted on the passport and rendered as date columns in the staff/admin list table (no separate detail view).
 - Minimal blast radius: reuse the existing in-card form pattern, `returnTo` bounce, flash errors, last-editor stamps, and `revalidateListPages`.
 
 **Non-Goals:**
@@ -31,11 +31,11 @@ Today `PassportStatus` has two values (RECEIVED, DELIVERED). `updatePassportStat
    - SUBMITTED → DELIVERED: unchanged rules — registered delivery collector from the existing popup, `deliveryDate = now`, intake collector untouched.
    - Anything else (skip, backward, delivered-again) → flash error + redirect to `returnTo`; delivered rejects everything (terminal). Every transition stamps `lastEditor*` and revalidates both list pages. Rewriting the action to force it through a whitelist *deletes* the old toggle paths, which is the breaking behavior change the proposal calls out. Alternative rejected: three per-stage actions duplicating guard/stamp/redirect logic and inviting drift.
 
-4. **Buttons live in the shared card.** `passport-card.tsx` renders the single next-stage action for the current stage: a plain submit button (+ are-you-sure confirmation via `useFormStatus` pending state, no dialog) for review/submit, and the existing Deliver dialog only at the submitted stage. Both staff and admin lists get the controls through this shared component. Little else about the card changes (view/edit buttons, comment form, custody line stay).
+4. **Buttons live in the shared list table.** `passport-table.tsx` renders the single next-stage action for the current stage: a plain submit button for review/submit, and the existing Deliver dialog only at the submitted stage. Both staff and admin lists get the controls through this shared table.
 
-5. **Timeline on the detail view.** The "Lifecycle & Timestamps" section is replaced by a vertical 4-stage timeline (stage label, icon/dot per stage, recorded timestamp or "—"). Pure server rendering, reuse `fmt`. Same data fetch that already happens — no new queries.
+5. **Timeline in the list table.** The four milestones are columns in the shared staff/admin table: Received, Reviewed, Submitted, Delivered (recorded timestamp or "—"). No separate detail view; the row already fetches the whole passport — no new queries.
 
-6. **Display maps for every consumer.** The scattered `status === "DELIVERED" ? emerald : blue` ternaries (cards, detail, admin dashboard client, staff page) become lookup maps (badge class + dot color keyed by stage) in `lib/passport-format.ts` — including fixing `statusLabel` to expand `UNDER_REVIEW` → "Under Review" (the current charAt/toLowerCase transform would mangle it).
+6. **Display maps for every consumer.** The scattered `status === "DELIVERED" ? emerald : blue` ternaries (list table, admin dashboard client, staff page) become lookup maps (badge class + dot color keyed by stage) in `lib/passport-format.ts` — including fixing `statusLabel` to expand `UNDER_REVIEW` → "Under Review" (the current charAt/toLowerCase transform would mangle it).
 
 7. **Counters and filters follow the status set.** Staff/admin dashboard stat grids switch to per-stage counts (received/under review/submitted/delivered). Admin reports' `STATUSES` whitelist and the filter `<option>` list gain the two values; the report query unchanged — `status` remains an indexed equality predicate. The public landing demo (`components/custody-terminal.tsx`) is re-styled to the 4-stage sequence, presentation-only.
 

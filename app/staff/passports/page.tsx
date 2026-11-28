@@ -23,15 +23,11 @@ export default async function StaffPassportsPage() {
   ]);
 
   return (
-    <PageShell
-      title="Passports Desk"
-      subtitle="Enter incoming passports received from travel agencies via couriers; track statuses, timestamps, and fees."
-    >
+    <PageShell>
       <PassportListClient
         initial={initial}
         collectors={collectors}
         returnTo="/staff/passports"
-        view="table"
         emptyHint="Record your first passport on the Passport Entry page — it will appear here with its status and payment state."
       />
     </PageShell>

@@ -10,7 +10,7 @@ export const metadata = { title: "Passports — Admin" };
 /**
  * Admin passport list: every passport across agencies, shown in the same
  * fixed-height, horizontally scrollable table as the staff desk — all fields
- * in columns, icon-only View/Edit actions, and a separate status-change column
+ * in columns, an icon-only Edit action, and a separate status-change column
  * (all stamped with the acting user as last editor). The staff-only entry form
  * is deliberately absent (entry stays a staff workflow). Paged and searchable
  * exactly like the staff desk via the shared island; the registry list feeds
@@ -35,7 +35,6 @@ export default async function AdminPassportsPage() {
           initial={initial}
           collectors={collectors}
           returnTo="/admin/passports"
-          view="table"
           emptyHint="Passports entered by staff appear here immediately, with their status and payment state."
         />
       </PageShell>
