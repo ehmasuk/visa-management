@@ -1,9 +1,9 @@
 import type { Prisma } from "@prisma/client";
 
 /**
- * Pure filter building for the three passport desk lists (staff, admin,
- * agency). Kept out of the "use server" action module so the clause logic is
- * spot-checkable in a REPL; the actions inject role/agency scoping on top.
+ * Pure filter building for the staff and admin passport desks. Kept out of
+ * the "use server" action module so the clause logic is spot-checkable in a
+ * REPL; the actions inject role scoping on top.
  * Mirrors the admin-reports semantics: unknown/blank inputs are ignored, not
  * guessed, so a tampered request degrades to the wider filter rather than
  * erroring.

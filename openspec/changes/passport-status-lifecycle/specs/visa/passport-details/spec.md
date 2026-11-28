@@ -3,7 +3,7 @@
 ## MODIFIED Requirements
 
 ### Requirement: Internal passport detail view shows every passport field
-The system SHALL provide an internal read-only passport detail view, opened via a View button on the staff or admin passport lists, that displays every stored field of the passport: agency name, intake collector, visa type, service, passport number, passport holder name, contact number, comment, fee, status, receipt date, under-review date, submitted date, delivery date, delivery collector, payment trail, and the last-editor record.
+The system SHALL provide an internal read-only passport detail view, opened via a View button on the staff or admin passport lists, that displays every stored field of the passport: agency name, intake collector, visa type, service, passport number, passport holder name, contact number, comment, fee, status, receipt date, under-review date, submitted date, delivery date, delivery collector, payment status and amount, and the last-editor record.
 
 #### Scenario: View button opens full details
 - **WHEN** staff or an admin clicks View on a passport in their list

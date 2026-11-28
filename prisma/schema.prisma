@@ -11,7 +11,6 @@ datasource db {
 enum Role {
   ADMIN
   STAFF
-  AGENCY
 }
 
 model User {
@@ -20,8 +19,7 @@ model User {
   name          String?
   image         String?
   emailVerified DateTime? @map("email_verified")
-  role          Role      @default(AGENCY)
-  agencyId      String?
+  role          Role      @default(STAFF)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
@@ -53,13 +51,11 @@ model Branch {
   @@map("branches")
 }
 
-// Admin-managed registry: agencies allow-listed by Gmail so they can log in.
-// Gmail is unique — it is the natural key used for sign-in lookups and the
-// agency dashboard (see auth.ts signIn callback).
+// Admin-managed registry: client agencies, name only. Agencies do not log in;
+// staff select one from this registry when entering a passport.
 model Agency {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
   name      String   @unique
-  gmail     String   @unique
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -115,7 +111,9 @@ model Staff {
 model Passport {
   id             String         @id @default(auto()) @map("_id") @db.ObjectId
   agencyName     String
-  agencyGmail    String
+  // Registry-backed branch office. Optional in storage so passports recorded
+  // before branches were attached still read cleanly; required at entry/edit.
+  branchName     String? @map("branch_name")
   collectorName  String
   passportNumber String         @unique
   holderName     String
@@ -157,17 +155,15 @@ model Passport {
 
   @@index([status])
   @@index([agencyName])
-  // Powers the agency default listing AND its receipt-day window: equality on
-  // agencyGmail + sort/range on the second field in one index walk.
-  @@index([agencyGmail, receiptDate])
+  @@index([branchName])
   // Powers the report time-window range filters and the receipt-date desc sort.
   @@index([receiptDate])
   @@map("passports")
 }
 
-// Payment request created when an agency clicks "pay" on a delivered passport.
-// One payment per passport (passportId unique). amount is captured from the
-// passport fee at request time for the admin money report.
+// Settlement state of a passport. One payment per passport (passportId
+// unique). Staff and admins flip status directly between PAID and UNPAID;
+// amount always mirrors the passport's current fee for the money reports.
 model Payment {
   id         String        @id @default(auto()) @map("_id") @db.ObjectId
   passport   Passport      @relation(fields: [passportId], references: [id])
@@ -175,7 +171,6 @@ model Payment {
   amount     Int
   status     PaymentStatus @default(UNPAID)
   paidAt     DateTime?     @map("paid_at")
-  rejectedAt DateTime?     @map("rejected_at")
   createdAt  DateTime      @default(now())
   updatedAt  DateTime      @updatedAt
 
@@ -193,5 +188,4 @@ enum PassportStatus {
 enum PaymentStatus {
   PAID
   UNPAID
-  REQUESTED
 }

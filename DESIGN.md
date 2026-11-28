@@ -77,7 +77,7 @@ spacing:
 
 **Creative North Star: "The Sovereign Portal"**
 
-An authoritative, modern, and beautifully crafted operations platform for visa processing, passport custody, and payment settlements. Clean slate foundations meet an executive sapphire primary tone, enriched with semantic color accents: emerald for delivery & paid state, amber for custody transit and payment requests, violet for visa categories, and ruby for unpaid balances. 
+An authoritative, modern, and beautifully crafted operations platform for visa processing, passport custody, and payment settlements. Clean slate foundations meet an executive sapphire primary tone, enriched with semantic color accents: emerald for delivery & paid state, amber for custody transit, violet for visa categories, and ruby for unpaid balances. 
 
 The interface is uncluttered, spacious, purposeful, and free of AI slop templates.
 

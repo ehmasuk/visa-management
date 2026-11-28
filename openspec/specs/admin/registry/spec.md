@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Defines how an admin manages branches, agencies, collectors, staff, visa types, services, and the allow-list of agency Gmail addresses permitted to log in to the system.
+Defines how an admin manages branches, agencies (name-only client records), collectors, staff, visa types, services, and the staff Gmail addresses permitted to log in to the system.
 
 ## Requirements
 
@@ -13,12 +13,16 @@ The system SHALL allow an authenticated admin to create, read, update, and delet
 - **WHEN** an admin submits a branch name
 - **THEN** the system creates a branch record
 
-### Requirement: Admin manages agencies
-The system SHALL allow an authenticated admin to create, read, update, and delete agency records, including the agency's Gmail address.
+### Requirement: Admin manages agencies as name-only records
+The system SHALL allow an authenticated admin to create, read, update, and delete agency records using a name only. Agencies SHALL NOT have a Gmail address, login access, or an ownership reference on passports.
 
-#### Scenario: Admin creates an agency with Gmail
-- **WHEN** an admin submits an agency name and Gmail address
-- **THEN** the system creates an agency record with the Gmail address
+#### Scenario: Admin creates an agency by name
+- **WHEN** an admin submits an agency name
+- **THEN** the system creates an agency record with that name and no Gmail
+
+#### Scenario: Agency cannot sign in
+- **WHEN** a Google email matches an agency name or an agency record
+- **THEN** the system does not grant that email access to the application
 
 ### Requirement: Admin manages collectors
 The system SHALL allow an authenticated admin to create, read, update, and delete collector records.
@@ -27,23 +31,31 @@ The system SHALL allow an authenticated admin to create, read, update, and delet
 - **WHEN** an admin submits a collector name
 - **THEN** the system creates a collector record
 
+### Requirement: Staff can add agencies and collectors at the counter
+The system SHALL allow an authenticated staff member to create agency and collector records from a staff registries page, so an unregistered name encountered during passport entry can be added immediately. Staff SHALL NOT be able to rename or delete registry entries; those operations remain admin-only.
+
+#### Scenario: Staff adds an agency
+- **WHEN** a staff member submits an agency name on the staff registries page
+- **THEN** the system creates the agency and returns the staff member to that page with the new name listed
+
+#### Scenario: Staff adds a collector
+- **WHEN** a staff member submits a collector name on the staff registries page
+- **THEN** the system creates the collector and returns the staff member to that page with the new name listed
+
+#### Scenario: Staff cannot edit or delete registry entries
+- **WHEN** a staff member invokes an agency or collector update/delete action directly
+- **THEN** the system denies the operation
+
+#### Scenario: Branch creation stays admin-only
+- **WHEN** a staff member attempts to add a branch
+- **THEN** the system denies the operation; branches are created by admins only
+
 ### Requirement: Admin manages staff
 The system SHALL allow an authenticated admin to create, read, update, and delete staff records, associating each with a Gmail address and role.
 
 #### Scenario: Admin creates a staff member
 - **WHEN** an admin submits a staff member's name, Gmail address, and role
 - **THEN** the system creates a staff record with the role
-
-### Requirement: Agency Gmail is immutable while passports reference it
-The system SHALL treat an agency's Gmail as immutable once passports reference it: changing the Gmail SHALL be rejected while passports belong to the old address, and the agency SHALL NOT be deletable while passports reference its Gmail, so passport ownership stays intact.
-
-#### Scenario: Gmail change is blocked while passports reference it
-- **WHEN** an admin submits an agency update that changes the Gmail while passports reference the current one
-- **THEN** the system rejects the update and reports how many passports reference the Gmail
-
-#### Scenario: Agency deletion is blocked while passports reference its Gmail
-- **WHEN** an admin deletes an agency whose Gmail is referenced by passports
-- **THEN** the system rejects the deletion and reports how many passports reference the Gmail
 
 ### Requirement: Admin manages visa types
 The system SHALL allow an authenticated admin to create, read, update, and delete visa type records; staff select from this registry when entering a passport.
@@ -68,7 +80,7 @@ The system SHALL allow an authenticated admin to create, read, update, and delet
 - **THEN** the system rejects the submission with a duplicate-name error
 
 ### Requirement: Duplicate registry entries are rejected
-The system SHALL reject a registry submission whose unique key is already registered: branches, collectors, visa types, and services by name; agencies by name or Gmail; staff by Gmail.
+The system SHALL reject a registry submission whose unique key is already registered: branches, agencies, collectors, visa types, and services by name; staff by Gmail.
 
 #### Scenario: Duplicate branch name is rejected
 - **WHEN** an admin submits a branch name that already exists
@@ -78,28 +90,21 @@ The system SHALL reject a registry submission whose unique key is already regist
 - **WHEN** an admin submits a collector name that already exists
 - **THEN** the system rejects the submission with a duplicate-name error
 
-#### Scenario: Duplicate agency name or Gmail is rejected
-- **WHEN** an admin submits an agency whose name or Gmail is already registered
-- **THEN** the system rejects the submission stating the name or Gmail is already registered
+#### Scenario: Duplicate agency name is rejected
+- **WHEN** an admin submits an agency name that is already registered
+- **THEN** the system rejects the submission stating the name is already registered
 
 #### Scenario: Duplicate staff Gmail is rejected
 - **WHEN** an admin submits a staff entry whose Gmail is already registered
 - **THEN** the system rejects the submission stating the Gmail is already registered
 
-### Requirement: Only allow-listed agency emails can log in
-The system SHALL permit login only for Google emails that an admin has explicitly allow-listed as agencies or staff.
+### Requirement: Only allow-listed staff emails can log in
+The system SHALL permit login only for the bootstrap ADMIN email and Google emails that an admin has explicitly allow-listed in the staff registry.
 
-#### Scenario: Allow-listed agency can log in
-- **WHEN** a user signs in with Google using an email that an admin has allow-listed as an agency
-- **THEN** the system authenticates the user and assigns the agency role
+#### Scenario: Allow-listed staff member can log in
+- **WHEN** a user signs in with Google using an email in the staff registry
+- **THEN** the system authenticates the user and assigns the staff role
 
 #### Scenario: Non-allow-listed email cannot log in
-- **WHEN** a user signs in with Google using an email not in the admin allow-list
+- **WHEN** a user signs in with Google using an email that is neither the bootstrap admin nor in the staff registry
 - **THEN** the system denies access
-
-### Requirement: Admin defines agency Gmail on admin dashboard
-The system SHALL provide an admin dashboard where the admin enters and allows agency Gmail addresses.
-
-#### Scenario: Admin allows an agency email
-- **WHEN** an admin enters an agency Gmail address on the admin dashboard and submits
-- **THEN** the system adds that email to the allow-list and the agency can log in with it

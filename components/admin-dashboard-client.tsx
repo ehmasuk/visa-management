@@ -248,7 +248,7 @@ export function AdminDashboardClient({ data }: { data: AdminDashboardData }) {
                     Client Agencies
                   </h3>
                   <p className="text-xs text-muted-foreground">
-                    Self-service agency portal access
+                    Client records for passport entry
                   </p>
                 </div>
               </div>

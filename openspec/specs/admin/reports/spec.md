@@ -29,7 +29,7 @@ The system SHALL allow an authenticated admin to view a report of how much money
 - **THEN** the system displays the total paid amount and total unpaid amount for last month
 
 ### Requirement: Report is filterable by date range and agency
-The system SHALL allow an admin to filter metrics reports by a time window (All time, Today, Last 7 days, Last 30 days) defaulting to All time, and by Agency, Branches, Passport status, and Payment status, each defaulting to "All".
+The system SHALL allow an admin to filter metrics reports by a time window (All time, Today, Last 7 days, Last 30 days) defaulting to All time, and by Agency, Branches, Passport status, and Payment status, each defaulting to "All". The payment filter SHALL offer only "Paid" and "Unpaid".
 
 #### Scenario: Report defaults to all time
 - **WHEN** an admin opens the reports page
@@ -46,6 +46,14 @@ The system SHALL allow an admin to filter metrics reports by a time window (All 
 #### Scenario: Report shows last 30 days
 - **WHEN** an admin clicks the "Last 30 days" time button
 - **THEN** the system recomputes and displays report data for the trailing 30 days
+
+#### Scenario: Filtered report by branch
+- **WHEN** an admin selects a branch for the report
+- **THEN** the system displays passport counts and payment totals for passports recorded at that branch
+
+#### Scenario: Payment filter has no approval state
+- **WHEN** an admin opens the payment filter
+- **THEN** the choices are All, Paid, and Unpaid only
 
 #### Scenario: Filtered report by date range and agency
 - **WHEN** an admin selects a time window and an agency for the report

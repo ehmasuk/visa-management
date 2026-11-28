@@ -4,13 +4,14 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { setFlash } from "@/lib/flash";
-import { requireAdmin } from "@/lib/guards";
+import { requireAdmin, requireStaffOrAdmin } from "@/lib/guards";
 import { normalizeEmail } from "@/lib/registry";
 
 /**
- * Admin registry CRUD server actions (branches, agencies with Gmail
- * allow-list, collectors, staff). Every action re-verifies the acting user's
- * role server-side before touching data.
+ * Registry CRUD server actions (branches, agencies, collectors, staff).
+ * Only the staff registry is a Gmail sign-in allow-list. Staff may ADD
+ * agencies and collectors at the counter; all other writes stay admin-only.
+ * Every action re-verifies the acting role server-side before touching data.
  */
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -90,69 +91,49 @@ export async function deleteBranch(formData: FormData) {
   redirect("/admin/branches");
 }
 
-// ---------- Agencies (Gmail allow-list) ----------
+// ---------- Agencies (name-only client registry; no login) ----------
 
 export async function createAgency(formData: FormData) {
-  await requireAdmin();
+  const session = await requireStaffOrAdmin();
+  // Admins keep their re-auth cap even though this action is shared with staff.
+  if (session.user.role === "ADMIN") await requireAdmin();
+  // Staff add agencies from their own registries page; admins stay on theirs.
+  const base = session.user.role === "ADMIN" ? "/admin/agencies" : "/staff/registries";
   const name = parseName(formData);
-  const gmail = normalizeEmail(String(formData.get("gmail") ?? ""));
-  if (!name) await fail("/admin/agencies", "Agency name is required.");
-  if (!gmail || !EMAIL_RE.test(gmail)) {
-    await fail("/admin/agencies", "A valid Gmail address is required.");
-  }
+  if (!name) await fail(base, "Agency name is required.");
   try {
-    await prisma.agency.create({ data: { name, gmail } });
+    await prisma.agency.create({ data: { name } });
   } catch (error) {
     if (prismaErrorCode(error) === "P2002") {
-      await fail(
-        "/admin/agencies",
-        'That agency name or Gmail is already registered (already allow-listed or taken).'
-      );
+      await fail(base, "That agency name is already registered.");
     }
     throw error;
   }
-  revalidatePath("/admin/agencies");
-  await setFlash("success", "Agency allow-listed.");
-  redirect("/admin/agencies");
+  for (const path of [
+    "/admin/agencies",
+    "/staff/registries",
+    "/staff/passport-entry",
+  ]) {
+    revalidatePath(path);
+  }
+  await setFlash("success", "Agency added.");
+  redirect(base);
 }
 
 export async function updateAgency(formData: FormData) {
   await requireAdmin();
   const id = parseId(formData);
   const name = parseName(formData);
-  const gmail = normalizeEmail(String(formData.get("gmail") ?? ""));
   if (!id) {
     await fail("/admin/agencies", "Missing agency id.");
     return;
   }
   if (!name) await fail("/admin/agencies", "Agency name is required.");
-  if (!gmail || !EMAIL_RE.test(gmail)) {
-    await fail("/admin/agencies", "A valid Gmail address is required.");
-  }
-  // Guard the design risk: passports reference the Gmail — if any passport
-  // uses the old address, disallow changing it (ownership would orphan).
-  const existing = await prisma.agency.findUnique({ where: { id } });
-  if (!existing) {
-    await fail("/admin/agencies", "Agency not found.");
-    return;
-  }
-  if (existing.gmail !== gmail) {
-    const linked = await prisma.passport.count({ where: { agencyGmail: existing.gmail } });
-    if (linked > 0) {
-      await fail(
-        "/admin/agencies",
-        `Cannot change the Gmail: ${linked} passport(s) reference ${existing.gmail}. Agency Gmail is treated as immutable once passports exist.`
-      );
-    }
-  }
   try {
-    await prisma.agency.update({ where: { id }, data: { name, gmail } });
+    await prisma.agency.update({ where: { id }, data: { name } });
   } catch (error) {
     if (prismaErrorCode(error) === "P2002") {
-      await fail(
-        "/admin/agencies",
-        "That agency name or Gmail is already registered (already allow-listed or taken)."
-      );
+      await fail("/admin/agencies", "That agency name is already registered.");
     }
     throw error;
   }
@@ -168,18 +149,6 @@ export async function deleteAgency(formData: FormData) {
     await fail("/admin/agencies", "Missing agency id.");
     return;
   }
-  const existing = await prisma.agency.findUnique({ where: { id } });
-  if (!existing) {
-    await fail("/admin/agencies", "Agency not found.");
-    return;
-  }
-  const linked = await prisma.passport.count({ where: { agencyGmail: existing.gmail } });
-  if (linked > 0) {
-    await fail(
-      "/admin/agencies",
-      `Cannot remove: ${linked} passport(s) reference ${existing.gmail}. Delete is blocked so passport ownership stays intact.`
-    );
-  }
   await prisma.agency.delete({ where: { id } });
   revalidatePath("/admin/agencies");
   await setFlash("success", "Agency removed.");
@@ -189,20 +158,30 @@ export async function deleteAgency(formData: FormData) {
 // ---------- Collectors ----------
 
 export async function createCollector(formData: FormData) {
-  await requireAdmin();
+  const session = await requireStaffOrAdmin();
+  // Admins keep their re-auth cap even though this action is shared with staff.
+  if (session.user.role === "ADMIN") await requireAdmin();
+  // Staff add collectors from their own registries page; admins stay on theirs.
+  const base = session.user.role === "ADMIN" ? "/admin/collectors" : "/staff/registries";
   const name = parseName(formData);
-  if (!name) await fail("/admin/collectors", "Collector name is required.");
+  if (!name) await fail(base, "Collector name is required.");
   try {
     await prisma.collector.create({ data: { name } });
   } catch (error) {
     if (prismaErrorCode(error) === "P2002") {
-      await fail("/admin/collectors", `A collector named "${name}" already exists.`);
+      await fail(base, `A collector named "${name}" already exists.`);
     }
     throw error;
   }
-  revalidatePath("/admin/collectors");
+  for (const path of [
+    "/admin/collectors",
+    "/staff/registries",
+    "/staff/passport-entry",
+  ]) {
+    revalidatePath(path);
+  }
   await setFlash("success", "Collector added.");
-  redirect("/admin/collectors");
+  redirect(base);
 }
 
 export async function updateCollector(formData: FormData) {

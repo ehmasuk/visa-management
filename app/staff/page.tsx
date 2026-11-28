@@ -7,7 +7,6 @@ import {
   FileSearch,
   Send,
   CheckCircle2,
-  Receipt,
   ArrowRight,
   PlusCircle,
   Eye,
@@ -37,7 +36,6 @@ export default async function StaffPage() {
     submittedCount,
     deliveredCount,
     unpaidPassports,
-    pendingPayments,
     recentPassports,
   ] = await Promise.all([
     prisma.passport.count({ where: { status: "RECEIVED" } }),
@@ -45,7 +43,6 @@ export default async function StaffPage() {
     prisma.passport.count({ where: { status: "SUBMITTED" } }),
     prisma.passport.count({ where: { status: "DELIVERED" } }),
     prisma.payment.count({ where: { status: "UNPAID" } }),
-    prisma.payment.count({ where: { status: "REQUESTED" } }),
     prisma.passport.findMany({
       take: 6,
       orderBy: { updatedAt: "desc" },
@@ -56,7 +53,7 @@ export default async function StaffPage() {
   return (
     <PageShell
       title="Staff Operations Desk"
-      subtitle="Daily intake, courier custody tracking, and agency payment settlement."
+      subtitle="Daily intake, courier custody tracking, and payment status control."
     >
       <div className="space-y-8">
         {/* Quick Operational Ribbon */}
@@ -71,14 +68,6 @@ export default async function StaffPage() {
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
-            <Link
-              href="/staff/payments"
-              className="inline-flex items-center gap-2 rounded-xl border border-border bg-card px-4 py-2.5 text-xs font-semibold text-foreground hover:bg-muted transition-all shadow-2xs"
-            >
-              <Receipt className="size-4 text-amber-600 dark:text-amber-400" />
-              <span>Pending Payments ({pendingPayments})</span>
-            </Link>
-
             <Link
               href="/staff/passport-entry"
               className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-xs font-semibold text-primary-foreground hover:bg-primary/90 transition-all shadow-sm"
@@ -177,27 +166,6 @@ export default async function StaffPage() {
             </p>
           </Link>
 
-          {/* Pending Payment Requests */}
-          <Link
-            href="/staff/payments"
-            className="group rounded-2xl border border-amber-500/30 bg-amber-500/5 p-5 shadow-xs hover:border-amber-500/60 hover:shadow-sm transition-all"
-          >
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold uppercase tracking-wider text-amber-700 dark:text-amber-400">
-                Awaiting Approval
-              </span>
-              <div className="size-8 rounded-lg bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center group-hover:scale-105 transition-transform">
-                <Receipt className="size-4" />
-              </div>
-            </div>
-            <p className="mt-3 font-mono text-3xl font-extrabold text-amber-700 dark:text-amber-300">
-              {pendingPayments}
-            </p>
-            <p className="mt-1 text-xs text-amber-600/90 dark:text-amber-400/90 font-medium">
-              Agency payment requests
-            </p>
-          </Link>
-
           {/* Unpaid Passports */}
           <Link
             href="/staff/passports"
@@ -248,7 +216,6 @@ export default async function StaffPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {recentPassports.map((p) => {
                 const isPaid = p.payment?.status === "PAID";
-                const isRequested = p.payment?.status === "REQUESTED";
 
                 return (
                   <div
@@ -278,19 +245,15 @@ export default async function StaffPage() {
                       </p>
                       <p className="text-[11px] text-muted-foreground mt-1 font-mono">
                         Fee: {taka(p.fee)}
-                        {isPaid ? (
-                          <span className="ml-2 text-emerald-600 dark:text-emerald-400 font-semibold font-sans">
-                            • Paid
-                          </span>
-                        ) : isRequested ? (
-                          <span className="ml-2 text-amber-600 dark:text-amber-400 font-semibold font-sans">
-                            • Awaiting Pay
-                          </span>
-                        ) : (
-                          <span className="ml-2 text-rose-600 dark:text-rose-400 font-semibold font-sans">
-                            • Unpaid
-                          </span>
-                        )}
+                        <span
+                          className={`ml-2 font-semibold font-sans ${
+                            isPaid
+                              ? "text-emerald-600 dark:text-emerald-400"
+                              : "text-rose-600 dark:text-rose-400"
+                          }`}
+                        >
+                          • {isPaid ? "Paid" : "Unpaid"}
+                        </span>
                       </p>
                     </div>
 

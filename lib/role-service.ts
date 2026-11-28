@@ -2,8 +2,8 @@ import type { Role } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 
 /**
- * Error thrown when a client-supplied payload attempts to set protected
- * user fields (role, agencyId).
+ * Error thrown when a client-supplied payload attempts to set the protected
+ * user role field.
  */
 export class RoleFieldUpdateError extends Error {}
 
@@ -30,13 +30,13 @@ export const ADMIN_ROLE: Role = "ADMIN";
 /**
  * Task 3.1 — Server-side validation for user-update payloads.
  *
- * Rejects any client request payload that attempts to set `role` or
- * `agencyId`. Authorized role changes must go through updateUserRoleByAdmin.
+ * Rejects any client request payload that attempts to set `role`. Authorized
+ * role changes must go through the controlled admin paths.
  */
 export function sanitizeUserUpdate<T extends Record<string, unknown>>(payload: T) {
-  if ("role" in payload || "agencyId" in payload) {
+  if ("role" in payload) {
     throw new RoleFieldUpdateError(
-      "role and agencyId cannot be set through request payloads"
+      "role cannot be set through request payloads"
     );
   }
   return payload;

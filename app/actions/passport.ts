@@ -2,11 +2,11 @@
 
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import type { Session } from "next-auth";
 import { prisma } from "@/lib/prisma";
 import { requireStaff, requireStaffOrAdmin } from "@/lib/guards";
 import { setFlash } from "@/lib/flash";
 import { NEXT_STAGE, STAGES, statusLabel, type PassportStage } from "@/lib/passport-format";
+import { lastEditorStamp } from "@/lib/last-editor";
 
 /**
  * Passport server actions: entry (task 4.1/4.2), full-details edit, comment
@@ -52,52 +52,40 @@ function str(formData: FormData, key: string): string {
 }
 
 /**
- * Last-editor stamp: the internal actor (STAFF or ADMIN) behind this write,
- * denormalized onto the passport (house pattern — like agencyGmail or
- * AdminAudit) so attribution stays readable without joins and reflects who
- * did the change at the time it happened.
- */
-function lastEditorStamp(session: Session) {
-  return {
-    lastEditedByRole: session.user.role,
-    lastEditedByName: session.user.name ?? session.user.email ?? "",
-    lastEditedByEmail: session.user.email ?? "",
-    lastEditedAt: new Date(),
-  };
-}
-
-/**
  * Task 4.1/4.2 — Create a passport entry.
- * Eight required fields (agency, collector, visa type, service, passport
- * number, holder, contact, fee) + the optional comment. receiptDate is
+ * Eight required fields (agency, branch, collector, visa type, service,
+ * passport number, holder, fee) + optional contact number and comment.
+ * receiptDate is
  * ALWAYS the system timestamp (any posted value is ignored — spec: receipt
- * date not user-provided). Status starts at RECEIVED. agencyGmail is
- * resolved from the registry as the ownership reference for the agency
- * dashboard. Visa type and service are validated against their admin
- * registries (staff must select from them, same as agency/collector).
+ * date not user-provided). Status starts at RECEIVED. The agency name is
+ * validated against its admin registry. Visa type and service are validated
+ * against their admin registries too (staff must select from them, same as
+ * agency/collector).
  * The creating staff member is stamped as the passport's initial editor.
  */
 export async function createPassport(formData: FormData) {
   const session = await requireStaff();
 
   const agencyName = str(formData, "agencyName");
+  const branchName = str(formData, "branchName");
   const collectorName = str(formData, "collectorName");
   const visaTypeName = str(formData, "visaTypeName");
   const serviceName = str(formData, "serviceName");
   const passportNumber = str(formData, "passportNumber");
   const holderName = str(formData, "holderName");
+  // Contact number optional, same as comment; a blank value is stored as "".
   const contactNumber = str(formData, "contactNumber");
   const comment = str(formData, "comment");
   const feeRaw = str(formData, "fee");
 
   const errors: string[] = [];
   if (!agencyName) errors.push("agency name");
+  if (!branchName) errors.push("branch name");
   if (!collectorName) errors.push("collector name");
   if (!visaTypeName) errors.push("visa type");
   if (!serviceName) errors.push("service");
   if (!passportNumber) errors.push("passport number");
   if (!holderName) errors.push("passport holder name");
-  if (!contactNumber) errors.push("contact number");
   if (!feeRaw) errors.push("fee");
   if (errors.length > 0) {
     await fail(`Missing required field(s): ${errors.join(", ")}.`);
@@ -108,17 +96,19 @@ export async function createPassport(formData: FormData) {
     await fail("Fee must be a non-negative whole amount of taka (e.g. 3500).");
   }
 
-  // Free-text names are validated against the admin registry (recorded
-  // assumption): the agency must exist, and its Gmail becomes the
-  // ownership reference. Collector must exist in the registry. Visa type
-  // and service must be registered there too — passport entries record
-  // what the business offers, not arbitrary text.
+  // Free-text names are validated against the admin registry: agency, branch,
+  // collector, visa type and service must all be registered there — passport
+  // entries record what the business offers, not arbitrary text.
   const agency = await prisma.agency.findUnique({
     where: { name: agencyName },
   });
   if (!agency) {
-    await fail(`Agency "${agencyName}" is not registered. Ask the admin to allow-list it first.`);
+    await fail(`Agency "${agencyName}" is not registered. Ask the admin to add it first.`);
     return;
+  }
+  const branch = await prisma.branch.findUnique({ where: { name: branchName } });
+  if (!branch) {
+    await fail(`Branch "${branchName}" is not registered. Ask the admin to add it first.`);
   }
   const collector = await prisma.collector.findUnique({
     where: { name: collectorName },
@@ -149,7 +139,7 @@ export async function createPassport(formData: FormData) {
   await prisma.passport.create({
     data: {
       agencyName,
-      agencyGmail: agency.gmail,
+      branchName,
       collectorName,
       visaTypeName,
       serviceName,
@@ -179,11 +169,11 @@ export async function createPassport(formData: FormData) {
 
 /**
  * Full-details edit: allows staff and admin to correct any user-maintained
- * field of an existing passport. Validation mirrors entry exactly:
- * registry-backed selections (selector's record must exist), a non-negative
+ * field of an existing passport, including its branch. Validation mirrors
+ * entry exactly: registry-backed selections (selector's record must exist), a non-negative
  * whole taka fee, and a passport number unique across passports excluding
- * this one (re-stating one's own number is fine). Changing the agency
- * re-resolves its registered Gmail as the ownership reference.
+ * this one (re-stating one's own number is fine). The settlement amount
+ * follows the fee so reports never show a stale amount.
  * System-managed fields (status, receiptDate, deliveryDate,
  * deliveryCollectorName) are deliberately never read from the form — the
  * status/delivery flow governs them, so posted values for them are ignored
@@ -201,24 +191,25 @@ export async function updatePassportDetails(formData: FormData) {
   }
 
   const agencyName = str(formData, "agencyName");
+  const branchName = str(formData, "branchName");
   const collectorName = str(formData, "collectorName");
   const visaTypeName = str(formData, "visaTypeName");
   const serviceName = str(formData, "serviceName");
   const passportNumber = str(formData, "passportNumber");
   const holderName = str(formData, "holderName");
   const contactNumber = str(formData, "contactNumber");
-  // Comment optional, same as entry; an empty save clears it.
+  // Contact number and comment are optional, same as entry; an empty save clears them.
   const comment = str(formData, "comment");
   const feeRaw = str(formData, "fee");
 
   const errors: string[] = [];
   if (!agencyName) errors.push("agency name");
+  if (!branchName) errors.push("branch name");
   if (!collectorName) errors.push("collector name");
   if (!visaTypeName) errors.push("visa type");
   if (!serviceName) errors.push("service");
   if (!passportNumber) errors.push("passport number");
   if (!holderName) errors.push("passport holder name");
-  if (!contactNumber) errors.push("contact number");
   if (!feeRaw) errors.push("fee");
   if (errors.length > 0) {
     await fail(`Missing required field(s): ${errors.join(", ")}.`, `/passports/${id}/edit`);
@@ -232,16 +223,19 @@ export async function updatePassportDetails(formData: FormData) {
     );
   }
 
-  // Same registry-backed selections as entry: names must resolve to a
-  // registered record, and the selected agency's Gmail becomes the
-  // ownership reference (agency change effectively re-homes the passport).
+  // Same registry-backed selections as entry: each name must resolve to a
+  // registered record.
   const agency = await prisma.agency.findUnique({ where: { name: agencyName } });
   if (!agency) {
     await fail(
-      `Agency "${agencyName}" is not registered. Ask the admin to allow-list it first.`,
+      `Agency "${agencyName}" is not registered. Ask the admin to add it first.`,
       `/passports/${id}/edit`
     );
     return;
+  }
+  const branch = await prisma.branch.findUnique({ where: { name: branchName } });
+  if (!branch) {
+    await fail(`Branch "${branchName}" is not registered. Ask the admin to add it first.`, `/passports/${id}/edit`);
   }
   const collector = await prisma.collector.findUnique({ where: { name: collectorName } });
   if (!collector) {
@@ -270,7 +264,7 @@ export async function updatePassportDetails(formData: FormData) {
     where: { id },
     data: {
       agencyName,
-      agencyGmail: agency.gmail,
+      branchName,
       collectorName,
       visaTypeName,
       serviceName,
@@ -279,6 +273,14 @@ export async function updatePassportDetails(formData: FormData) {
       contactNumber,
       comment,
       fee,
+      // Settlement amount always tracks the current fee; reports must not
+      // show a stale amount after a fee correction.
+      payment: {
+        upsert: {
+          create: { amount: fee, status: "UNPAID" },
+          update: { amount: fee },
+        },
+      },
       ...lastEditorStamp(session),
     },
   });

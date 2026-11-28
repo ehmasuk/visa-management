@@ -266,7 +266,7 @@ export function Login03({
             style={stagger(4)}
             className={cn(ENTER, "text-xs text-muted-foreground")}
           >
-            Access is limited to registered staff, agencies and administrators.
+            Access is limited to registered staff and administrators.
             Contact your administrator if you need access.
           </p>
         </div>

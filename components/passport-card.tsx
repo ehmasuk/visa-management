@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SubmitButton } from "@/components/admin-ui";
 import { Spinner } from "@/components/ui/spinner";
 import { updatePassportStatus } from "@/app/actions/passport";
+import { PaymentToggle } from "@/components/payment-toggle";
 import { cn } from "@/lib/utils";
 import {
   fmt,
@@ -27,7 +28,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Eye, Edit, FileSearch, Send, Truck, CheckCircle2, Clock } from "lucide-react";
+import { Eye, Edit, FileSearch, Send, Truck, CheckCircle2 } from "lucide-react";
 import { useFormStatus } from "react-dom";
 
 type PassportWithPayment = Prisma.PassportGetPayload<{ include: { payment: true } }>;
@@ -95,28 +96,16 @@ export function PassportCard({
               <span className={`size-1.5 rounded-full ${STATUS_DOT[passport.status]}`} />
               {statusLabel(passport.status)}
             </span>
-            {payment ? (
-              <span
-                className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                  payment.status === "PAID"
-                    ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
-                    : payment.status === "REQUESTED"
-                    ? "bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20"
-                    : "bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20"
-                }`}
-              >
-                {payment.status === "PAID" ? (
-                  <CheckCircle2 className="size-3" />
-                ) : payment.status === "REQUESTED" ? (
-                  <Clock className="size-3" />
-                ) : null}
-                {payment.status === "PAID"
-                  ? "Paid"
-                  : payment.status === "REQUESTED"
-                  ? "Payment Requested"
-                  : "Unpaid"}
-              </span>
-            ) : null}
+            <span
+              className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                payment?.status === "PAID"
+                  ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
+                  : "bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20"
+              }`}
+            >
+              {payment?.status === "PAID" ? <CheckCircle2 className="size-3" /> : null}
+              {payment?.status === "PAID" ? "Paid" : "Unpaid"}
+            </span>
           </div>
 
           <p className="text-sm font-bold text-foreground">
@@ -124,7 +113,7 @@ export function PassportCard({
           </p>
 
           <p className="text-xs text-muted-foreground">
-            Contact: <span className="text-foreground font-medium">{passport.contactNumber}</span> · Fee: <span className="font-mono font-bold text-foreground">৳{passport.fee.toLocaleString()}</span> · Brought by: <span className="text-foreground font-medium">{passport.collectorName}</span>
+            Contact: <span className="text-foreground font-medium">{passport.contactNumber || "—"}</span> · Fee: <span className="font-mono font-bold text-foreground">৳{passport.fee.toLocaleString()}</span> · Branch: <span className="text-foreground font-medium">{passport.branchName ?? "—"}</span> · Brought by: <span className="text-foreground font-medium">{passport.collectorName}</span>
             {passport.deliveryCollectorName ? ` · Delivered by: ${passport.deliveryCollectorName}` : null}
             {passport.visaTypeName ? ` · Visa: ${passport.visaTypeName}` : ""}
             {passport.serviceName ? ` · Service: ${passport.serviceName}` : ""}
@@ -147,7 +136,12 @@ export function PassportCard({
           </div>
         </div>
 
-        <div className="flex items-center gap-2 self-start md:self-center shrink-0">
+        <div className="flex flex-wrap items-center gap-2 self-start md:self-center shrink-0">
+          <PaymentToggle
+            passportId={passport.id}
+            paid={payment?.status === "PAID"}
+            returnTo={returnTo}
+          />
           <Link
             href={`/passports/${passport.id}`}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-border bg-card hover:bg-muted text-xs font-semibold text-foreground transition-all shadow-2xs"

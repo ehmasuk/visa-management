@@ -24,17 +24,12 @@ const ADMIN_ITEMS: NavItem[] = [
 const STAFF_ITEMS: NavItem[] = [
   { href: "/staff", label: "Overview" },
   { href: "/staff/passports", label: "Passports" },
-  { href: "/staff/payments", label: "Payments" },
+  { href: "/staff/registries", label: "Registries" },
 ];
-
-// Agencies only have their own passport view, which is the page itself —
-// no secondary navigation is needed in the header.
-const AGENCY_ITEMS: NavItem[] = [];
 
 export function itemsForRole(role: string): NavItem[] {
   if (role === "ADMIN") return ADMIN_ITEMS;
   if (role === "STAFF") return STAFF_ITEMS;
-  if (role === "AGENCY") return AGENCY_ITEMS;
   return [];
 }
 
@@ -64,11 +59,9 @@ export function RoleNav({
             className="flex items-center gap-2.5 font-bold text-sm tracking-tight text-foreground hover:opacity-90 transition-opacity"
             title="Go to Homepage"
           >
-            {role === "AGENCY" ? null : (
-              <div className="size-8 rounded-xl bg-gradient-to-br from-primary to-blue-600 text-primary-foreground flex items-center justify-center font-bold shadow-xs">
-                <Stamp className="size-4" />
-              </div>
-            )}
+            <div className="size-8 rounded-xl bg-gradient-to-br from-primary to-blue-600 text-primary-foreground flex items-center justify-center font-bold shadow-xs">
+              <Stamp className="size-4" />
+            </div>
             <span className="hidden sm:inline">Visa Management</span>
           </Link>
 
@@ -76,7 +69,7 @@ export function RoleNav({
           <nav className="flex items-center gap-1.5 overflow-x-auto py-0.5 no-scrollbar">
             {items.map((item) => {
               const isActive =
-                item.href === "/admin" || item.href === "/staff" || item.href === "/agency"
+                item.href === "/admin" || item.href === "/staff"
                   ? pathname === item.href
                   : pathname === item.href || pathname.startsWith(`${item.href}/`);
 
@@ -108,10 +101,7 @@ export function RoleNav({
 
           <Badge
             className={cn(
-              "font-mono text-[10px] tracking-wider uppercase px-2.5 py-0.5 font-bold",
-              role === "AGENCY"
-                ? "bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20"
-                : "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
+              "font-mono text-[10px] tracking-wider uppercase px-2.5 py-0.5 font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
             )}
           >
             {role}

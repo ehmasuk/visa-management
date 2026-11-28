@@ -7,7 +7,6 @@ const authRoutes = ["/login"];
 const protectedRoutes = ["/dashboard", "/profile", "/settings"];
 const adminRoutes = ["/admin"];
 const staffRoutes = ["/staff"];
-const agencyRoutes = ["/agency"];
 const apiAuthPrefix = "/api/auth";
 
 export default auth((req) => {
@@ -33,9 +32,6 @@ export default auth((req) => {
   const isStaffRoute = staffRoutes.some(
     (route) => pathname === route || pathname.startsWith(`${route}/`)
   );
-  const isAgencyRoute = agencyRoutes.some(
-    (route) => pathname === route || pathname.startsWith(`${route}/`)
-  );
   const isAuthRoute = authRoutes.includes(pathname);
   const isLegacyDashboard = pathname === "/dashboard";
   // No public homepage: `/` is just an entry redirect.
@@ -46,7 +42,7 @@ export default auth((req) => {
   const isReauth = nextUrl.searchParams.get("reauth") === "1";
 
   // Signed-in users never see the entry/login pages — go straight to their
-  // role home: ADMIN → /admin, STAFF → /staff, AGENCY → /agency.
+  // role home: ADMIN → /admin, STAFF → /staff.
   if (isLoggedIn && (isAuthRoute || isLegacyDashboard || isRoot) && !isReauth) {
     return NextResponse.redirect(new URL(roleHomePath(role), nextUrl));
   }
@@ -60,12 +56,10 @@ export default auth((req) => {
     );
   }
 
-  // Role-restricted areas (task 3.5 hardens admin access; /staff and /agency
-  // are likewise restricted to their exact role per the registry model).
+  // Role-restricted areas: /admin and /staff are each limited to their role.
   const isRoleRestricted =
     (isAdminRoute && role !== "ADMIN") ||
-    (isStaffRoute && role !== "STAFF") ||
-    (isAgencyRoute && role !== "AGENCY");
+    (isStaffRoute && role !== "STAFF");
   if (isRoleRestricted) {
     if (!isLoggedIn) {
       const callbackUrl = encodeURIComponent(pathname);

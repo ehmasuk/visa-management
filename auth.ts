@@ -54,9 +54,8 @@ export const {
 
   callbacks: {
     async signIn({ user, account, profile }) {
-      // Allow-list policy (spec admin/registry): only emails an admin has
-      // registered — bootstrap ADMIN, a Staff record, or an Agency record —
-      // may sign in. Everyone else is denied.
+      // Allow-list policy (spec admin/registry): only the bootstrap ADMIN
+      // and emails in the Staff registry may sign in. Everyone else is denied.
       if (!user.email) return false;
 
       try {

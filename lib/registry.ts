@@ -9,11 +9,11 @@ import { prisma } from "@/lib/prisma";
  *                          (managed exclusively by scripts/bootstrap-admin.ts
  *                          and scripts/admin-recovery.ts)
  *   2. Staff registry    — `staffs` collection (gmail allow-list)
- *   3. Agency allow-list — `agencies` collection (gmail allow-list)
  * Null means the email is NOT allow-listed and must be denied sign-in.
+ * Agencies are client records only — they cannot sign in.
  */
 export type ResolvedRegistration = {
-  role: "ADMIN" | "STAFF" | "AGENCY";
+  role: "ADMIN" | "STAFF";
   name: string | null;
 };
 
@@ -35,12 +35,6 @@ export async function resolveRegistration(email: string): Promise<ResolvedRegist
   const staff = await prisma.staff.findUnique({ where: { gmail: normalized } });
   if (staff) {
     return { role: "STAFF", name: staff.name };
-  }
-
-  // 3) Agency allow-list
-  const agency = await prisma.agency.findUnique({ where: { gmail: normalized } });
-  if (agency) {
-    return { role: "AGENCY", name: agency.name };
   }
 
   // Not allow-listed → deny

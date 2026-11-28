@@ -45,7 +45,8 @@ function todayIso(): string {
 }
 
 interface AdminReportsClientProps {
-  agencies: Array<{ name: string; gmail: string }>;
+  agencies: Array<{ name: string }>;
+  branches: Array<{ name: string }>;
   collectors: Array<{ name: string }>;
   /** First snapshot rendered on the server so mounting is not empty. */
   initial: ReportResult;
@@ -55,6 +56,7 @@ const RETURN_TO = "/admin/reports";
 
 export function AdminReportsClient({
   agencies,
+  branches,
   collectors,
   initial,
 }: AdminReportsClientProps) {
@@ -63,6 +65,7 @@ export function AdminReportsClient({
   const [timeWindow, setTimeWindow] = React.useState("all");
   const [date, setDate] = React.useState("");
   const [agency, setAgency] = React.useState("");
+  const [branch, setBranch] = React.useState("");
   const [status, setStatus] = React.useState("");
   const [payment, setPayment] = React.useState("");
   const [page, setPage] = React.useState(0);
@@ -103,6 +106,7 @@ export function AdminReportsClient({
       date,
       timeWindow,
       agency,
+      branch,
       status,
       payment,
       page,
@@ -123,7 +127,7 @@ export function AdminReportsClient({
     return () => {
       cancelled = true;
     };
-  }, [searchQuery, date, timeWindow, agency, status, payment, page]);
+  }, [searchQuery, date, timeWindow, agency, branch, status, payment, page]);
 
   const flushSearch = () => setSearchQuery(searchText.trim());
 
@@ -132,6 +136,7 @@ export function AdminReportsClient({
     date !== "" ||
     timeWindow !== "all" ||
     agency !== "" ||
+    branch !== "" ||
     status !== "" ||
     payment !== "";
 
@@ -141,6 +146,7 @@ export function AdminReportsClient({
     setDate("");
     setTimeWindow("all");
     setAgency("");
+    setBranch("");
     setStatus("");
     setPayment("");
     setPage(0);
@@ -153,6 +159,7 @@ export function AdminReportsClient({
   };
 
   const changeAgency = change<string>(setAgency);
+  const changeBranch = change<string>(setBranch);
   const changeStatus = change<string>(setStatus);
   const changePayment = change<string>(setPayment);
   // The two time mechanisms are mutually exclusive: a picked day replaces the
@@ -316,8 +323,24 @@ export function AdminReportsClient({
             >
               <option value="">All Agencies</option>
               {agencies.map((a) => (
-                <option key={a.gmail} value={a.name}>
+                <option key={a.name} value={a.name}>
                   {a.name}
+                </option>
+              ))}
+            </NativeSelect>
+          </div>
+
+          {/* Branch Filter */}
+          <div className="w-full sm:w-auto">
+            <NativeSelect
+              value={branch}
+              onChange={(e) => changeBranch(e.target.value)}
+              className="h-9 w-full sm:w-44 text-xs font-medium rounded-xl"
+            >
+              <option value="">All Branches</option>
+              {branches.map((b) => (
+                <option key={b.name} value={b.name}>
+                  {b.name}
                 </option>
               ))}
             </NativeSelect>
@@ -345,10 +368,9 @@ export function AdminReportsClient({
               onChange={(e) => changePayment(e.target.value)}
               className="h-9 w-full sm:w-44 text-xs font-medium rounded-xl"
             >
-              <option value="">All Settlements</option>
+              <option value="">All Payments</option>
               <option value="PAID">Paid</option>
               <option value="UNPAID">Unpaid</option>
-              <option value="REQUESTED">Awaiting Approval</option>
             </NativeSelect>
           </div>
         </div>
@@ -386,7 +408,7 @@ export function AdminReportsClient({
             {taka(result.kpis.totalPaid)}
           </p>
           <p className={cn(kpiNoteClass, "text-emerald-600/80 dark:text-emerald-400/80 font-medium")}>
-            Settlement approved
+            Marked paid by staff
           </p>
         </div>
 
@@ -404,7 +426,7 @@ export function AdminReportsClient({
             {formatNum(result.kpis.unpaidCount)}
           </p>
           <p className={cn(kpiNoteClass, "text-amber-600/80 dark:text-amber-400/80 font-medium")}>
-            Awaiting full payment
+            Still unpaid
           </p>
         </div>
 

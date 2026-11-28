@@ -1,9 +1,9 @@
 "use server";
 
 /**
- * Passport list search actions for the three desk surfaces:
- *  - /staff/passports and /admin/passports (internal audiences)
- *  - /agency (agency portal)
+ * Passport list search action for the two internal desks:
+ *  - /staff/passports
+ *  - /admin/passports
  *
  * Same scale contract as the admin reports module (app/actions/reports.ts)
  * but with only the two filter axes those desks need: free-text search and a
@@ -13,8 +13,7 @@
  * Query cost profile at 1M records:
  *  - passport-number prefix: anchored `startsWith` on the UNIQUE
  *    passportNumber index → O(log n).
- *  - receipt-day: two-point range on the receiptDate index; for the agency
- *    the (agencyGmail, receiptDate) compound serves filter AND sort.
+ *  - receipt-day: two-point range on the receiptDate index.
  *  - holder-name substring: the unanchored predicate — scanned inside
  *    MongoDB (C++), throttled by the client's 300 ms debounce, page ≤ 20.
  *  - total: a `count()` on the same indexed where clause, done once per page
@@ -22,15 +21,14 @@
  */
 
 import { prisma } from "@/lib/prisma";
-import { requireAgency, requireStaffOrAdmin } from "@/lib/guards";
+import { requireStaffOrAdmin } from "@/lib/guards";
 import type { Prisma } from "@prisma/client";
 import {
   buildListFilters,
   type PassportListQuery,
 } from "@/lib/passport-list-filters";
 
-/** Desk tables show 20 rows per page. The agency portal keeps its larger
- * load-more chunk by passing pageSize explicitly. */
+/** Desk tables show 20 rows per page. */
 const DEFAULT_PAGE_SIZE = 20;
 
 // MongoDB `skip` is O(skipped docs). Cap the deepest reachable page (20k rows)
@@ -61,13 +59,10 @@ async function loadList(
     where: Prisma.PassportWhereInput
   ) => Promise<Prisma.PassportWhereInput>,
   input: PassportListQuery,
-  {
-    withContact = false,
-    pageSize = DEFAULT_PAGE_SIZE,
-  }: { withContact?: boolean; pageSize?: number } = {}
+  { withContact = false }: { withContact?: boolean } = {}
 ): Promise<PassportListResult> {
-  // `scope` re-verifies the acting role server-side and, for agencies, injects
-  // the session Gmail as the only shard the query may touch.
+  const pageSize = DEFAULT_PAGE_SIZE;
+  // `scope` re-verifies the acting role server-side before querying.
   const where = await scope(buildListFilters(input, {}, { withContact }));
 
   // Count first so the served page and total page count are always consistent,
@@ -107,27 +102,3 @@ export async function searchInternalPassports(
   );
 }
 
-/** Agency portal search — scoped to the ACTING agency's Gmail only. */
-export async function searchAgencyPassports(
-  input: PassportListQuery
-): Promise<PassportListResult> {
-  const result = await loadList(async (where) => {
-    const session = await requireAgency();
-    // Data isolation is enforced here: the agency mailbox comes from the
-    // authenticated session, never from action input.
-    return { ...where, agencyGmail: session.user.email.toLowerCase() };
-  }, input, { pageSize: 50 });
-
-  // Agencies only see the first and last custody states. UNDER_REVIEW and
-  // SUBMITTED stay internal and are reported as RECEIVED at the data boundary,
-  // so the real stage never reaches the browser. DELIVERED is unchanged, which
-  // is also the only state that enables the payment request action.
-  return {
-    ...result,
-    rows: result.rows.map((row) =>
-      row.status === "DELIVERED"
-        ? row
-        : { ...row, status: "RECEIVED" as typeof row.status }
-    ),
-  };
-}

@@ -53,12 +53,6 @@ export function AdminSidebar() {
 
   const allowListsNav = [
     {
-      title: "Agencies",
-      href: "/admin/agencies",
-      icon: Building2,
-      iconColor: "text-blue-600 dark:text-blue-400",
-    },
-    {
       title: "Staff",
       href: "/admin/staff",
       icon: Users,
@@ -67,6 +61,12 @@ export function AdminSidebar() {
   ];
 
   const registriesNav = [
+    {
+      title: "Agencies",
+      href: "/admin/agencies",
+      icon: Building2,
+      iconColor: "text-blue-600 dark:text-blue-400",
+    },
     {
       title: "Branches",
       href: "/admin/branches",
@@ -148,10 +148,10 @@ export function AdminSidebar() {
 
         <SidebarSeparator className="my-2" />
 
-        {/* Gmail Allow-Lists */}
+        {/* Staff sign-in allow-list */}
         <SidebarGroup>
           <SidebarGroupLabel className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground/80 px-2">
-            Identity & Access
+            Staff Access
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>

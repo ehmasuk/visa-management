@@ -2,16 +2,20 @@
 
 ## Purpose
 
-Defines how staff enter passport records received from agencies via collectors, capturing agency, collector, visa type, service, passport details, contact number, comment, fee, and automatic receipt date; comment editable anytime.
+Defines how staff enter passport records received from agencies via collectors, capturing agency, branch, collector, visa type, service, passport details, optional contact number and comment, fee, and automatic receipt date; comment editable anytime.
 
 ## Requirements
 
-### Requirement: Passport entry records contact number
-The system SHALL accept and store a reference contact number with every passport entry.
+### Requirement: Passport entry records an optional contact number
+The system SHALL accept and store a reference contact number when one is provided with a passport entry. The contact number is optional, like the comment.
 
 #### Scenario: Contact number stored with entry
 - **WHEN** a passport is entered with a contact number
 - **THEN** the system persists the contact number on the passport record
+
+#### Scenario: Entry without contact number
+- **WHEN** a passport is entered without a contact number
+- **THEN** the system creates the passport record with an empty contact number
 
 ### Requirement: Receipt date is set automatically
 The system SHALL set the receipt date automatically when a passport entry is created; the user does not enter it manually.
@@ -28,19 +32,23 @@ The system SHALL allow an authenticated staff member to edit a passport's commen
 - **THEN** the system saves the new comment and preserves all other passport fields
 
 ### Requirement: Entry selections come from admin registries
-The system SHALL record the agency, the intake collector, the visa type, and the service on every passport entry, each selectable from and validated against its admin-managed registry (`/admin/agencies`, `/admin/collectors`, `/admin/visa-types`, `/admin/services`); the agency's Gmail is resolved from the registry as the ownership reference.
+The system SHALL record the agency, the branch office, the intake collector, the visa type, and the service on every passport entry, each selectable from and validated against its admin-managed registry (`/admin/agencies`, `/admin/branches`, `/admin/collectors`, `/admin/visa-types`, `/admin/services`). Agencies are name-only records and do not sign in. Branch creation stays admin-only.
 
-#### Scenario: Registered selections are stored with ownership
-- **WHEN** a staff member submits a passport entry selecting a registered agency, collector, visa type, and service
-- **THEN** the system stores the selections on the passport record and resolves the agency's registered Gmail as the ownership reference
+#### Scenario: Registered selections are stored
+- **WHEN** a staff member submits a passport entry selecting a registered agency, branch, collector, visa type, and service
+- **THEN** the system stores the selections on the passport record
 
 #### Scenario: Entry without visa type or service is rejected
 - **WHEN** a staff member submits a passport entry without selecting a visa type or a service
 - **THEN** the system rejects the entry and indicates that visa type and service are required
 
 #### Scenario: Unregistered agency is rejected
-- **WHEN** a staff member submits a passport entry for an agency that is not allow-listed
-- **THEN** the system rejects the entry and directs the user to ask the admin to allow-list the agency
+- **WHEN** a staff member submits a passport entry for an agency that is not registered
+- **THEN** the system rejects the entry and directs the user to ask the admin to add the agency
+
+#### Scenario: Unregistered branch is rejected
+- **WHEN** a staff member submits a passport entry with a branch that is not registered
+- **THEN** the system rejects the entry and directs the user to ask the admin to add the branch
 
 #### Scenario: Unregistered collector is rejected
 - **WHEN** a staff member submits a passport entry with an intake collector who is not registered
@@ -65,15 +73,19 @@ The system SHALL accept the fee only as a non-negative whole amount of taka and 
 - **THEN** the system rejects the entry and explains that the fee must be a non-negative whole amount of taka
 
 ### Requirement: Staff can enter a passport record
-The system SHALL allow an authenticated staff member to create a passport entry containing agency name, collector name, visa type, service, passport number, passport holder name, contact number, and fee amount; the comment is optional. The receipt date is set automatically by the system.
+The system SHALL allow an authenticated staff member to create a passport entry containing agency name, branch name, collector name, visa type, service, passport number, passport holder name, and fee amount; the contact number and comment are optional. The receipt date is set automatically by the system.
 
 #### Scenario: Successful passport entry
 - **WHEN** a staff member submits valid passport entry details
 - **THEN** the system creates a passport record with status "received", sets the receipt date automatically, and associates it with the agency and the collector who brought the passport (the intake collector)
 
 #### Scenario: Required fields are validated
-- **WHEN** a staff member submits a passport entry missing agency name, collector name, visa type, service, passport number, passport holder name, contact number, or fee
+- **WHEN** a staff member submits a passport entry missing agency name, branch name, collector name, visa type, service, passport number, passport holder name, or fee
 - **THEN** the system rejects the entry and indicates which fields are required
+
+#### Scenario: Entry without contact number
+- **WHEN** a staff member submits a passport entry without a contact number
+- **THEN** the system creates the passport record with an empty contact number
 
 #### Scenario: Entry without comment
 - **WHEN** a staff member submits a passport entry without a comment

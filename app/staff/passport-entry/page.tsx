@@ -10,8 +10,9 @@ export const metadata = { title: "Passport Entry — Staff Desk" };
 export default async function StaffPassportEntryPage() {
   await requireStaff();
 
-  const [agencies, collectors, visaTypes, services] = await Promise.all([
+  const [agencies, branches, collectors, visaTypes, services] = await Promise.all([
     prisma.agency.findMany({ orderBy: { name: "asc" }, select: { name: true } }),
+    prisma.branch.findMany({ orderBy: { name: "asc" }, select: { name: true } }),
     prisma.collector.findMany({ orderBy: { name: "asc" }, select: { name: true } }),
     prisma.visaType.findMany({ orderBy: { name: "asc" }, select: { name: true } }),
     prisma.service.findMany({ orderBy: { name: "asc" }, select: { name: true } }),
@@ -22,9 +23,9 @@ export default async function StaffPassportEntryPage() {
       title="New Passport Entry"
       subtitle="Receive an incoming passport from a travel agency via courier."
     >
-      {/* Entry form: eight required fields + optional comment. Agency/collector/
-          visa type/service are selects fed from the admin registries; receipt
-          date is set automatically */}
+      {/* Entry form: eight required fields + optional contact/comment. Agency/branch/
+          collector/visa type/service are selects fed from the admin registries;
+          receipt date is set automatically */}
       <Card className="p-6 shadow-sm">
         <form action={createPassport}>
           <div className="flex items-center gap-2.5 mb-5 pb-3 border-b border-border/60">
@@ -54,6 +55,21 @@ export default async function StaffPassportEntryPage() {
                       agencies.length === 0 ? "No agencies registered yet" : "Select an agency",
                   },
                   ...agencies.map((agency) => ({ value: agency.name, label: agency.name })),
+                ]}
+              />
+            </div>
+            <div>
+              <Select
+                label="Branch office"
+                name="branchName"
+                defaultValue=""
+                options={[
+                  {
+                    value: "",
+                    label:
+                      branches.length === 0 ? "No branches registered yet" : "Select a branch",
+                  },
+                  ...branches.map((branch) => ({ value: branch.name, label: branch.name })),
                 ]}
               />
             </div>
@@ -124,7 +140,12 @@ export default async function StaffPassportEntryPage() {
               <Field label="Passport holder name" name="holderName" placeholder="e.g. Mohammad Al-Amin" />
             </div>
             <div>
-              <Field label="Contact number" name="contactNumber" placeholder="e.g. 017XXXXXXXX" />
+              <Field
+                label="Contact number (optional)"
+                name="contactNumber"
+                placeholder="e.g. 017XXXXXXXX"
+                required={false}
+              />
             </div>
             <div>
               <Field label="Service fee (৳ Taka)" name="fee" type="number" placeholder="8500" />

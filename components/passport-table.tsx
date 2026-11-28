@@ -5,6 +5,7 @@ import { useSyncExternalStore, useState } from "react";
 import { useFormStatus } from "react-dom";
 import type { Prisma } from "@prisma/client";
 import { updatePassportStatus } from "@/app/actions/passport";
+import { PaymentToggle } from "@/components/payment-toggle";
 import { Select, SubmitButton } from "@/components/admin-ui";
 import { Button } from "@/components/ui/button";
 import {
@@ -98,10 +99,10 @@ export function PassportTable({
               <th className={HEAD}>Passport No.</th>
               <th className={HEAD}>Holder</th>
               <th className={HEAD}>Agency</th>
+              <th className={HEAD}>Branch</th>
               <th className={HEAD}>Status</th>
               <th className={HEAD}>Fee (৳)</th>
               <th className={HEAD}>Status Change</th>
-              <th className={HEAD}>Agency Gmail</th>
               <th className={HEAD}>Visa Type</th>
               <th className={HEAD}>Service</th>
               <th className={HEAD}>Intake Collector</th>
@@ -113,7 +114,7 @@ export function PassportTable({
               <th className={HEAD}>Delivered</th>
               <th className={HEAD}>Comment</th>
               <th className={HEAD}>Payment</th>
-              <th className={HEAD}>Paid Amount</th>
+              <th className={HEAD}>Amount</th>
               <th className={HEAD}>Paid At</th>
               <th className={HEAD}>Last Edited By</th>
               <th className={HEAD}>Actions</th>
@@ -146,6 +147,7 @@ export function PassportTable({
                   </td>
                   <td className={cn(CELL, "font-semibold")}>{p.holderName}</td>
                   <td className={CELL}>{p.agencyName}</td>
+                  <td className={CELL}>{p.branchName ?? "—"}</td>
                   <td className={CELL}>
                     <span
                       className={cn(
@@ -188,30 +190,35 @@ export function PassportTable({
                       <span className="text-muted-foreground">—</span>
                     )}
                   </td>
-                  <td className={cn(CELL, "text-muted-foreground")}>{p.agencyGmail}</td>
                   <td className={CELL}>{p.visaTypeName ?? "—"}</td>
                   <td className={CELL}>{p.serviceName ?? "—"}</td>
                   <td className={CELL}>{p.collectorName}</td>
                   <td className={CELL}>{p.deliveryCollectorName ?? "—"}</td>
-                  <td className={cn(CELL, "tabular-nums")}>{p.contactNumber}</td>
+                  <td className={cn(CELL, "tabular-nums")}>{p.contactNumber || "—"}</td>
                   <td className={cn(CELL, "tabular-nums text-muted-foreground")}>{fmtDate(p.receiptDate)}</td>
                   <td className={cn(CELL, "tabular-nums text-muted-foreground")}>{fmtDate(p.underReviewDate)}</td>
                   <td className={cn(CELL, "tabular-nums text-muted-foreground")}>{fmtDate(p.submittedDate)}</td>
                   <td className={cn(CELL, "tabular-nums text-muted-foreground")}>{fmtDate(p.deliveryDate)}</td>
                   <td className={cn(CELL, "max-w-72 text-muted-foreground")}>{p.comment || "—"}</td>
                   <td className={CELL}>
-                    <span
-                      className={cn(
-                        "inline-flex rounded-full px-2 py-0.5 text-xs font-bold",
-                        payment?.status === "PAID"
-                          ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
-                          : payment?.status === "REQUESTED"
-                            ? "bg-amber-500/10 text-amber-600 dark:text-amber-400"
+                    <div className="flex flex-col items-start gap-1.5">
+                      <span
+                        className={cn(
+                          "inline-flex rounded-full px-2 py-0.5 text-xs font-bold",
+                          payment?.status === "PAID"
+                            ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
                             : "bg-rose-500/10 text-rose-600 dark:text-rose-400"
-                      )}
-                    >
-                      {payment?.status ?? "UNPAID"}
-                    </span>
+                        )}
+                      >
+                        {payment?.status ?? "UNPAID"}
+                      </span>
+                      <PaymentToggle
+                        passportId={p.id}
+                        paid={payment?.status === "PAID"}
+                        returnTo={returnTo}
+                        compact
+                      />
+                    </div>
                   </td>
                   <td className={cn(CELL, "tabular-nums font-semibold")}>
                     {payment ? payment.amount.toLocaleString() : "—"}

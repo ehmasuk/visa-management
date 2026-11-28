@@ -13,11 +13,12 @@ export const metadata = { title: "Admin Report" };
 export default async function AdminReportsPage() {
   await requireAdmin();
 
-  const [agencies, initial, collectors] = await Promise.all([
+  const [agencies, branches, initial, collectors] = await Promise.all([
     prisma.agency.findMany({
       orderBy: { name: "asc" },
-      select: { name: true, gmail: true },
+      select: { name: true },
     }),
+    prisma.branch.findMany({ orderBy: { name: "asc" }, select: { name: true } }),
     getInitialReport(),
     prisma.collector.findMany({ orderBy: { name: "asc" }, select: { name: true } }),
   ]);
@@ -26,6 +27,7 @@ export default async function AdminReportsPage() {
     <div className="mx-auto w-full min-w-0 max-w-7xl px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
       <AdminReportsClient
         agencies={agencies}
+        branches={branches}
         initial={initial}
         collectors={collectors}
       />

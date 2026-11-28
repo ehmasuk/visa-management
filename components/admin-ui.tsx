@@ -6,7 +6,7 @@ import { NativeSelect } from "@/components/ui/native-select";
 import { Textarea } from "@/components/ui/textarea";
 
 /**
- * Shared server-component building blocks for admin/staff/agency pages.
+ * Shared server-component building blocks for admin/staff pages.
  * Controls delegate to the shadcn primitives (components/ui/*); the thin
  * wrappers here keep the compact props (labelled fields, option arrays,
  * primary/ghost/danger submit variants) consumed by the plain

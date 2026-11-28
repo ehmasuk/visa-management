@@ -1,7 +1,7 @@
 import { DefaultSession } from "next-auth";
 
 declare module "next-auth" {
-  type Role = "ADMIN" | "STAFF" | "AGENCY" | "REVOKED";
+  type Role = "ADMIN" | "STAFF" | "REVOKED";
 
   interface Session {
     user: {
@@ -21,7 +21,7 @@ declare module "next-auth" {
 }
 
 declare module "next-auth/jwt" {
-  type JwtRole = "ADMIN" | "STAFF" | "AGENCY" | "REVOKED";
+  type JwtRole = "ADMIN" | "STAFF" | "REVOKED";
 
   interface JWT {
     id?: string;

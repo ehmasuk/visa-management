@@ -7,15 +7,26 @@ Defines how internal operators (STAFF and ADMIN) access a passport's full record
 ## Requirements
 
 ### Requirement: Internal passport detail view shows every passport field
-The system SHALL provide an internal read-only passport detail view, opened via a View button on the staff or admin passport lists, that displays every stored field of the passport: agency name, intake collector, visa type, service, passport number, passport holder name, contact number, comment, fee, status, receipt date, delivery date, delivery collector, payment trail, and the last-editor record.
+The system SHALL provide an internal read-only passport detail view, opened via a View button on the staff or admin passport lists, that displays every stored field of the passport: agency name, branch, intake collector, visa type, service, passport number, passport holder name, contact number, comment, fee, status, receipt date, delivery date, delivery collector, payment status and amount, and the last-editor record.
 
 #### Scenario: View button opens full details
 - **WHEN** staff or an admin clicks View on a passport in their list
-- **THEN** the system shows that passport's full details, including every field captured at entry, the system-managed dates, and the payment trail
+- **THEN** the system shows that passport's full details, including every field captured at entry, the system-managed dates, and the payment status and amount
 
 #### Scenario: Fields never captured are shown as empty
 - **WHEN** the detail view shows a passport that has no delivery recording or payment and was created before visa-type/service registries existed
 - **THEN** the unset fields are rendered as empty rather than hiding those details from the view
+
+### Requirement: Internal detail and list views can change payment status
+The system SHALL offer staff and admins a direct paid/unpaid control on the passport detail view and on the passport cards and rows of staff/admin lists, with no separate approval step.
+
+#### Scenario: Payment status changed from detail view
+- **WHEN** staff or an admin marks a passport paid or unpaid from its detail view
+- **THEN** the payment status is updated in place and the view shows the new status
+
+#### Scenario: Payment status changed from a list surface
+- **WHEN** staff or an admin uses the payment control on a passport card or table row
+- **THEN** the payment status is updated and the user returns to that same list
 
 ### Requirement: Passport detail and edit views are restricted to staff and admin
 The system SHALL restrict the internal passport detail view and the passport edit view to authenticated STAFF and ADMIN users, re-verifying the acting user's role server-side on the pages and on every passport-update action.
@@ -24,16 +35,16 @@ The system SHALL restrict the internal passport detail view and the passport edi
 - **WHEN** an authenticated staff member or admin opens a passport's detail view or edit view
 - **THEN** the system renders the passport's content for them
 
-#### Scenario: Agency cannot open the internal views
-- **WHEN** an authenticated AGENCY user attempts to open a passport's internal detail view or edit view
-- **THEN** the system denies access even when the passport belongs to that agency
+#### Scenario: Non-internal users cannot open the internal views
+- **WHEN** a signed-in user who is not STAFF or ADMIN attempts to open a passport's internal detail view or edit view
+- **THEN** the system denies access
 
 #### Scenario: Action rejects non-internal callers directly
 - **WHEN** a passport-update action is invoked by a user who is not STAFF or ADMIN
 - **THEN** the system rejects the action regardless of any web-proxy filtering
 
 ### Requirement: Staff and admin can edit passport information fields
-The system SHALL allow an authenticated staff member or admin to edit, via an Edit button leading to an edit view prefilled with the passport's current values, any of the passport's user-maintained fields: agency, intake collector, visa type, service, passport number, passport holder name, contact number, fee, and comment.
+The system SHALL allow an authenticated staff member or admin to edit, via an Edit button leading to an edit view prefilled with the passport's current values, any of the passport's user-maintained fields: agency, branch, intake collector, visa type, service, passport number, passport holder name, contact number, fee, and comment.
 
 #### Scenario: Edit saves a corrected field
 - **WHEN** staff or an admin submits an edit that corrects a passport's holder name and contact number while leaving the other fields unchanged
@@ -44,10 +55,10 @@ The system SHALL allow an authenticated staff member or admin to edit, via an Ed
 - **THEN** the form shows the passport's current values for every editable field
 
 ### Requirement: Passport edits re-validate against entry rules
-The system SHALL validate edited passport fields under the same rules that govern passport entry: the agency, intake collector, visa type, and service must exist in their admin registries, the agency's registered Gmail is re-resolved as the ownership reference when the agency changes, the passport number must remain unique across all passports excluding the passport being edited, and the fee must be a non-negative whole amount of taka.
+The system SHALL validate edited passport fields under the same rules that govern passport entry: the agency, branch, intake collector, visa type, and service must exist in their admin registries, the passport number must remain unique across all passports excluding the passport being edited, and the fee must be a non-negative whole amount of taka.
 
 #### Scenario: Unregistered selection is rejected on edit
-- **WHEN** staff or an admin submits an edit naming an agency, collector, visa type, or service that is not registered
+- **WHEN** staff or an admin submits an edit naming an agency, branch, collector, visa type, or service that is not registered
 - **THEN** the system rejects the edit and directs the user to have the admin register it first
 
 #### Scenario: Duplicate passport number is rejected on edit
@@ -61,10 +72,6 @@ The system SHALL validate edited passport fields under the same rules that gover
 #### Scenario: Invalid fee is rejected on edit
 - **WHEN** staff or an admin submits an edit with a negative, fractional, or missing fee
 - **THEN** the system rejects the edit and explains the fee must be a non-negative whole amount of taka
-
-#### Scenario: Agency change re-resolves the ownership reference
-- **WHEN** staff or an admin submits an edit changing a passport's agency to another registered agency
-- **THEN** the system stores the new agency's registered Gmail as the passport's ownership reference along with the agency name
 
 ### Requirement: Passport editing does not modify system-managed fields
 The system SHALL NOT accept changes to status, receipt date, delivery date, or delivery collector through the passport edit view: those fields remain governed by the status and delivery rules, and any values posted for them are ignored.

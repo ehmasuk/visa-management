@@ -45,17 +45,11 @@ export async function requireStaff(): Promise<Session> {
 }
 
 // Internal passport operators: staff members and the single admin both act on
-// passport records (view/edit). Agencies never pass, even for their own passports.
+// passport records (view/edit). Only these two roles exist.
 export async function requireStaffOrAdmin(): Promise<Session> {
   const session = await requireSession();
   if (session.user.role !== "STAFF" && session.user.role !== "ADMIN") {
     redirect("/unauthorized");
   }
-  return session;
-}
-
-export async function requireAgency(): Promise<Session> {
-  const session = await requireSession();
-  if (session.user.role !== "AGENCY") redirect("/unauthorized");
   return session;
 }

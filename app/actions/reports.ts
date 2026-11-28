@@ -39,6 +39,7 @@ export type ReportQuery = {
   /**YYYY-MM-DD receipt day; when set it wins over the timeWindow range. */
   date?: string;
   agency?: string;
+  branch?: string;
   status?: string;
   payment?: string;
   timeWindow?: string;
@@ -66,7 +67,7 @@ export type ReportResult = {
 };
 
 const STATUSES = ["RECEIVED", "UNDER_REVIEW", "SUBMITTED", "DELIVERED"] as const;
-const PAYMENTS = ["PAID", "UNPAID", "REQUESTED"] as const;
+const PAYMENTS = ["PAID", "UNPAID"] as const;
 
 /** System-managed receipt-date window; anchor computed at query time. */
 function windowStart(timeWindow: string): Date | null {
@@ -121,6 +122,9 @@ function buildFilters(input: ReportQuery): Prisma.PassportWhereInput {
   if (input.agency) {
     where.agencyName = input.agency;
   }
+  if (input.branch) {
+    where.branchName = input.branch;
+  }
   if ((STATUSES as readonly string[]).includes(input.status ?? "")) {
     where.status = input.status as (typeof STATUSES)[number];
   }
@@ -171,17 +175,13 @@ async function loadReport(input: ReportQuery): Promise<ReportResult> {
   const capped = requestedPage >= MAX_PAGES;
 
   const where = buildFilters(input);
-  // Passports with no settlement yet, or still awaiting approval: count them
-  // for the unpaid-record card but sum their fee only when a payment exists
-  // (same semantics as the previous client-side totals).
+  // Unpaid records are either explicitly UNPAID or have no payment record
+  // yet. The "approval pending" state no longer exists.
   const unpaidWhere: Prisma.PassportWhereInput = {
     AND: [
       where,
       {
-        OR: [
-          { payment: { status: { in: ["UNPAID", "REQUESTED"] } } },
-          { payment: null },
-        ],
+        OR: [{ payment: { status: "UNPAID" } }, { payment: null }],
       },
     ],
   };
@@ -204,7 +204,7 @@ async function loadReport(input: ReportQuery): Promise<ReportResult> {
     prisma.passport.count({ where }),
     prisma.passport.aggregate({ where, _sum: { fee: true } }),
     prisma.payment.aggregate({
-      // Same outer filter, restricted to approved settlement payments.
+      // Same outer filter, restricted to payments marked paid.
       where: { passport: where, status: "PAID" },
       _sum: { amount: true },
     }),

@@ -32,7 +32,7 @@ export default async function StaffPassportsPage() {
         collectors={collectors}
         returnTo="/staff/passports"
         view="table"
-        emptyHint="Record your first passport on the Passport Entry page — it will appear here with its status and payment custody trail."
+        emptyHint="Record your first passport on the Passport Entry page — it will appear here with its status and payment state."
       />
     </PageShell>
   );

@@ -17,7 +17,7 @@ Today `PassportStatus` has two values (RECEIVED, DELIVERED). `updatePassportStat
 - Stage overrides/backward moves (explicitly declined by the user); no admin reset tooling.
 - A transition-audit collection with actor history per milestone (the existing last-editor stamp plus milestone dates is sufficient for this change).
 - Changing who can advance stages (stays STAFF + ADMIN per the passport-details spec), or any payment-rule coupling to the new stages beyond what the specs state.
-- Agency-driven actions or an external API surface.
+- External-user actions or an external API surface.
 
 ## Decisions
 
@@ -35,7 +35,7 @@ Today `PassportStatus` has two values (RECEIVED, DELIVERED). `updatePassportStat
 
 5. **Timeline on the detail view.** The "Lifecycle & Timestamps" section is replaced by a vertical 4-stage timeline (stage label, icon/dot per stage, recorded timestamp or "—"). Pure server rendering, reuse `fmt`. Same data fetch that already happens — no new queries.
 
-6. **Display maps for every consumer.** The scattered `status === "DELIVERED" ? emerald : blue` ternaries (cards, detail, agency page, admin dashboard client, staff page) become lookup maps (badge class + dot color keyed by stage) in `lib/passport-format.ts` — including fixing `statusLabel` to expand `UNDER_REVIEW` → "Under Review" (the current charAt/toLowerCase transform would mangle it). Agency page should migrate to these shared maps instead of its bespoke "Counter Received" chips.
+6. **Display maps for every consumer.** The scattered `status === "DELIVERED" ? emerald : blue` ternaries (cards, detail, admin dashboard client, staff page) become lookup maps (badge class + dot color keyed by stage) in `lib/passport-format.ts` — including fixing `statusLabel` to expand `UNDER_REVIEW` → "Under Review" (the current charAt/toLowerCase transform would mangle it).
 
 7. **Counters and filters follow the status set.** Staff/admin dashboard stat grids switch to per-stage counts (received/under review/submitted/delivered). Admin reports' `STATUSES` whitelist and the filter `<option>` list gain the two values; the report query unchanged — `status` remains an indexed equality predicate. The public landing demo (`components/custody-terminal.tsx`) is re-styled to the 4-stage sequence, presentation-only.
 
@@ -45,4 +45,4 @@ Today `PassportStatus` has two values (RECEIVED, DELIVERED). `updatePassportStat
 - [Unknown status values could be written once the enum is permissive in Prisma] → Only `updatePassportStatus` writes status, and decision 3 whitelists transitions; the UI never offers invalid options.
 - [Legacy passports show gaps in the timeline] → Spec'd as unset rendering ("—"); no backfill (would invent history — worse than honest gaps).
 - [Operational regression: staff can no longer flip a delivered passport back] → Accepted (user decision); a delivered passport stays terminal. Documented in proposal as breaking for that flow; nothing else consumed the toggle.
-- [Deliver dialog moved to a later stage] → Agencies' "pay" button remains gated on DELIVERED (unchanged), so no payment flow is disturbed; only the internal deliver path narrows.
+- [Deliver dialog moved to a later stage] → Agencies see read-only payment status with no pay button, so no payment flow is coupled to delivery; only the internal deliver path narrows.

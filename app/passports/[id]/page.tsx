@@ -5,6 +5,7 @@ import { requireStaffOrAdmin } from "@/lib/guards";
 import { prisma } from "@/lib/prisma";
 import { RoleNav } from "@/components/role-nav";
 import { PageShell } from "@/components/admin-ui";
+import { PaymentToggle } from "@/components/payment-toggle";
 import { fmt, lastEditorLine, STAGES, STATUS_BADGE, STATUS_DOT, statusLabel, type PassportStage } from "@/lib/passport-format";
 import { Edit, ArrowLeft, FileCheck2, FileText, FileSearch, Send, Truck, Clock, CreditCard, ShieldCheck, type LucideIcon } from "lucide-react";
 
@@ -119,10 +120,10 @@ export default async function PassportDetailPage({
                 <span className="font-mono font-bold text-foreground">{taka(passport.fee)}</span>
               </Detail>
               <Detail label="Agency Name">{passport.agencyName}</Detail>
-              <Detail label="Agency Gmail (Ownership)">{passport.agencyGmail}</Detail>
+              <Detail label="Branch">{passport.branchName ?? "—"}</Detail>
               <Detail label="Intake Collector (Courier)">{passport.collectorName}</Detail>
               <Detail label="Passport Holder Name">{passport.holderName}</Detail>
-              <Detail label="Contact Number">{passport.contactNumber}</Detail>
+              <Detail label="Contact Number">{passport.contactNumber || "—"}</Detail>
               <Detail label="Visa Type">
                 {passport.visaTypeName ?? "—"}
               </Detail>
@@ -214,45 +215,40 @@ export default async function PassportDetailPage({
             </div>
           </div>
 
-          {/* Payment trail */}
+          {/* Payment — a simple internal PAID/UNPAID control */}
           <div className="rounded-2xl border border-border/80 bg-card p-6 shadow-xs">
             <div className="flex items-center gap-2 mb-4 pb-3 border-b border-border/60">
               <CreditCard className="size-4.5 text-purple-600 dark:text-purple-400" />
-              <h2 className="text-base font-bold text-foreground">
-                Settlement & Payment Ledger
-              </h2>
+              <h2 className="text-base font-bold text-foreground">Payment</h2>
             </div>
-            {payment ? (
-              <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-                <Detail label="Settlement Amount">
-                  <span className="font-mono font-bold text-foreground">{taka(payment.amount)}</span>
-                </Detail>
-                <Detail label="Settlement Status">
-                  <span
-                    className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold ${
-                      payment.status === "PAID"
-                        ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
-                        : payment.status === "REQUESTED"
-                        ? "bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20"
-                        : "bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20"
-                    }`}
-                  >
-                    {payment.status === "PAID"
-                      ? "Settled (Approved)"
-                      : payment.rejectedAt
-                      ? "Payment Rejected"
-                      : "Awaiting Staff Approval"}
-                  </span>
-                </Detail>
-                <Detail label="Requested At">{fmt(payment.createdAt)}</Detail>
-                <Detail label="Approved At">{fmt(payment.paidAt)}</Detail>
-                <Detail label="Rejected At">{fmt(payment.rejectedAt)}</Detail>
-              </div>
-            ) : (
-              <p className="text-xs text-muted-foreground">
-                No payment requested yet — client agency can initiate settlement once delivered.
-              </p>
-            )}
+            <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+              <Detail label="Amount">
+                <span className="font-mono font-bold text-foreground">
+                  {taka(payment?.amount ?? passport.fee)}
+                </span>
+              </Detail>
+              <Detail label="Status">
+                <span
+                  className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold ${
+                    payment?.status === "PAID"
+                      ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
+                      : "bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20"
+                  }`}
+                >
+                  {payment?.status === "PAID" ? "Paid" : "Unpaid"}
+                </span>
+              </Detail>
+              <Detail label="Marked Paid At">
+                {payment?.paidAt ? fmt(payment.paidAt) : "—"}
+              </Detail>
+            </div>
+            <div className="mt-5 pt-4 border-t border-border/60">
+              <PaymentToggle
+                passportId={passport.id}
+                paid={payment?.status === "PAID"}
+                returnTo={`/passports/${id}`}
+              />
+            </div>
           </div>
 
           {/* Last editor audit trail */}

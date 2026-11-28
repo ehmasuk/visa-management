@@ -2,27 +2,27 @@
 
 ## Purpose
 
-Defines role-based authorization on user identities so the visa-management application can gate features and data by ADMIN, STAFF, or AGENCY role, with a single-admin invariant enforced server-side.
+Defines role-based authorization on user identities so the visa-management application can gate features and data by ADMIN or STAFF role, with a single-admin invariant enforced server-side. Agencies are client records and cannot sign in.
 
 ## Requirements
 
 ### Requirement: User has exactly one role
-Each User record SHALL have exactly one role drawn from ADMIN, STAFF, or AGENCY, defaulting to AGENCY when no role is assigned.
+Each User record SHALL have exactly one role drawn from ADMIN or STAFF, defaulting to STAFF when no role is assigned.
 
-#### Scenario: Default role is AGENCY
+#### Scenario: Default role is STAFF
 - **WHEN** a new User record is created without specifying a role
-- **THEN** the system assigns role AGENCY to the user
+- **THEN** the system assigns role STAFF to the user
 
 #### Scenario: Role is single-valued
 - **WHEN** a User record is read
-- **THEN** the user's role field contains exactly one of ADMIN, STAFF, or AGENCY
+- **THEN** the user's role field contains exactly one of ADMIN or STAFF
 
 ### Requirement: Server-side role validation
-The system SHALL validate role changes server-side and reject any client request that attempts to set a user's own role or agency association.
+The system SHALL validate role changes server-side and reject any client request that attempts to set a user's own role.
 
 #### Scenario: User cannot change own role via payload
-- **WHEN** an authenticated user submits a request payload containing a role or agencyId change for their own account
-- **THEN** the system rejects the request and preserves the user's existing role and agency association
+- **WHEN** an authenticated user submits a request payload containing a role change for their own account
+- **THEN** the system rejects the request and preserves the user's existing role
 
 #### Scenario: Authorized actor can change another user's role
 - **WHEN** an ADMIN submits a request to change another user's role

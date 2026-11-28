@@ -13,8 +13,8 @@ export const metadata = { title: "Edit passport" };
 
 /**
  * Internal passport edit view: prefilled with the passport's current values
- * for every user-maintained field; agency/collector/visa type/service are
- * validates against their admin registries on save. The form intentionally
+ * for every user-maintained field; agency/branch/collector/visa type/service
+ * are validated against their admin registries on save. The form intentionally
  * carries nothing system-managed (status, receipt date, delivery date,
  * delivery collector) — the status/delivery flow governs those, and the
  * details action ignores any posted values for them anyway.
@@ -27,9 +27,10 @@ export default async function PassportEditPage({
   const session = await requireStaffOrAdmin();
   const { id } = await params;
 
-  const [passport, agencies, collectors, visaTypes, services] = await Promise.all([
+  const [passport, agencies, branches, collectors, visaTypes, services] = await Promise.all([
     prisma.passport.findUnique({ where: { id } }),
     prisma.agency.findMany({ orderBy: { name: "asc" }, select: { name: true } }),
+    prisma.branch.findMany({ orderBy: { name: "asc" }, select: { name: true } }),
     prisma.collector.findMany({ orderBy: { name: "asc" }, select: { name: true } }),
     prisma.visaType.findMany({ orderBy: { name: "asc" }, select: { name: true } }),
     prisma.service.findMany({ orderBy: { name: "asc" }, select: { name: true } }),
@@ -66,6 +67,14 @@ export default async function PassportEditPage({
               </div>
               <div>
                 <Select
+                  label="Branch office"
+                  name="branchName"
+                  defaultValue={passport.branchName ?? ""}
+                  options={registryOptions(branches, "No branches registered yet")}
+                />
+              </div>
+              <div>
+                <Select
                   label="Intake collector (brought the passport)"
                   name="collectorName"
                   defaultValue={passport.collectorName}
@@ -95,7 +104,12 @@ export default async function PassportEditPage({
                 <Field label="Passport holder name" name="holderName" defaultValue={passport.holderName} />
               </div>
               <div className="grow">
-                <Field label="Contact number" name="contactNumber" defaultValue={passport.contactNumber} />
+                <Field
+                  label="Contact number (optional)"
+                  name="contactNumber"
+                  defaultValue={passport.contactNumber}
+                  required={false}
+                />
               </div>
               <div className="w-32">
                 <Field label="Fee (taka)" name="fee" type="number" defaultValue={String(passport.fee)} />
@@ -117,9 +131,8 @@ export default async function PassportEditPage({
                 Cancel
               </Link>
               <p className="text-xs text-muted-foreground">
-                Agency, collector, visa type, and service must be registered. Changing the agency re-homes the passport
-                on the dashboard of the new agency. Status, received date, delivery date, and delivery collector are
-                managed by the status flow — they are not editable here.
+                Agency, branch, collector, visa type, and service must be registered. Status, received date, delivery date, and
+                delivery collector are managed by the status flow — they are not editable here.
               </p>
             </div>
           </form>

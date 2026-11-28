@@ -3,22 +3,25 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
-import { requireAgency, requireStaff } from "@/lib/guards";
+import { requireStaffOrAdmin } from "@/lib/guards";
 import { setFlash } from "@/lib/flash";
+import { lastEditorStamp } from "@/lib/last-editor";
 
 /**
- * Payment request/approval server actions (tasks 6.3, 7.1, 7.2).
- * Role guards re-verified server-side on every action.
+ * Payment settlement is handled internally. There is no agency request and
+ * no approval queue: staff and admins flip a passport's payment directly
+ * between PAID and UNPAID from the detail view or the desk lists. Agencies
+ * are client records only and never interact with payment.
  */
+
+const LIST_HOMES = [
+  "/staff/passports",
+  "/admin/passports",
+  "/admin/reports",
+] as const;
 
 async function fail(path: string, message: string): Promise<never> {
   await setFlash("error", message);
-  redirect(path);
-}
-
-// "ok" — the success flavor of the same one-shot flash toast pattern.
-async function ok(path: string, message: string): Promise<never> {
-  await setFlash("success", message);
   redirect(path);
 }
 
@@ -26,113 +29,66 @@ function str(formData: FormData, key: string): string {
   return String(formData.get(key) ?? "").trim();
 }
 
-function prismaErrorCode(error: unknown): string | undefined {
-  if (error && typeof error === "object" && "code" in error) {
-    return String((error as { code: unknown }).code);
+/** Only known internal surfaces may be used as a post-action redirect. */
+function safeReturnTo(formData: FormData, passportId: string): string {
+  const detail = `/passports/${passportId}`;
+  const candidate = str(formData, "returnTo");
+  if (candidate === detail || (LIST_HOMES as readonly string[]).includes(candidate)) {
+    return candidate;
   }
-  return undefined;
+  return detail;
 }
 
 /**
- * Task 6.3 — Agency clicks "pay" on a DELIVERED passport it owns: moves the
- * passport's payment status from UNPAID to REQUESTED, creating a payment
- * request for staff approval. Ownership (agencyGmail) is enforced server-side
- * so an agency cannot request payment for another agency's passport.
+ * Flip a passport's payment status. Any internal operator (STAFF or ADMIN)
+ * may act on any passport, regardless of its custody status. The settlement
+ * amount always follows the passport's current fee, and paidAt is stamped
+ * only while the payment is PAID (cleared when it is marked unpaid).
  */
-export async function requestPayment(formData: FormData) {
-  const session = await requireAgency();
-  const id = str(formData, "id");
-  if (!id) await fail("/agency", "Missing passport id.");
+export async function togglePaymentStatus(formData: FormData) {
+  const session = await requireStaffOrAdmin();
 
-  const passport = await prisma.passport.findUnique({ where: { id } });
+  const passportId = str(formData, "passportId");
+  if (!passportId) await fail("/staff/passports", "Missing passport id.");
+
+  const returnTo = safeReturnTo(formData, passportId);
+  const passport = await prisma.passport.findUnique({
+    where: { id: passportId },
+    include: { payment: true },
+  });
   if (!passport) {
-    await fail("/agency", "Passport record not found.");
+    await fail(returnTo, "Passport record not found.");
     return;
   }
 
-  // Data isolation: the acting agency may only act on its own passports.
-  if (passport.agencyGmail !== session.user.email.toLowerCase()) {
-    await fail("/agency", "This passport does not belong to your agency.");
-  }
-  if (passport.status !== "DELIVERED") {
-    await fail("/agency", "Payment can only be requested on delivered passports.");
-  }
+  const markPaid = passport.payment?.status !== "PAID";
+  const status = markPaid ? "PAID" : "UNPAID";
+  const paidAt = markPaid ? new Date() : null;
 
-  const payment = await prisma.payment.findUnique({ where: { passportId: id } });
-  if (!payment) {
-    await fail("/agency", "Payment record not found.");
-    return;
-  }
-
-  if (payment.status === "PAID") {
-    await fail("/agency", "This passport's payment is already approved (paid).");
-    return;
-  }
-  if (payment.status === "REQUESTED") {
-    // Already pending — idempotent no-op rather than a duplicate request.
-    await ok("/agency", "A payment request for this passport is already awaiting staff approval.");
-    return;
-  }
-  // status === "UNPAID" — new request or re-submission after rejection
-  await prisma.payment.update({
-    where: { id: payment.id },
-    data: { status: "REQUESTED" },
+  // One write stamps the editor on the passport and keeps the 1:1 payment
+  // record in sync, creating it if an older passport never had one.
+  await prisma.passport.update({
+    where: { id: passportId },
+    data: {
+      ...lastEditorStamp(session),
+      payment: {
+        upsert: {
+          create: { amount: passport.fee, status, paidAt },
+          update: { amount: passport.fee, status, paidAt },
+        },
+      },
+    },
   });
-  await ok("/agency", "Payment request submitted. Staff will review it.");
-}
 
-/**
- * Task 7.2 — Staff approves a requested payment request: status → PAID with
- * the approval timestamp.
- */
-export async function approvePayment(formData: FormData) {
-  await requireStaff();
-  const id = str(formData, "id");
-  if (!id) await fail("/staff/payments", "Missing payment id.");
-
-  const payment = await prisma.payment.findUnique({ where: { id } });
-  if (!payment) {
-    await fail("/staff/payments", "Payment request not found.");
-    return;
-  }
-  if (payment.status !== "REQUESTED") {
-    await fail("/staff/payments", "Only requested payments can be approved.");
+  for (const path of [
+    ...LIST_HOMES,
+    "/staff",
+    "/admin",
+    `/passports/${passportId}`,
+  ]) {
+    revalidatePath(path);
   }
 
-  await prisma.payment.update({
-    where: { id },
-    data: { status: "PAID", paidAt: new Date() },
-  });
-  revalidatePath("/staff/payments");
-  revalidatePath("/agency");
-  await setFlash("success", "Payment approved.");
-  redirect("/staff/payments");
-}
-
-/**
- * Task 7.2 — Staff rejects a request: status returns to UNPAID. The agency
- * may re-submit later.
- */
-export async function rejectPayment(formData: FormData) {
-  await requireStaff();
-  const id = str(formData, "id");
-  if (!id) await fail("/staff/payments", "Missing payment id.");
-
-  const payment = await prisma.payment.findUnique({ where: { id } });
-  if (!payment) {
-    await fail("/staff/payments", "Payment request not found.");
-    return;
-  }
-  if (payment.status !== "REQUESTED") {
-    await fail("/staff/payments", "Only requested payments can be rejected.");
-  }
-
-  await prisma.payment.update({
-    where: { id },
-    data: { status: "UNPAID" },
-  });
-  revalidatePath("/staff/payments");
-  revalidatePath("/agency");
-  await setFlash("success", "Payment request rejected.");
-  redirect("/staff/payments");
+  await setFlash("success", markPaid ? "Payment marked as paid." : "Payment marked as unpaid.");
+  redirect(returnTo);
 }

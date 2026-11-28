@@ -2,61 +2,50 @@
 
 ## Purpose
 
-Defines how agencies request payment on delivered passports and how staff approve or reject those payment requests, tracking paid versus unpaid status.
+Defines how a passport's payment is recorded and changed. Settlement is handled internally: staff and admins flip a passport directly between paid and unpaid. There are no external payment actors.
 
 ## Requirements
 
-### Requirement: Agency can request payment on a delivered passport
-The system SHALL allow an authenticated agency to click "pay" on a passport with status "delivered" to request payment.
+### Requirement: Every passport carries one payment record, unpaid by default
+The system SHALL create exactly one payment record with each passport entry, defaulting to "unpaid". Its amount SHALL mirror the passport's current fee.
 
-#### Scenario: Pay button appears on delivered passport
-- **WHEN** an agency views a passport with status "delivered"
-- **THEN** the system displays a "pay" button on that passport
+#### Scenario: New passport starts unpaid
+- **WHEN** a staff member creates a passport entry
+- **THEN** the passport's payment status is "unpaid"
 
-#### Scenario: Payment request sets unpaid status
-- **WHEN** an agency clicks "pay" on a delivered passport
-- **THEN** the system creates a payment request with status "unpaid" for that passport, capturing the passport's fee as the requested amount
+#### Scenario: Settlement amount follows the fee
+- **WHEN** a passport's fee is corrected through the edit view
+- **THEN** the payment amount is updated to the new fee so reports never show a stale amount
 
-#### Scenario: Payment request is ownership-checked
-- **WHEN** an agency submits a payment request for a passport belonging to a different agency
-- **THEN** the system rejects the request and states that the passport does not belong to the requesting agency
+### Requirement: Staff and admins can set payment to paid or unpaid
+The system SHALL allow an authenticated STAFF or ADMIN user to change any passport's payment status directly, in either direction, regardless of the passport's custody status. There SHALL be no separate payment request or approval step.
 
-### Requirement: Pay button is hidden for non-delivered passports
-The system SHALL not display the "pay" button on passports whose status is not "delivered".
+#### Scenario: Mark a passport paid
+- **WHEN** a staff member or admin marks an unpaid passport as paid
+- **THEN** the payment status becomes "paid" and the paid-at timestamp is set
 
-#### Scenario: Pay button hidden on received passport
-- **WHEN** an agency views a passport with status "received"
-- **THEN** the system does not display a "pay" button
+#### Scenario: Mark a passport unpaid again
+- **WHEN** a staff member or admin marks a paid passport as unpaid
+- **THEN** the payment status becomes "unpaid" and the paid-at timestamp is cleared
 
-### Requirement: Staff can approve or reject payment requests
-The system SHALL allow an authenticated staff member to approve or reject a payment request on a passport.
+#### Scenario: Available on every passport
+- **WHEN** an internal operator views a passport in any custody state
+- **THEN** the payment status can be changed without changing the passport's custody status
 
-#### Scenario: Staff approves payment
-- **WHEN** a staff member approves an unpaid payment request
-- **THEN** the system sets the payment status to "paid"
+#### Scenario: Change is attributed
+- **WHEN** a payment status is changed
+- **THEN** the passport's last-editor record is refreshed with the acting user's role, name, email, and timestamp
 
-#### Scenario: Staff rejects payment
-- **WHEN** a staff member rejects an unpaid payment request
-- **THEN** the system keeps the payment status as "unpaid" and records the rejection
-
-### Requirement: Rejected payment requests can be re-submitted
-The system SHALL allow an agency to re-request payment on a delivered passport whose previous request was rejected by replacing the rejected request with a fresh unpaid request; a pending request SHALL NOT be duplicated, and a paid passport SHALL NOT accept another request.
-
-#### Scenario: Rejected request is re-submitted
-- **WHEN** an agency clicks "pay" on a delivered passport whose payment request was rejected
-- **THEN** the system replaces the rejected request with a fresh unpaid payment request for staff approval
-
-#### Scenario: Pending request is not duplicated
-- **WHEN** an agency clicks "pay" on a delivered passport whose payment request is already awaiting staff approval
-- **THEN** the system does not create a duplicate request and confirms that the existing request is pending
-
-#### Scenario: Paid passport cannot be re-requested
-- **WHEN** an agency clicks "pay" on a delivered passport whose payment is already paid
-- **THEN** the system rejects the request and states that the payment is already approved
-
-### Requirement: Payment status is paid or unpaid
-The system SHALL restrict payment status to "paid" or "unpaid".
+### Requirement: Payment status is restricted to paid or unpaid
+The system SHALL restrict payment status to exactly two values: "paid" and "unpaid".
 
 #### Scenario: Payment status values
 - **WHEN** a payment record is read
 - **THEN** its status is either "paid" or "unpaid"
+
+### Requirement: Payment actions are restricted to internal operators
+The system SHALL deny the payment-change action to any signed-in user who is not STAFF or ADMIN, regardless of client-side filtering.
+
+#### Scenario: Non-internal caller is denied
+- **WHEN** a signed-in user without STAFF or ADMIN role invokes the payment-change action directly
+- **THEN** the system denies the action
