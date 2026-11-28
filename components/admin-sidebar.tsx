@@ -25,6 +25,7 @@ import {
   Layers,
   Sparkles,
   BarChart3,
+  ReceiptText,
 } from "lucide-react";
 
 export function AdminSidebar() {
@@ -48,6 +49,12 @@ export function AdminSidebar() {
       href: "/admin/reports",
       icon: BarChart3,
       iconColor: "text-purple-500",
+    },
+    {
+      title: "Payments",
+      href: "/admin/payments",
+      icon: ReceiptText,
+      iconColor: "text-emerald-500",
     },
   ];
 

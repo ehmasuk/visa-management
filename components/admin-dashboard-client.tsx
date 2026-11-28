@@ -38,8 +38,7 @@ export interface AdminDashboardData {
     totalPassports: number;
     receivedPassports: number;
     deliveredPassports: number;
-    paidAmount: number;
-    unpaidAmount: number;
+    totalFee: number;
   };
   recentPassports: Array<{
     id: string;
@@ -72,10 +71,6 @@ function formatDate(iso: string): string {
 
 export function AdminDashboardClient({ data }: { data: AdminDashboardData }) {
   const { counts, recentPassports, adminEmail } = data;
-
-  const totalMoney = counts.paidAmount + counts.unpaidAmount;
-  const collectionRate =
-    totalMoney > 0 ? Math.round((counts.paidAmount / totalMoney) * 100) : 0;
 
   return (
     <div className="space-y-8 pb-12">
@@ -192,14 +187,14 @@ export function AdminDashboardClient({ data }: { data: AdminDashboardData }) {
           </div>
         </Link>
 
-        {/* Financial Settlement */}
+        {/* Fee Volume */}
         <Link
           href="/admin/reports"
           className="group rounded-2xl border border-border/80 bg-card p-5 shadow-xs hover:border-purple-500/40 hover:shadow-md transition-all cursor-pointer"
         >
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              Fees Settled
+              Total Fees
             </span>
             <div className="size-9 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-600 dark:text-purple-400 group-hover:scale-110 transition-transform">
               <Receipt className="size-4.5" />
@@ -207,12 +202,11 @@ export function AdminDashboardClient({ data }: { data: AdminDashboardData }) {
           </div>
           <div className="mt-3">
             <span className="text-2xl font-extrabold text-emerald-600 dark:text-emerald-400 font-mono tracking-tight">
-              {taka(counts.paidAmount)}
+              {taka(counts.totalFee)}
             </span>
           </div>
-          <div className="mt-2 flex items-center justify-between text-[11px] text-muted-foreground">
-            <span>Unpaid: {taka(counts.unpaidAmount)}</span>
-            <span className="font-semibold text-foreground">{collectionRate}% Paid</span>
+          <div className="mt-2 text-[11px] text-muted-foreground">
+            Recorded fee volume across all passports
           </div>
         </Link>
       </div>

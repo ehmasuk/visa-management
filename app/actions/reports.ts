@@ -12,7 +12,7 @@
  * Query cost profile at 1M records:
  *  - passport-number prefix search: anchored `startsWith` on the indexed
  *    passportNumber field (not unique — passports can return) → O(log n).
- *  - agency / status / payment / receipt-window filters: equality or range
+ *  - agency / status / branch / receipt-window filters: equality or range
  *    predicates over the compound (status|agencyName|branchName, receiptDate)
  *    indexes → index scan. A picked day is a two-point range
  *    (day start → next-day start) on the same receiptDate index.
@@ -25,7 +25,8 @@
 
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/guards";
-import type { Prisma } from "@prisma/client";
+import { reportDateRange } from "@/lib/report-dates";
+import type { Passport, Prisma } from "@prisma/client";
 
 const PAGE_SIZE = 50;
 
@@ -41,21 +42,18 @@ export type ReportQuery = {
   agency?: string;
   branch?: string;
   status?: string;
-  payment?: string;
   timeWindow?: string;
   page?: number;
 };
 
 /** Full passport rows (same shape as the desk lists) so reports can render
- * the identical table — all fields, real Dates, and the payment relation. */
-export type ReportRow = Prisma.PassportGetPayload<{ include: { payment: true } }>;
+ * the identical table — all fields and real Dates. */
+export type ReportRow = Passport;
 
 export type ReportKpis = {
   totalPassports: number;
   totalFees: number;
-  totalPaid: number;
-  unpaidCount: number;
-  totalUnpaid: number;
+  dueAmount: number;
 };
 
 export type ReportResult = {
@@ -67,45 +65,6 @@ export type ReportResult = {
 };
 
 const STATUSES = ["RECEIVED", "UNDER_REVIEW", "SUBMITTED", "DELIVERED"] as const;
-const PAYMENTS = ["PAID", "UNPAID"] as const;
-
-/** System-managed receipt-date window; anchor computed at query time. */
-function windowStart(timeWindow: string): Date | null {
-  if (timeWindow === "today") {
-    const d = new Date();
-    d.setHours(0, 0, 0, 0);
-    return d;
-  }
-  if (timeWindow === "7d") return new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-  if (timeWindow === "30d") return new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-  return null;
-}
-
-/**
- * Validate a picked receipt day ("YYYY-MM-DD", native date-input format) and
- * resolve it to the two-point index range [start of day, start of next day).
- * Rolls over or malformed strings (e.g. 2026-02-30, "abc") return null — the
- * filter degrades to "ignore this input" rather than erroring. Both bounds
- * hit the receiptDate index, so a day query stays an index scan.
- */
-function parseDay(date: string): [Date, Date] | null {
-  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(date);
-  if (!m) return null;
-  const year = Number(m[1]);
-  const monthIndex = Number(m[2]) - 1;
-  const day = Number(m[3]);
-  const start = new Date(year, monthIndex, day, 0, 0, 0, 0);
-  if (
-    start.getFullYear() !== year ||
-    start.getMonth() !== monthIndex ||
-    start.getDate() !== day
-  ) {
-    return null;
-  }
-  const end = new Date(start);
-  end.setDate(end.getDate() + 1);
-  return [start, end];
-}
 
 /**
  * Build the passport filter. Unknown/blank values are ignored (not guessed),
@@ -114,7 +73,7 @@ function parseDay(date: string): [Date, Date] | null {
  * upper-cased prefix, ahead of the unique index), holder name substring, and
  * — for digits-only queries — the contact number prefix. A validated
  * specific date replaces the coarser timeWindow range; every other filter
- * (agency, status, settlement, search) still combines with it via AND.
+ * (agency, branch, status, search) still combines with it via AND.
  */
 function buildFilters(input: ReportQuery): Prisma.PassportWhereInput {
   const where: Prisma.PassportWhereInput = {};
@@ -128,22 +87,8 @@ function buildFilters(input: ReportQuery): Prisma.PassportWhereInput {
   if ((STATUSES as readonly string[]).includes(input.status ?? "")) {
     where.status = input.status as (typeof STATUSES)[number];
   }
-  if ((PAYMENTS as readonly string[]).includes(input.payment ?? "")) {
-    where.payment = { status: input.payment as (typeof PAYMENTS)[number] };
-  }
-
-  // Specific day first: it is strictly narrower than any timeWindow, so the
-  // two time mechanisms stay mutually exclusive.
-  const day = parseDay(input.date ?? "");
-  if (day) {
-    const [dayStart, dayEnd] = day;
-    where.receiptDate = { gte: dayStart, lt: dayEnd };
-  } else {
-    const start = windowStart(input.timeWindow ?? "");
-    if (start) {
-      where.receiptDate = { gte: start };
-    }
-  }
+  const range = reportDateRange(input);
+  if (range) where.receiptDate = range;
 
   const q = (input.q ?? "").trim();
   if (q) {
@@ -175,53 +120,36 @@ async function loadReport(input: ReportQuery): Promise<ReportResult> {
   const capped = requestedPage >= MAX_PAGES;
 
   const where = buildFilters(input);
-  // Unpaid records are either explicitly UNPAID or have no payment record
-  // yet. The "approval pending" state no longer exists.
-  const unpaidWhere: Prisma.PassportWhereInput = {
-    AND: [
-      where,
-      {
-        OR: [{ payment: { status: "UNPAID" } }, { payment: null }],
-      },
-    ],
-  };
 
-  const [
-    records,
-    total,
-    feeAgg,
-    paidAgg,
-    unpaidCount,
-    unpaidFeeAgg,
-  ] = await Promise.all([
+  // Payments are agency-level: only the agency and date filters apply to them.
+  const paymentWhere: Prisma.PaymentWhereInput = {};
+  if (input.agency) paymentWhere.agencyName = input.agency;
+  const range = reportDateRange(input);
+  if (range) paymentWhere.receivedAt = range;
+
+  const [records, total, feeAgg, paymentAgg] = await Promise.all([
     prisma.passport.findMany({
       where,
       // Secondary key keeps paging stable when rows share a receipt date.
       orderBy: [{ receiptDate: "desc" }, { id: "desc" }],
       skip: page * PAGE_SIZE,
       take: PAGE_SIZE,
-      include: { payment: true },
     }),
     prisma.passport.count({ where }),
     prisma.passport.aggregate({ where, _sum: { fee: true } }),
-    prisma.payment.aggregate({
-      // Same outer filter, restricted to payments marked paid.
-      where: { passport: where, status: "PAID" },
-      _sum: { amount: true },
-    }),
-    prisma.passport.count({ where: unpaidWhere }),
-    prisma.passport.aggregate({ where: unpaidWhere, _sum: { fee: true } }),
+    prisma.payment.aggregate({ where: paymentWhere, _sum: { amount: true } }),
   ]);
+
+  const totalFees = feeAgg._sum.fee ?? 0;
+  const totalPayments = paymentAgg._sum.amount ?? 0;
 
   return {
     rows: records,
     total,
     kpis: {
       totalPassports: total,
-      totalFees: feeAgg._sum.fee ?? 0,
-      totalPaid: paidAgg._sum.amount ?? 0,
-      unpaidCount,
-      totalUnpaid: unpaidFeeAgg._sum.fee ?? 0,
+      totalFees,
+      dueAmount: totalFees - totalPayments,
     },
     capped,
   };

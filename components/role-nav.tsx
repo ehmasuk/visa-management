@@ -19,12 +19,14 @@ const ADMIN_ITEMS: NavItem[] = [
   { href: "/admin/visa-types", label: "Visa Types" },
   { href: "/admin/services", label: "Services" },
   { href: "/admin/reports", label: "Reports" },
+  { href: "/admin/payments", label: "Payments" },
 ];
 
 const STAFF_ITEMS: NavItem[] = [
   { href: "/staff", label: "Overview" },
   { href: "/staff/passports", label: "Passports" },
   { href: "/staff/registries", label: "Registries" },
+  { href: "/staff/payments", label: "Payments" },
 ];
 
 export function itemsForRole(role: string): NavItem[] {

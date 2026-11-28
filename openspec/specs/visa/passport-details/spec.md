@@ -7,22 +7,15 @@ Defines how internal operators (STAFF and ADMIN) see a passport's full record di
 ## Requirements
 
 ### Requirement: Staff and admin lists show every passport field
-The system SHALL display every stored field of a passport directly in the staff and admin passport lists (one shared table): agency name, branch, intake collector, visa type, service, passport number, passport holder name, contact number, comment, fee, status, receipt/under-review/submitted/delivery dates, delivery collector, payment status, amount and paid-at timestamp, and the complete last-editor record. No separate per-passport view page SHALL be required.
+The system SHALL display every stored field of a passport directly in the staff and admin passport lists (one shared table): agency name, branch, intake collector, visa type, service, passport number, passport holder name, contact number, comment, fee, status, receipt/under-review/submitted/delivery dates, delivery collector, and the complete last-editor record. No separate per-passport view page SHALL be required.
 
 #### Scenario: Full record visible in the list
 - **WHEN** staff or an admin opens their passport list
-- **THEN** each row shows all fields captured at entry, the system-managed dates, and the payment and last-editor details
+- **THEN** each row shows all fields captured at entry, the system-managed dates, and the last-editor details
 
 #### Scenario: Fields never captured are shown as empty
-- **WHEN** the list shows a passport that has no delivery recording or payment and was created before visa-type/service/branch registries existed
+- **WHEN** the list shows a passport that has no delivery recording and was created before visa-type/service/branch registries existed
 - **THEN** the unset fields are rendered as empty rather than hiding those columns from the view
-
-### Requirement: The list can change payment status
-The system SHALL offer staff and admins a direct paid/unpaid control on each passport row of their list, with no separate approval step.
-
-#### Scenario: Payment status changed from the list
-- **WHEN** staff or an admin uses the payment control on a passport row
-- **THEN** the payment status is updated and the user returns to that same list
 
 ### Requirement: The edit view is restricted to staff and admin
 The system SHALL restrict the passport edit view to authenticated STAFF and ADMIN users, re-verifying the acting user's role server-side on the page and on every passport-update action.

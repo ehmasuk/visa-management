@@ -11,9 +11,8 @@ import {
   ArrowRight,
   PlusCircle,
   Edit,
-  CreditCardIcon,
 } from "lucide-react";
-import { PAYMENT_BADGE, STATUS_BADGE, STATUS_DOT, statusLabel } from "@/lib/passport-format";
+import { STATUS_BADGE, STATUS_DOT, statusLabel } from "@/lib/passport-format";
 
 export const metadata = { title: "Staff Workspace — Visa Management" };
 
@@ -36,25 +35,22 @@ export default async function StaffPage() {
     underReviewCount,
     submittedCount,
     deliveredCount,
-    unpaidPassports,
     recentPassports,
   ] = await Promise.all([
     prisma.passport.count({ where: { status: "RECEIVED" } }),
     prisma.passport.count({ where: { status: "UNDER_REVIEW" } }),
     prisma.passport.count({ where: { status: "SUBMITTED" } }),
     prisma.passport.count({ where: { status: "DELIVERED" } }),
-    prisma.payment.count({ where: { status: "UNPAID" } }),
     prisma.passport.findMany({
       take: 6,
       orderBy: { updatedAt: "desc" },
-      include: { payment: true },
     }),
   ]);
 
   return (
     <PageShell
       title="Staff Operations Desk"
-      subtitle="Daily intake, courier custody tracking, and payment status control."
+      subtitle="Daily intake and courier custody tracking."
     >
       <div className="space-y-8">
         {/* Quick Operational Ribbon */}
@@ -80,8 +76,7 @@ export default async function StaffPage() {
           </div>
         </div>
 
-        {/* Operational Counters Grid — one card per pipeline stage plus
-            payment statuses */}
+        {/* Operational Counters Grid — one card per pipeline stage */}
         <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
           {/* Received */}
           <Link
@@ -166,27 +161,6 @@ export default async function StaffPage() {
               Completed custody chain
             </p>
           </Link>
-
-          {/* Unpaid Passports */}
-          <Link
-            href="/staff/passports"
-            className="group rounded-2xl border border-rose-500/30 bg-rose-500/5 p-5 shadow-xs hover:border-rose-500/60 hover:shadow-sm transition-all"
-          >
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold uppercase tracking-wider text-rose-700 dark:text-rose-400">
-                Unpaid Passports
-              </span>
-              <div className="size-8 rounded-lg bg-rose-500/20 text-rose-600 dark:text-rose-400 flex items-center justify-center group-hover:scale-105 transition-transform">
-                <CreditCardIcon className="size-4" />
-              </div>
-            </div>
-            <p className="mt-3 font-mono text-3xl font-extrabold text-rose-700 dark:text-rose-300">
-              {unpaidPassports}
-            </p>
-            <p className="mt-1 text-xs text-rose-600/90 dark:text-rose-400/90 font-medium">
-              Outstanding fees
-            </p>
-          </Link>
         </div>
 
         {/* Recent Passports Queue */}
@@ -216,8 +190,6 @@ export default async function StaffPage() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {recentPassports.map((p) => {
-                const isPaid = p.payment?.status === "PAID";
-
                 return (
                   <div
                     key={p.id}
@@ -243,14 +215,7 @@ export default async function StaffPage() {
                         Agency: <span className="font-medium text-foreground">{p.agencyName}</span>
                       </p>
                       <p className="text-[11px] text-muted-foreground mt-1 font-mono">
-                        Fee: {taka(p.fee)}{" "}
-                        <Badge
-                          className={`font-sans ${
-                            PAYMENT_BADGE[isPaid ? "PAID" : "UNPAID"]
-                          }`}
-                        >
-                          {isPaid ? "Paid" : "Unpaid"}
-                        </Badge>
+                        Fee: {taka(p.fee)}
                       </p>
                     </div>
 

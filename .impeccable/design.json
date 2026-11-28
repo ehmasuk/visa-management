@@ -117,7 +117,7 @@
     "rules": [
       { "name": "The Ink-Only Primary Rule", "body": "The palette's only filled element is near-black ink. No brand hue, no colored buttons; rarity IS the discipline.", "section": "colors" },
       { "name": "The Tint-Window Rule", "body": "Status hues live in one shape only: a pill with ~15% tinted background and the hue's 600-step text at medium weight. Never solid fills, never colored borders.", "section": "colors" },
-      { "name": "The One-Status Pill Rule", "body": "A passport carries at most one status tint and one payment tint; two pills max on any record row.", "section": "colors" },
+      { "name": "The One-Status Pill Rule", "body": "A passport row carries at most one status tint; never add a second status-like pill.", "section": "colors" },
       { "name": "The Serial-Stencil Rule", "body": "Any identifier printed on the physical document — passport numbers — is set in Geist Mono (14px/600). No other text uses mono.", "section": "typography" },
       { "name": "The Focus-Glow Exception", "body": "The focus-visible ring (3px, ring/50%) is the one place light blooms. Hover states stay flat; nothing floats, nothing drops a shadow.", "section": "elevation" }
     ],
@@ -133,7 +133,7 @@
       "Don't drop shadows for depth — ring strokes only; the focus ring is the sole glow.",
       "Don't color buttons, inputs, or backgrounds with palette hues; Desk Ink is the only fill.",
       "Don't use solid status fills or colored borders for status information.",
-      "Don't put more than two status pills on one record row (one status + one payment).",
+      "Don't put more than one status pill on one record row.",
       "Don't apply the pill (26px radius) to anything except badges; controls stay rectangular at their scale step.",
       "Don't uppercase body text or headings — the uppercase voice belongs to table headers and 12px labels only."
     ]

@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { requireStaffOrAdmin } from "@/lib/guards";
 import { prisma } from "@/lib/prisma";
-import { RoleNav } from "@/components/role-nav";
+import { InternalShell } from "@/components/internal-shell";
 import { Field, PageShell, Select, SubmitButton } from "@/components/admin-ui";
 import { updatePassportDetails } from "@/app/actions/passport";
 import { Card } from "@/components/ui/card";
@@ -44,12 +44,7 @@ export default async function PassportEditPage({
   ];
 
   return (
-    <div className="flex min-h-svh flex-col">
-      <RoleNav
-        pathname={`/passports/${id}/edit`}
-        role={session.user.role}
-        userLabel={session.user.name ?? session.user.email}
-      />
+    <InternalShell role={session.user.role} email={session.user.email ?? ""}>
       <PageShell
         title="Edit passport"
         subtitle={`${passport.passportNumber} · ${passport.holderName} · ${passport.agencyName}`}
@@ -139,6 +134,6 @@ export default async function PassportEditPage({
           </form>
         </Card>
       </PageShell>
-    </div>
+    </InternalShell>
   );
 }

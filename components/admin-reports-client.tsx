@@ -13,8 +13,6 @@ import {
 import {
   ArrowUpRight,
   CalendarDays,
-  CheckCircle2,
-  Clock,
   FileText,
   Receipt,
   RotateCcw,
@@ -67,7 +65,6 @@ export function AdminReportsClient({
   const [agency, setAgency] = React.useState("");
   const [branch, setBranch] = React.useState("");
   const [status, setStatus] = React.useState("");
-  const [payment, setPayment] = React.useState("");
   const [page, setPage] = React.useState(0);
 
   const [result, setResult] = React.useState<ReportResult>(initial);
@@ -108,7 +105,6 @@ export function AdminReportsClient({
       agency,
       branch,
       status,
-      payment,
       page,
     })
       .then((res) => {
@@ -127,7 +123,7 @@ export function AdminReportsClient({
     return () => {
       cancelled = true;
     };
-  }, [searchQuery, date, timeWindow, agency, branch, status, payment, page]);
+  }, [searchQuery, date, timeWindow, agency, branch, status, page]);
 
   const flushSearch = () => setSearchQuery(searchText.trim());
 
@@ -137,8 +133,7 @@ export function AdminReportsClient({
     timeWindow !== "all" ||
     agency !== "" ||
     branch !== "" ||
-    status !== "" ||
-    payment !== "";
+    status !== "";
 
   const resetFilters = () => {
     setSearchText("");
@@ -148,7 +143,6 @@ export function AdminReportsClient({
     setAgency("");
     setBranch("");
     setStatus("");
-    setPayment("");
     setPage(0);
   };
 
@@ -161,7 +155,6 @@ export function AdminReportsClient({
   const changeAgency = change<string>(setAgency);
   const changeBranch = change<string>(setBranch);
   const changeStatus = change<string>(setStatus);
-  const changePayment = change<string>(setPayment);
   // The two time mechanisms are mutually exclusive: a picked day replaces the
   // range window and vice versa. No-op writes (same value) still fall out of
   // the fetch effect because its deps do not change, so re-selecting the
@@ -200,10 +193,10 @@ export function AdminReportsClient({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-foreground">
-            Financial &amp; Volume Reports
+            Passport &amp; Fee Volume Reports
           </h1>
           <p className="mt-1 text-xs sm:text-sm text-muted-foreground">
-            Audited passport counts and settlement totals (Paid vs. Unpaid).
+            Audited passport counts and recorded fee totals by date and agency.
           </p>
         </div>
 
@@ -360,25 +353,11 @@ export function AdminReportsClient({
               <option value="DELIVERED">Delivered</option>
             </NativeSelect>
           </div>
-
-          {/* Payment Status Filter */}
-          <div className="w-full sm:w-auto">
-            <NativeSelect
-              value={payment}
-              onChange={(e) => changePayment(e.target.value)}
-              className="h-9 w-full sm:w-44 text-xs font-medium rounded-xl"
-            >
-              <option value="">All Payments</option>
-              <option value="PAID">Paid</option>
-              <option value="UNPAID">Unpaid</option>
-            </NativeSelect>
-          </div>
         </div>
       </div>
 
-      {/* Summary KPI Cards (computd server-side per query) */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Total Passports */}
+      {/* Summary KPI Cards (computed server-side per query) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <div className="rounded-2xl border border-border/80 bg-card p-5 shadow-xs">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
@@ -390,61 +369,72 @@ export function AdminReportsClient({
           </div>
           <p className={kpiValueClass}>{formatNum(result.kpis.totalPassports)}</p>
           <p className={cn(kpiNoteClass, "text-muted-foreground")}>
-            Total fee: <span className="font-mono">{taka(result.kpis.totalFees)}</span>
+            Records matching the current filters
           </p>
         </div>
 
-        {/* Total Paid */}
-        <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/5 p-5 shadow-xs">
+        <div className="rounded-2xl border border-purple-500/30 bg-purple-500/5 p-5 shadow-xs">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400">
-              Paid Volume
+            <span className="text-xs font-bold uppercase tracking-wider text-purple-700 dark:text-purple-400">
+              Total Fees
             </span>
-            <div className="size-8 rounded-lg bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
-              <CheckCircle2 className="size-4" />
-            </div>
-          </div>
-          <p className={cn(kpiValueClass, "text-emerald-600 dark:text-emerald-400")}>
-            {taka(result.kpis.totalPaid)}
-          </p>
-          <p className={cn(kpiNoteClass, "text-emerald-600/80 dark:text-emerald-400/80 font-medium")}>
-            Marked paid by staff
-          </p>
-        </div>
-
-        {/* Unpaid Count */}
-        <div className="rounded-2xl border border-amber-500/30 bg-amber-500/5 p-5 shadow-xs">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-amber-700 dark:text-amber-400">
-              Unpaid Records
-            </span>
-            <div className="size-8 rounded-lg bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center">
-              <Clock className="size-4" />
-            </div>
-          </div>
-          <p className={cn(kpiValueClass, "text-amber-700 dark:text-amber-300")}>
-            {formatNum(result.kpis.unpaidCount)}
-          </p>
-          <p className={cn(kpiNoteClass, "text-amber-600/80 dark:text-amber-400/80 font-medium")}>
-            Still unpaid
-          </p>
-        </div>
-
-        {/* Total Unpaid Amount */}
-        <div className="rounded-2xl border border-rose-500/30 bg-rose-500/5 p-5 shadow-xs">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-rose-700 dark:text-rose-400">
-              Unpaid Balance
-            </span>
-            <div className="size-8 rounded-lg bg-rose-500/20 text-rose-600 dark:text-rose-400 flex items-center justify-center">
+            <div className="size-8 rounded-lg bg-purple-500/20 text-purple-600 dark:text-purple-400 flex items-center justify-center">
               <Receipt className="size-4" />
             </div>
           </div>
-          <p className={cn(kpiValueClass, "text-rose-600 dark:text-rose-400")}>
-            {taka(result.kpis.totalUnpaid)}
+          <p className={cn(kpiValueClass, "text-purple-700 dark:text-purple-300")}>
+            {taka(result.kpis.totalFees)}
           </p>
-          <p className={cn(kpiNoteClass, "text-rose-600/80 dark:text-rose-400/80 font-medium")}>
-            Outstanding fees
+          <p className={cn(kpiNoteClass, "text-purple-600/80 dark:text-purple-400/80 font-medium")}>
+            Total recorded fees
+          </p>
+        </div>
+
+        <div
+          className={`rounded-2xl border p-5 shadow-xs ${
+            result.kpis.dueAmount > 0
+              ? "border-rose-500/30 bg-rose-500/5"
+              : result.kpis.dueAmount < 0
+                ? "border-emerald-500/30 bg-emerald-500/5"
+                : "border-border/80 bg-card"
+          }`}
+        >
+          <div className="flex items-center justify-between">
+            <span
+              className={`text-xs font-bold uppercase tracking-wider ${
+                result.kpis.dueAmount > 0
+                  ? "text-rose-700 dark:text-rose-400"
+                  : result.kpis.dueAmount < 0
+                    ? "text-emerald-700 dark:text-emerald-400"
+                    : "text-muted-foreground"
+              }`}
+            >
+              Due Fees
+            </span>
+            <div className="size-8 rounded-lg bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center">
+              <Receipt className="size-4" />
+            </div>
+          </div>
+          <p
+            className={cn(
+              kpiValueClass,
+              result.kpis.dueAmount > 0
+                ? "text-rose-600 dark:text-rose-400"
+                : result.kpis.dueAmount < 0
+                  ? "text-emerald-600 dark:text-emerald-400"
+                  : "text-muted-foreground"
+            )}
+          >
+            {result.kpis.dueAmount === 0
+              ? "—"
+              : taka(Math.abs(result.kpis.dueAmount))}
+          </p>
+          <p className={cn(kpiNoteClass, "text-muted-foreground")}>
+            {result.kpis.dueAmount > 0
+              ? "Fees minus payments received"
+              : result.kpis.dueAmount < 0
+                ? "Payments exceed fees"
+                : "Fully settled"}
           </p>
         </div>
       </div>
@@ -497,12 +487,6 @@ export function AdminReportsClient({
                 </span>
                 <span className="font-mono text-foreground">
                   Fees: <span className="font-bold">{taka(result.kpis.totalFees)}</span>
-                </span>
-                <span className="font-mono text-foreground">
-                  Paid:{" "}
-                  <span className="font-bold text-emerald-600 dark:text-emerald-400">
-                    {taka(result.kpis.totalPaid)}
-                  </span>
                 </span>
               </div>
             )}

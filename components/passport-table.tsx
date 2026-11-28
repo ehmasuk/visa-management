@@ -3,9 +3,8 @@
 import Link from "next/link";
 import { useSyncExternalStore, useState } from "react";
 import { useFormStatus } from "react-dom";
-import type { Prisma } from "@prisma/client";
+import type { Passport } from "@prisma/client";
 import { updatePassportStatus } from "@/app/actions/passport";
-import { PaymentToggle } from "@/components/payment-toggle";
 import { Select, SubmitButton } from "@/components/admin-ui";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -24,7 +23,6 @@ import {
   fmtDate,
   lastEditorLine,
   NEXT_STAGE,
-  PAYMENT_BADGE,
   statusLabel,
   STATUS_BADGE,
   STATUS_DOT,
@@ -32,7 +30,7 @@ import {
 } from "@/lib/passport-format";
 import { Edit, FileSearch, Send, Truck } from "lucide-react";
 
-type PassportRow = Prisma.PassportGetPayload<{ include: { payment: true } }>;
+type PassportRow = Passport;
 
 const CELL = "whitespace-nowrap border-r border-border/60 px-3 py-2 align-middle last:border-r-0";
 const HEAD = "whitespace-nowrap border-r border-border/70 px-3 py-2.5 text-left font-semibold text-muted-foreground last:border-r-0";
@@ -115,9 +113,6 @@ export function PassportTable({
               <th className={HEAD}>Submitted</th>
               <th className={HEAD}>Delivered</th>
               <th className={HEAD}>Comment</th>
-              <th className={HEAD}>Payment</th>
-              <th className={HEAD}>Amount</th>
-              <th className={HEAD}>Paid At</th>
               <th className={HEAD}>Last Edited By</th>
               <th className={HEAD}>Editor Gmail</th>
               <th className={HEAD}>Actions</th>
@@ -126,7 +121,6 @@ export function PassportTable({
           <tbody>
             {rows.map((p) => {
               const next = NEXT_STAGE[p.status as PassportStage];
-              const payment = p.payment;
               const addedToday = dayKey(p.receiptDate) === today;
               return (
                 <tr
@@ -198,27 +192,6 @@ export function PassportTable({
                   <td className={cn(CELL, "tabular-nums text-muted-foreground")}>{fmtDate(p.submittedDate)}</td>
                   <td className={cn(CELL, "tabular-nums text-muted-foreground")}>{fmtDate(p.deliveryDate)}</td>
                   <td className={cn(CELL, "max-w-72 text-muted-foreground")}>{p.comment || "—"}</td>
-                  <td className={CELL}>
-                    <div className="flex flex-wrap gap-1.5 items-center">
-                      <Badge
-                        className={cn(
-                          PAYMENT_BADGE[payment?.status === "PAID" ? "PAID" : "UNPAID"]
-                        )}
-                      >
-                        {payment?.status ?? "UNPAID"}
-                      </Badge>
-                      <PaymentToggle
-                        passportId={p.id}
-                        paid={payment?.status === "PAID"}
-                        returnTo={returnTo}
-                        compact
-                      />
-                    </div>
-                  </td>
-                  <td className={cn(CELL, "tabular-nums font-semibold")}>
-                    {payment ? payment.amount.toLocaleString() : "—"}
-                  </td>
-                  <td className={cn(CELL, "tabular-nums text-muted-foreground")}>{fmtDate(payment?.paidAt)}</td>
                   <td className={cn(CELL, "text-muted-foreground")}>
                     {lastEditorLine(p.lastEditedByName, p.lastEditedByRole, p.lastEditedAt, false)}
                   </td>

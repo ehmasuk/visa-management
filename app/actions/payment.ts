@@ -3,86 +3,75 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
-import { requireStaffOrAdmin } from "@/lib/guards";
+import { requireStaff } from "@/lib/guards";
 import { setFlash } from "@/lib/flash";
-import { lastEditorStamp } from "@/lib/last-editor";
 
 /**
- * Payment settlement is handled internally. There is no agency request and
- * no approval queue: staff and admins flip a passport's payment directly
- * between PAID and UNPAID from the desk lists. Agencies
- * are client records only and never interact with payment.
+ * Agency-level payments. Staff record money received from an agency via a
+ * collector. There is no per-passport payment state; an agency's due is
+ * derived later from its total passport fees minus these payments.
  */
 
-const LIST_HOMES = [
-  "/staff/passports",
-  "/admin/passports",
-  "/admin/reports",
-] as const;
+const BASE = "/staff/payments";
 
-async function fail(path: string, message: string): Promise<never> {
+async function fail(message: string): Promise<never> {
   await setFlash("error", message);
-  redirect(path);
+  redirect(BASE);
 }
 
 function str(formData: FormData, key: string): string {
   return String(formData.get(key) ?? "").trim();
 }
 
-/** Only known internal surfaces may be used as a post-action redirect. */
-function safeReturnTo(formData: FormData): string {
-  const candidate = str(formData, "returnTo");
-  if ((LIST_HOMES as readonly string[]).includes(candidate)) {
-    return candidate;
-  }
-  return LIST_HOMES[0];
-}
+export async function createPayment(formData: FormData) {
+  const session = await requireStaff();
 
-/**
- * Flip a passport's payment status. Any internal operator (STAFF or ADMIN)
- * may act on any passport, regardless of its custody status. The settlement
- * amount always follows the passport's current fee, and paidAt is stamped
- * only while the payment is PAID (cleared when it is marked unpaid).
- */
-export async function togglePaymentStatus(formData: FormData) {
-  const session = await requireStaffOrAdmin();
+  const agencyName = str(formData, "agencyName");
+  const collectorName = str(formData, "collectorName");
+  const amountRaw = str(formData, "amount");
+  const countRaw = str(formData, "passportCount");
 
-  const passportId = str(formData, "passportId");
-  if (!passportId) await fail("/staff/passports", "Missing passport id.");
-
-  const returnTo = safeReturnTo(formData);
-  const passport = await prisma.passport.findUnique({
-    where: { id: passportId },
-    include: { payment: true },
-  });
-  if (!passport) {
-    await fail(returnTo, "Passport record not found.");
-    return;
+  const errors: string[] = [];
+  if (!agencyName) errors.push("agency");
+  if (!collectorName) errors.push("collector");
+  if (!amountRaw) errors.push("amount");
+  if (!countRaw) errors.push("passport count");
+  if (errors.length > 0) {
+    await fail(`Missing required field(s): ${errors.join(", ")}.`);
   }
 
-  const markPaid = passport.payment?.status !== "PAID";
-  const status = markPaid ? "PAID" : "UNPAID";
-  const paidAt = markPaid ? new Date() : null;
+  const amount = Number(amountRaw);
+  if (!Number.isInteger(amount) || amount <= 0) {
+    await fail("Amount must be a positive whole amount of taka (e.g. 40000).");
+  }
+  const passportCount = Number(countRaw);
+  if (!Number.isInteger(passportCount) || passportCount < 0) {
+    await fail("Passport count must be a non-negative whole number.");
+  }
 
-  // One write stamps the editor on the passport and keeps the 1:1 payment
-  // record in sync, creating it if an older passport never had one.
-  await prisma.passport.update({
-    where: { id: passportId },
+  const agency = await prisma.agency.findUnique({ where: { name: agencyName } });
+  if (!agency) {
+    await fail(`Agency "${agencyName}" is not registered. Ask the admin to add it first.`);
+  }
+  const collector = await prisma.collector.findUnique({ where: { name: collectorName } });
+  if (!collector) {
+    await fail(`Collector "${collectorName}" is not registered. Ask the admin to add them first.`);
+  }
+
+  await prisma.payment.create({
     data: {
-      ...lastEditorStamp(session),
-      payment: {
-        upsert: {
-          create: { amount: passport.fee, status, paidAt },
-          update: { amount: passport.fee, status, paidAt },
-        },
-      },
+      agencyName,
+      amount,
+      passportCount,
+      collectorName,
+      // The receiving staff member comes from the session, never the form.
+      receivedByName: session.user.name ?? session.user.email ?? "",
+      receivedByRole: session.user.role,
+      receivedByEmail: session.user.email ?? "",
     },
   });
 
-  for (const path of [...LIST_HOMES, "/staff", "/admin"]) {
-    revalidatePath(path);
-  }
-
-  await setFlash("success", markPaid ? "Payment marked as paid." : "Payment marked as unpaid.");
-  redirect(returnTo);
+  revalidatePath(BASE);
+  await setFlash("success", "Payment recorded.");
+  redirect(BASE);
 }

@@ -28,7 +28,7 @@ export default async function StaffPassportsPage() {
         initial={initial}
         collectors={collectors}
         returnTo="/staff/passports"
-        emptyHint="Record your first passport on the Passport Entry page — it will appear here with its status and payment state."
+        emptyHint="Record your first passport on the Passport Entry page — it will appear here with its status and fee details."
       />
     </PageShell>
   );

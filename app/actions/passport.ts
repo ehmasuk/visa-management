@@ -145,13 +145,6 @@ export async function createPassport(formData: FormData) {
       receiptDate: new Date(),
       // creating staff member = initial last editor
       ...lastEditorStamp(session),
-      // Every passport starts with an unpaid payment record
-      payment: {
-        create: {
-          amount: fee,
-          status: "UNPAID",
-        },
-      },
     },
   });
 
@@ -165,8 +158,7 @@ export async function createPassport(formData: FormData) {
  * field of an existing passport, including its branch. Validation mirrors
  * entry exactly: registry-backed selections (selector's record must exist) and
  * a non-negative whole taka fee. Passport numbers are NOT unique — the same
- * passport can return for another visa. The settlement amount follows the fee
- * so reports never show a stale amount.
+ * passport can return for another visa.
  * System-managed fields (status, receiptDate, deliveryDate,
  * deliveryCollectorName) are deliberately never read from the form — the
  * status/delivery flow governs them, so posted values for them are ignored
@@ -256,14 +248,6 @@ export async function updatePassportDetails(formData: FormData) {
       contactNumber,
       comment,
       fee,
-      // Settlement amount always tracks the current fee; reports must not
-      // show a stale amount after a fee correction.
-      payment: {
-        upsert: {
-          create: { amount: fee, status: "UNPAID" },
-          update: { amount: fee },
-        },
-      },
       ...lastEditorStamp(session),
     },
   });

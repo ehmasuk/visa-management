@@ -1,6 +1,6 @@
 ---
 name: Visa Management
-description: Professional, modern executive passport custody and payment tracking system
+description: Professional, modern executive passport custody and fee reporting system
 colors:
   primary: "oklch(0.50 0.22 258)"
   primary-foreground: "oklch(0.99 0 0)"
@@ -26,7 +26,6 @@ colors:
   status-received-blue: "#2563eb"
   status-pending-amber: "#d97706"
   status-delivered-emerald: "#059669"
-  status-unpaid-rose: "#e11d48"
 typography:
   headline:
     fontFamily: "Inter, system-ui, sans-serif"
@@ -77,7 +76,7 @@ spacing:
 
 **Creative North Star: "The Sovereign Portal"**
 
-An authoritative, modern, and beautifully crafted operations platform for visa processing, passport custody, and payment settlements. Clean slate foundations meet an executive sapphire primary tone, enriched with semantic color accents: emerald for delivery & paid state, amber for custody transit, violet for visa categories, and ruby for unpaid balances. 
+An authoritative, modern, and beautifully crafted operations platform for visa processing and passport custody. Clean slate foundations meet an executive sapphire primary tone, enriched with semantic color accents: emerald for delivery, amber for custody transit, and violet for visa categories. 
 
 The interface is uncluttered, spacious, purposeful, and free of AI slop templates.
 

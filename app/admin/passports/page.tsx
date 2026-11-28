@@ -35,7 +35,7 @@ export default async function AdminPassportsPage() {
           initial={initial}
           collectors={collectors}
           returnTo="/admin/passports"
-          emptyHint="Passports entered by staff appear here immediately, with their status and payment state."
+          emptyHint="Passports entered by staff appear here immediately, with their status and fee details."
         />
       </PageShell>
     </div>

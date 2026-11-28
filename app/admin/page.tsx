@@ -20,8 +20,7 @@ export default async function AdminPage() {
     totalPassports,
     receivedPassports,
     deliveredPassports,
-    paidAggregate,
-    unpaidAggregate,
+    feeAggregate,
     recentPassportsRaw,
   ] = await Promise.all([
     prisma.branch.count(),
@@ -33,14 +32,7 @@ export default async function AdminPage() {
     prisma.passport.count(),
     prisma.passport.count({ where: { status: "RECEIVED" } }),
     prisma.passport.count({ where: { status: "DELIVERED" } }),
-    prisma.payment.aggregate({
-      _sum: { amount: true },
-      where: { status: "PAID" },
-    }),
-    prisma.payment.aggregate({
-      _sum: { amount: true },
-      where: { status: "UNPAID" },
-    }),
+    prisma.passport.aggregate({ _sum: { fee: true } }),
     prisma.passport.findMany({
       take: 5,
       orderBy: { updatedAt: "desc" },
@@ -68,8 +60,7 @@ export default async function AdminPage() {
       totalPassports,
       receivedPassports,
       deliveredPassports,
-      paidAmount: paidAggregate._sum.amount ?? 0,
-      unpaidAmount: unpaidAggregate._sum.amount ?? 0,
+      totalFee: feeAggregate._sum.fee ?? 0,
     },
     recentPassports: recentPassportsRaw.map((p) => ({
       id: p.id,

@@ -151,7 +151,6 @@ model Passport {
   lastEditedAt      DateTime? @map("last_edited_at")
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
-  payment        Payment?
 
   @@index([status])
   // Non-unique: the same passport may return for another visa, so its number
@@ -171,23 +170,6 @@ model Passport {
   @@map("passports")
 }
 
-// Settlement state of a passport. One payment per passport (passportId
-// unique). Staff and admins flip status directly between PAID and UNPAID;
-// amount always mirrors the passport's current fee for the money reports.
-model Payment {
-  id         String        @id @default(auto()) @map("_id") @db.ObjectId
-  passport   Passport      @relation(fields: [passportId], references: [id])
-  passportId String        @unique @map("passport_id") @db.ObjectId
-  amount     Int
-  status     PaymentStatus @default(UNPAID)
-  paidAt     DateTime?     @map("paid_at")
-  createdAt  DateTime      @default(now())
-  updatedAt  DateTime      @updatedAt
-
-  @@index([status])
-  @@map("payments")
-}
-
 enum PassportStatus {
   RECEIVED
   UNDER_REVIEW
@@ -195,7 +177,24 @@ enum PassportStatus {
   DELIVERED
 }
 
-enum PaymentStatus {
-  PAID
-  UNPAID
+// Agency-level settlement recorded by staff. Not linked to passports: the
+// passport count is informational, and an agency's due is computed later from
+// total passport fees minus recorded payments.
+model Payment {
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  agencyName      String
+  amount          Int
+  passportCount   Int      @map("passport_count")
+  collectorName   String   @map("collector_name")
+  receivedByName  String   @map("received_by_name")
+  receivedByRole  String   @map("received_by_role")
+  receivedByEmail String   @map("received_by_email")
+  receivedAt      DateTime @default(now()) @map("received_at")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([agencyName, receivedAt])
+  @@index([receivedAt])
+  @@map("payments")
 }
+

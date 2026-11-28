@@ -8,12 +8,12 @@ web
 
 ## Users
 
-- **Primary — Staff (STAFF):** office employees of a visa-processing business. Their daily job is the heavy lifting: enter passports received from agencies via collectors, move passports through statuses, assign the delivery collector at delivery, and mark payments paid or unpaid.
+- **Primary — Staff (STAFF):** office employees of a visa-processing business. Their daily job is the heavy lifting: enter passports received from agencies via collectors, move passports through statuses, and assign the delivery collector at delivery.
 - **Admin (ADMIN):** the owner/manager. A single active admin account exists by design (controlled bootstrap, audited recovery). The admin manages registries and reads money/volume reports; they do not do the day-to-day entry.
 
 ## Product Purpose
 
-Replace informal, manual tracking of passport intake/delivery/payment with a role-gated web system. The business receives passports from client agencies through collectors; staff record each entry, track status to delivery, and mark payment paid or unpaid. Success: staff record every passport accurately with minimal friction and the owner can see money collected (paid vs unpaid) over time.
+Replace informal, manual tracking of passport intake and delivery with a role-gated web system. The business receives passports from client agencies through collectors; staff record each entry, track status to delivery, and record the fee. Success: staff record every passport accurately with minimal friction and the owner can see passport volumes and recorded fee totals over time.
 
 ## Positioning
 
@@ -22,7 +22,7 @@ Internal operations system, not a storefront. Its distinctive mechanism is regis
 ## Operating Context
 
 - Visa-processing office serving multiple client agencies; passports are physically sent via collectors, so tracking mirrors real-world custody.
-- Money is settled **outside** the system (in person, e.g. cash or transfer). The app records only a simple paid/unpaid state that staff or the admin set directly on any passport; there are no external payment actors.
+- Payment settlement is handled in a separate system. This app records passport fees for reporting but holds no payment status or payment actions.
 - Fees are recorded in Bangladeshi taka (৳). The interface currently ships in English; **the confirmed product direction is to convert the interface to Bengali only.**
 - Passport lifecycle is fixed: RECEIVED → UNDER_REVIEW → SUBMITTED → DELIVERED, with receipt date set automatically on entry and delivery date set automatically on the transition to DELIVERED.
 
@@ -32,9 +32,10 @@ Confirmed functionality:
 
 - Staff passport entry: agency name, branch office, intake collector, passport number (may be reused when the same passport returns), holder name, contact number, comment, fee, plus registry-backed visa type and service selections. Branches are admin-created; staff choose from them.
 - Staff status/delivery flow: status transitions, delivery collector assigned at delivery, comment editable at any time; last editor (name/role/email/time) stamped on every passport mutation.
-- Payment: one record per passport, default unpaid; staff or admin flip it to paid or back to unpaid at any time; the amount always follows the current fee.
 - Admin registries: branches, agencies (name-only client records), collectors, visa types, services (selectable at entry), and staff (Gmail allow-list with role). Staff may add agencies and collectors from their own registries page; renaming and removal stay admin-only.
-- Admin reports: passport counts and money totals (paid/unpaid) by day, month, or agency; plus audit trail (AdminAudit) for admin recovery and authorized role changes.
+- Staff payments: staff record agency-level payments with amount, passport count, collector, automatic date, and receiving staff; agency due is total passport fees minus payments received.
+- Admin reports: passport counts and recorded fee totals by day, month, agency, or branch; plus audit trail (AdminAudit) for admin recovery and authorized role changes.
+- Admin payments view: agency-wise fees, payments received, dues or credits, and individual payment records, filterable by date and agency name.
 
 Constraints:
 
@@ -52,6 +53,6 @@ Open decisions:
 
 ## Evidence on Hand
 
-- Durable specs: `openspec/specs/**` (identity/roles, visa/passport-entry, visa/status-delivery, visa/passport-details, visa/payment, admin/registry, admin/reports) and archived change proposals under `openspec/changes/archive/` — treat these as the source of product truth.
-- Data model: `prisma/schema.prisma` (registry models, Passport custody fields, Payment state machine).
+- Durable specs: `openspec/specs/**` (identity/roles, visa/passport-entry, visa/status-delivery, visa/passport-details, staff/payments, admin/registry, admin/reports, admin/payments) and archived change proposals under `openspec/changes/archive/` — treat these as the source of product truth.
+- Data model: `prisma/schema.prisma` (registry models and Passport custody fields).
 - No real imagery, testimonials, case studies, or marketing assets exist. Do not fabricate them. Sample/live data exists only in the connected MongoDB database, never in the repo.

@@ -156,11 +156,11 @@ export function Login03({
           className={cn(ENTER, "relative z-10 mt-auto flex flex-col gap-3")}
         >
           <p className="font-serif text-2xl leading-[1.25] tracking-tight md:text-3xl">
-            Passport custody, visa workflow and settlement —{" "}
+            Passport custody and visa workflow —{" "}
             <span className="italic text-foreground">one governed workspace</span>.
           </p>
           <p className="text-xs uppercase text-muted-foreground">
-            Registry-gated access · Chain of custody · Payment ledger
+            Registry-gated access · Chain of custody · Fee reporting
           </p>
         </div>
       </aside>

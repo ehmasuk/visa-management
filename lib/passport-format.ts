@@ -33,12 +33,6 @@ export const STATUS_BADGE: Record<string, string> = {
   DELIVERED: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20",
 };
 
-/** Tailwind classes for the payment badge, keyed by PaymentStatus. */
-export const PAYMENT_BADGE: Record<"PAID" | "UNPAID", string> = {
-  PAID: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20",
-  UNPAID: "bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20",
-};
-
 /** Tailwind classes for the badge/status timeline dot, keyed by PassportStatus. */
 export const STATUS_DOT: Record<string, string> = {
   RECEIVED: "bg-blue-500",

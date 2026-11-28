@@ -3,14 +3,14 @@
 ## MODIFIED Requirements
 
 ### Requirement: Staff and admin lists show every passport field
-The system SHALL display every stored field directly in the staff and admin list table: agency name, branch, intake collector, visa type, service, passport number, passport holder name, contact number, comment, fee, status, receipt date, under-review date, submitted date, delivery date, delivery collector, payment status and amount, and the last-editor record.
+The system SHALL display every stored field directly in the staff and admin list table: agency name, branch, intake collector, visa type, service, passport number, passport holder name, contact number, comment, fee, status, receipt date, under-review date, submitted date, delivery date, delivery collector, and the last-editor record.
 
 #### Scenario: Full record visible in the list
 - **WHEN** staff or an admin opens their passport list
-- **THEN** each row shows every field captured at entry, the system-managed dates, and the payment and last-editor details
+- **THEN** each row shows every field captured at entry, the system-managed dates, and the last-editor details
 
 #### Scenario: Fields never captured are shown as empty
-- **WHEN** the list shows a passport that has no under-review, submitted, delivery, or payment recording
+- **WHEN** the list shows a passport that has no under-review, submitted, or delivery recording
 - **THEN** the unset fields are rendered as empty rather than hiding those details from the view
 
 ### Requirement: Passport editing does not modify system-managed fields

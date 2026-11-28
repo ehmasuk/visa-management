@@ -24,7 +24,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { requireStaffOrAdmin } from "@/lib/guards";
-import type { Prisma } from "@prisma/client";
+import type { Passport, Prisma } from "@prisma/client";
 import {
   buildListFilters,
   type PassportListQuery,
@@ -38,10 +38,8 @@ const DEFAULT_PAGE_SIZE = 20;
 // past the cap the UI asks for a refined search instead.
 const MAX_PAGES = 1000;
 
-/** A row keeps the card's exact prop shape so the shared card is reused as-is. */
-export type PassportListRow = Prisma.PassportGetPayload<{
-  include: { payment: true };
-}>;
+/** A row is a full passport document; no relation includes are needed. */
+export type PassportListRow = Passport;
 
 export type PassportListResult = {
   rows: PassportListRow[];
@@ -84,7 +82,6 @@ async function loadList(
     orderBy: [{ receiptDate: "desc" }, { id: "desc" }],
     skip: page * pageSize,
     take: pageSize,
-    include: { payment: true },
   });
 
   return { rows, total, capped, page, pageSize, pageCount };

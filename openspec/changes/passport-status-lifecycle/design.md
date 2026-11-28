@@ -16,7 +16,7 @@ Today `PassportStatus` has two values (RECEIVED, DELIVERED). `updatePassportStat
 
 - Stage overrides/backward moves (explicitly declined by the user); no admin reset tooling.
 - A transition-audit collection with actor history per milestone (the existing last-editor stamp plus milestone dates is sufficient for this change).
-- Changing who can advance stages (stays STAFF + ADMIN per the passport-details spec), or any payment-rule coupling to the new stages beyond what the specs state.
+- Changing who can advance stages (stays STAFF + ADMIN per the passport-details spec), or coupling any other workflow to the new stages beyond what the specs state.
 - External-user actions or an external API surface.
 
 ## Decisions
@@ -45,4 +45,4 @@ Today `PassportStatus` has two values (RECEIVED, DELIVERED). `updatePassportStat
 - [Unknown status values could be written once the enum is permissive in Prisma] → Only `updatePassportStatus` writes status, and decision 3 whitelists transitions; the UI never offers invalid options.
 - [Legacy passports show gaps in the timeline] → Spec'd as unset rendering ("—"); no backfill (would invent history — worse than honest gaps).
 - [Operational regression: staff can no longer flip a delivered passport back] → Accepted (user decision); a delivered passport stays terminal. Documented in proposal as breaking for that flow; nothing else consumed the toggle.
-- [Deliver dialog moved to a later stage] → Agencies see read-only payment status with no pay button, so no payment flow is coupled to delivery; only the internal deliver path narrows.
+- [Deliver dialog moved to a later stage] → Delivery remains an internal custody step only; only the internal deliver path narrows.
